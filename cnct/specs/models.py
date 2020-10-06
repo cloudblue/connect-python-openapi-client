@@ -15,7 +15,6 @@ class ApiInfo:
         return self.collections.setdefault(col_name, CollectionInfo(col_name))
 
 
-
 class OpInfo:
     def __init__(self, name, collection_name, path, method, info):
         self.path = path
@@ -24,6 +23,7 @@ class OpInfo:
         self.path = path
         self.method = method
         self.info = info
+
 
 class NSInfo:
     def __init__(self, name):
@@ -40,13 +40,11 @@ class ItemInfo:
         self.collections = {}
         self._help = None
 
-
     def set_action(self, method, name, info):
         self.actions[f'{method}_{name}'] = info
 
     def set_collection(self, name):
         return self.collections.setdefault(name, CollectionInfo(name))
-
 
 
 class CollectionInfo:

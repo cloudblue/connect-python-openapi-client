@@ -1,0 +1,256 @@
+from cnct.client.exceptions import NotFoundError
+from cnct.client.help import print_help
+from cnct.client.utils import parse_content_range, resolve_attribute
+
+
+class NS:
+    """A namespace groups logically a set of collections."""
+    def __init__(self, client, path, specs=None):
+        self.client = client
+        self.path = path
+        self.specs = specs
+
+    def __getattr__(self, name):
+        if not self.specs:
+            raise AttributeError(
+                'No specs available. Use the '
+                '`collection` method instead.'
+            )
+        if name in self.specs.collections:
+            return self.collection(name)
+        raise AttributeError('Unable to resolve {}.'.format(name))
+
+    def collection(self, name):
+        """
+        Returns the collection called `name`.
+
+        :param name: The name of the collection.
+        :type name: str
+        :raises NotFoundError: The collection does not exist.
+        :return: The collection called `name`.
+        :rtype: Collection
+        """
+        if not self.specs:
+            return Collection(
+                self.client,
+                f'{self.path}/{name}',
+            )
+        if name in self.specs.collections:
+            return Collection(
+                self.client,
+                f'{self.path}/{name}',
+                self.specs.collections.get(name),
+            )
+        raise NotFoundError(f'The collection {name} does not exist.')
+
+    def help(self):
+        """
+        Output the namespace documentation to the console.
+
+        :return: self
+        :rtype: NS
+        """
+        print_help(self.specs)
+        return self
+
+
+class Collection:
+    """A collection is a set of operation on a particular entity."""
+    def __init__(self, client, path, specs=None):
+        self.client = client
+        self.path = path
+        self.specs = specs
+
+    def __getitem__(self, item_id):
+        return self.item(item_id)
+
+    def search(self, query=None):
+        """Search/list items within the collection."""
+        return Search(
+            self.client,
+            self.path,
+            query,
+            self.specs.operations.get('search') if self.specs else None,
+        )
+
+    def create(self, payload=None, **kwargs):
+        """Create a new collection item."""
+        return self.client.create(
+            self.path,
+            payload=payload,
+            **kwargs,
+        )
+
+    def item(self, item_id):
+        """Retrieve an item from the collection."""
+        return Item(
+            self.client,
+            f'{self.path}/{item_id}',
+            self.specs.item_specs if self.specs else None,
+        )
+
+    def help(self):
+        print_help(self.specs)
+        return self
+
+
+class Item:
+    """Represent a generic item."""
+    def __init__(self, client, path, specs):
+        self.client = client
+        self.path = path
+        self.specs = specs
+
+    def __getattr__(self, name):
+        if not self.specs:
+            raise AttributeError(
+                'No specs available. Use the `collection` '
+                'or `action` methods instead.'
+            )
+        if name in self.specs.collections and \
+           name in self.specs.actions:
+            raise AttributeError(
+                f'{name} is ambiguous. Use the `collection` '
+                'or `action` methods instead.'
+            )
+        if name in self.specs.collections:
+            return self.collection(name)
+        if name in self.specs.actions:
+            return self.action(name)
+        raise AttributeError('Unable to resolve {}.'.format(name))
+
+    def __dir__(self):
+        default = sorted(super().__dir__() + list(self.__dict__.keys()))
+        if not self.specs:
+            return default
+        cl = self.specs.collection.keys()
+        ac = self.specs.actions.keys()
+        return default + list(set(cl) ^ set(ac))
+
+    def collection(self, name):
+        """Get a collection of objects related to this item."""
+        return Collection(
+            self.client,
+            f'{self.path}/{name}',
+            self.specs.collections.get(name),
+        )
+
+    def action(self, name):
+        """Get an action for the current item."""
+        return Action(self.client, f'{self.path}/{name}')
+
+    def get(self, **kwargs):
+        return self.client.get(self.path, **kwargs)
+
+    def update(self, payload=None, **kwargs):
+        return self.client.update(
+            self.path,
+            payload=payload,
+            **kwargs,
+        )
+
+    def values(self, *fields):
+        results = {}
+        item = self.get()
+        for field in fields:
+            results[field] = resolve_attribute(field, item)
+        return results
+
+    def help(self):
+        print_help(self.specs)
+        return self
+
+
+class Action:
+    def __init__(self, client, path):
+        self.client = client
+        self.path = path
+
+
+class Search:
+    def __init__(self, client, path, query, specs):
+        self.client = client
+        self.path = path
+        self.query = query or ''
+        self.specs = specs
+        self.results = None
+        self._result_iterator = None
+        self._limit = 100
+        self._offset = 0
+        self._evaluated = False
+        self._pagination = None
+
+    def __len__(self):
+        if not self.results:
+            self._perform()
+        return self._pagination.count
+
+    def __iter__(self):
+        if not self.results:
+            self._perform()
+            self._result_iterator = iter(self.results)
+        return self
+
+    def __next__(self):
+        try:
+            return next(self._result_iterator)
+        except StopIteration:
+            if self._pagination.last == self._pagination.count - 1:
+                raise
+            self._offset += self._limit
+            self._perform()
+            self._result_iterator = iter(self.results)
+            return next(self._result_iterator)
+
+    def __bool__(self):
+        self._perform()
+        return bool(self.results)
+
+    def __getitem__(self, key):
+        """handle item and slice, return self"""
+        if not isinstance(key, (int, slice)):
+            raise TypeError('Search indices must be integers or slices.')
+
+        assert (not isinstance(key, slice) and (key >= 0)) or (
+            isinstance(key, slice)
+            and (key.start is None or key.start >= 0)
+            and (key.stop is None or key.stop >= 0)
+        ), "Negative indexing is not supported."
+
+        assert (not isinstance(key, slice) and (key >= 0)) or (
+            isinstance(key, slice)
+            and (key.step is None or key.step == 0)
+        ), "Indexing with step is not supported."
+
+        if self._evaluated:
+            return self.results[key]
+            self._offset = key.start
+            self._limit = key.stop - key.start
+            return self
+
+    def values_list(self, *fields):
+        results = []
+        for item in self:
+            values = {}
+            for field in fields:
+                values[field] = resolve_attribute(field, item)
+            results.append(values)
+        return results
+
+    def _perform(self):
+        url = f'{self.path}'
+        if self.query:
+            url = f'{url}?{self.query}'
+        params = {
+            'limit': self._limit,
+            'offset': self._offset,
+        }
+        self.results = self.client.get(url, params=params)
+        self._pagination = parse_content_range(
+            self.client.response.headers['Content-Range'],
+        )
+        self._evaluated = True
+
+    def help(self):
+        print_help(self.specs)
+        return self
