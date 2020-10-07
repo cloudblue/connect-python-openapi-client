@@ -1,10 +1,14 @@
+from keyword import iskeyword
+
 from cnct.client.exceptions import NotFoundError
 from cnct.client.help import print_help
 from cnct.client.utils import parse_content_range, resolve_attribute
 
 
 class NS:
-    """A namespace groups logically a set of collections."""
+    """
+    A namespace is a group of related collections.
+    """
     def __init__(self, client, path, specs=None):
         self.client = client
         self.path = path
@@ -12,13 +16,20 @@ class NS:
 
     def __getattr__(self, name):
         if not self.specs:
-            raise AttributeError(
-                'No specs available. Use the '
-                '`collection` method instead.'
-            )
+            return self.collection(name)
         if name in self.specs.collections:
             return self.collection(name)
-        raise AttributeError('Unable to resolve {}.'.format(name))
+        raise AttributeError(f'Unable to resolve {name}.')
+
+    def __dir__(self):
+        default = sorted(super().__dir__() + list(self.__dict__.keys()))
+        if not self.specs:
+            return default
+        cl = self.specs.collection.keys()
+        return default + [
+            name for name in cl
+            if name.isidentifier() and not iskeyword(name)
+        ]
 
     def collection(self, name):
         """
@@ -26,10 +37,16 @@ class NS:
 
         :param name: The name of the collection.
         :type name: str
-        :raises NotFoundError: The collection does not exist.
+        :raises: :exc:`~cnct.client.exceptions.NotFoundError` The collection does not exist.
         :return: The collection called `name`.
         :rtype: Collection
         """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
         if not self.specs:
             return Collection(
                 self.client,
@@ -55,7 +72,9 @@ class NS:
 
 
 class Collection:
-    """A collection is a set of operation on a particular entity."""
+    """
+    A collection is a group of operations on a domain entity.
+    """
     def __init__(self, client, path, specs=None):
         self.client = client
         self.path = path
@@ -65,7 +84,15 @@ class Collection:
         return self.item(item_id)
 
     def search(self, query=None):
-        """Search/list items within the collection."""
+        """
+        Return a Search object that represents
+        a list or search operation on a collection.
+
+        :param query: RQL query expression, defaults to None
+        :type query: str, optional
+        :return: a Search object.
+        :rtype: Search
+        """
         return Search(
             self.client,
             self.path,
@@ -74,7 +101,14 @@ class Collection:
         )
 
     def create(self, payload=None, **kwargs):
-        """Create a new collection item."""
+        """
+        Create a new collection item.
+
+        :param payload: JSON payload of the object to create, defaults to None
+        :type payload: dict, optional
+        :return: The newly created item.
+        :rtype: dict
+        """
         return self.client.create(
             self.path,
             payload=payload,
@@ -82,7 +116,14 @@ class Collection:
         )
 
     def item(self, item_id):
-        """Retrieve an item from the collection."""
+        """
+        Returns an Item object
+
+        :param item_id: [description]
+        :type item_id: [type]
+        :return: [description]
+        :rtype: [type]
+        """
         return Item(
             self.client,
             f'{self.path}/{item_id}',
@@ -125,7 +166,10 @@ class Item:
             return default
         cl = self.specs.collection.keys()
         ac = self.specs.actions.keys()
-        return default + list(set(cl) ^ set(ac))
+        return default + [
+            name for name in list(set(cl) ^ set(ac))
+            if name.isidentifier() and not iskeyword(name)
+        ]
 
     def collection(self, name):
         """Get a collection of objects related to this item."""

@@ -4,12 +4,8 @@ from datetime import datetime
 
 from setuptools_scm import get_version
 
-import django
-
 
 sys.path.insert(0, os.path.abspath('..'))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.dj.settings'
-django.setup()
 
 
 # -- Project information -----------------------------------------------------

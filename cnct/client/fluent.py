@@ -1,6 +1,9 @@
+from keyword import iskeyword
+
 import requests
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
+from cnct.client.exceptions import NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.help import print_help
 from cnct.client.utils import get_headers
@@ -44,14 +47,17 @@ class ConnectFluent:
             return default
         ns = self.specs.namespaces.keys()
         cl = self.specs.collections.keys()
-        return default + list(set(ns) ^ set(cl))
+        return default + [
+            name for name in list(set(cl) ^ set(ns))
+            if name.isidentifier() and not iskeyword(name)
+        ]
 
     def ns(self, name):
         if not self.specs:
             return NS(self, name)
         if name in self.specs.namespaces:
             return NS(self, name, self.specs.namespaces[name])
-        raise Exception(f'The namespace {name} does not exist.')
+        raise NotFoundError(f'The namespace {name} does not exist.')
 
     def collection(self, name):
         if not self.specs:
@@ -65,7 +71,7 @@ class ConnectFluent:
                 f'{self.endpoint}/{name}',
                 self.specs.collections[name],
             )
-        raise Exception(f'The collection {name} does not exist.')
+        raise NotFoundError(f'The collection {name} does not exist.')
 
     def get(self, url, **kwargs):
         return self._execute('get', url, 200, **kwargs)

@@ -10,6 +10,7 @@ Welcome to connect-fluent-client's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   reference
 
 
 Indices and tables
