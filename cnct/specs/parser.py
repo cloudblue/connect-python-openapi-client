@@ -1,9 +1,7 @@
 import logging
 
-from collections import namedtuple
 from io import StringIO
 
-#import mdv
 import requests
 import yaml
 
@@ -93,7 +91,7 @@ def parse(url):
             last_idx = len(components) - 1
             for idx, comp in enumerate(components):
                 if _is_variable(comp) and idx < last_idx:
-                    # {id}/<name> 
+                    # {id}/<name>
                     logger.debug('skip variable -> %s', comp)
                     continue
                 if idx < last_idx:
@@ -125,6 +123,6 @@ def parse(url):
                     )
                     continue
                 else:
-                    collection.item_specs.set_action(method, action_name, opinfo)
+                    collection.item_specs.set_action(action_name, opinfo)
 
     return apihelp

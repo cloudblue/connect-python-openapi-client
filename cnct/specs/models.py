@@ -40,8 +40,10 @@ class ItemInfo:
         self.collections = {}
         self._help = None
 
-    def set_action(self, method, name, info):
-        self.actions[f'{method}_{name}'] = info
+    def set_action(self, name, info):
+        if name not in self.actions:
+            self.actions[name] = []
+        self.actions[name].append(info)
 
     def set_collection(self, name):
         return self.collections.setdefault(name, CollectionInfo(name))
