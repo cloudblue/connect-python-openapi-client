@@ -1,0 +1,1 @@
+from cnct.help.generator import print_help  # noqa
