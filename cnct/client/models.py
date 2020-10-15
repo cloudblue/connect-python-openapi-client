@@ -1,8 +1,8 @@
 from keyword import iskeyword
 
 from cnct.client.exceptions import NotFoundError
-from cnct.client.help import print_help
 from cnct.client.utils import parse_content_range, resolve_attribute
+from cnct.help import print_help
 
 
 class NS:
@@ -25,7 +25,7 @@ class NS:
         default = sorted(super().__dir__() + list(self.__dict__.keys()))
         if not self.specs:
             return default
-        cl = self.specs.collection.keys()
+        cl = self.specs.collections.keys()
         return default + [
             name for name in cl
             if name.isidentifier() and not iskeyword(name)
@@ -164,7 +164,7 @@ class Item:
         default = sorted(super().__dir__() + list(self.__dict__.keys()))
         if not self.specs:
             return default
-        cl = self.specs.collection.keys()
+        cl = self.specs.collections.keys()
         ac = self.specs.actions.keys()
         return default + [
             name for name in list(set(cl) ^ set(ac))

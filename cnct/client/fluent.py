@@ -5,8 +5,8 @@ import requests
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from cnct.client.exceptions import NotFoundError
 from cnct.client.models import Collection, NS
-from cnct.client.help import print_help
 from cnct.client.utils import get_headers
+from cnct.help import print_help
 from cnct.specs.parser import parse
 
 
