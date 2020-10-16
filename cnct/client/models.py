@@ -193,6 +193,12 @@ class Item:
             **kwargs,
         )
 
+    def delete(self, **kwargs):
+        return self.client.delete(
+            self.path,
+            **kwargs,
+        )
+
     def values(self, *fields):
         results = {}
         item = self.get()
@@ -209,6 +215,37 @@ class Action:
     def __init__(self, client, path):
         self.client = client
         self.path = path
+
+    def get(self, **kwargs):
+        return self.client.get(self.path, **kwargs)
+
+    def post(self, payload=None, **kwargs):
+        if payload:
+            kwargs['json'] = payload
+        return self.client.execute(
+            'post',
+            self.path,
+            200,
+            **kwargs,
+        )
+
+    def put(self, payload=None, **kwargs):
+        if payload:
+            kwargs['json'] = payload
+        return self.client.execute(
+            'put',
+            self.path,
+            200,
+            **kwargs,
+        )
+
+    def delete(self, **kwargs):
+        return self.client.execute(
+            'delete',
+            self.path,
+            200,
+            **kwargs,
+        )
 
 
 class Search:

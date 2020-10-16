@@ -29,12 +29,6 @@ class ConnectFluent:
                 'No specs available. Use `ns` '
                 'or `collection` methods instead.'
             )
-        # if name in self.specs.namespaces and \
-        #     name in self.specs.collections:
-        #         raise AttributeError(
-        #         f'{name} is ambiguous. Use `namespace` '
-        #         'or `collection` methods instead.'
-        #     )
         if name in self.specs.namespaces:
             return self.namespace(name)
         if name in self.specs.collections:
@@ -74,7 +68,7 @@ class ConnectFluent:
         raise NotFoundError(f'The collection {name} does not exist.')
 
     def get(self, url, **kwargs):
-        return self._execute('get', url, 200, **kwargs)
+        return self.execute('get', url, 200, **kwargs)
 
     def create(self, url, payload=None, **kwargs):
         kwargs = kwargs or {}
@@ -82,7 +76,7 @@ class ConnectFluent:
         if payload:
             kwargs['json'] = payload
 
-        return self._execute('post', url, 201, **kwargs)
+        return self.execute('post', url, 201, **kwargs)
 
     def update(self, url, payload=None, **kwargs):
         kwargs = kwargs or {}
@@ -90,12 +84,12 @@ class ConnectFluent:
         if payload:
             kwargs['json'] = payload
 
-        return self._execute('put', url, 201, **kwargs)
+        return self.execute('put', url, 201, **kwargs)
 
     def delete(self, url):
-        return self._execute('delete', url, 204)
+        return self.execute('delete', url, 204)
 
-    def _execute(self, method, url, expected_status, **kwargs):
+    def execute(self, method, url, expected_status, **kwargs):
         kwargs = kwargs or {}
         kwargs['headers'] = get_headers(self.api_key)
         self.response = requests.request(
