@@ -261,8 +261,8 @@ class Search:
         self._result_iterator = None
         self._limit = 100
         self._offset = 0
-        self._evaluated = False
         self._pagination = None
+        self._fields = None
 
     def __len__(self):
         if not self.results:
@@ -278,14 +278,20 @@ class Search:
 
     def __next__(self):
         try:
-            return next(self._result_iterator)
+            item = next(self._result_iterator)
+            if self._fields:
+                return self._get_values(item)
+            return item
         except StopIteration:
             if self._pagination.last == self._pagination.count - 1:
                 raise
             self._offset += self._limit
             self._perform()
             self._result_iterator = iter(self.results)
-            return next(self._result_iterator)
+            item = next(self._result_iterator)
+            if self._fields:
+                return self._get_values(item)
+            return item
 
     def __bool__(self):
         self._perform()
@@ -307,20 +313,26 @@ class Search:
             and (key.step is None or key.step == 0)
         ), "Indexing with step is not supported."
 
-        if self._evaluated:
+        if self.results:
             return self.results[key]
-            self._offset = key.start
-            self._limit = key.stop - key.start
-            return self
+        self._offset = key.start
+        self._limit = key.stop - key.start
+        return self
 
     def values_list(self, *fields):
-        results = []
-        for item in self:
-            values = {}
-            for field in fields:
-                values[field] = resolve_attribute(field, item)
-            results.append(values)
-        return results
+        if self.results:
+            return [
+                self._get_values(item)
+                for item in self.results
+            ]
+        self._fields = fields
+        return self
+
+    def _get_values(self, item):
+        return {
+            field: resolve_attribute(field, item)
+            for field in self._fields
+        }
 
     def _perform(self):
         url = f'{self.path}'
@@ -334,7 +346,6 @@ class Search:
         self._pagination = parse_content_range(
             self.client.response.headers['Content-Range'],
         )
-        self._evaluated = True
 
     def help(self):
         print_help(self.specs)
