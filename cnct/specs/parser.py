@@ -40,7 +40,7 @@ def _load(url):
         for chunk in res.iter_content(chunk_size=8192):
             result.write(str(chunk, encoding='utf-8'))
         result.seek(0)
-        return yaml.load(result)
+        return yaml.safe_load(result)
     res.raise_for_status()
 
 

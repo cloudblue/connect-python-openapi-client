@@ -80,6 +80,9 @@ class Collection:
         self.path = path
         self.specs = specs
 
+    def __iter__(self):
+        raise TypeError('A collection object is not iterable.')
+
     def __getitem__(self, item_id):
         return self.item(item_id)
 
