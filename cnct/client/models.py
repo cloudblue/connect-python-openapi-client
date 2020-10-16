@@ -264,6 +264,7 @@ class Search:
     def __len__(self):
         if not self.results:
             self._perform()
+            self._result_iterator = iter(self.results)
         return self._pagination.count
 
     def __iter__(self):
