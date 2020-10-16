@@ -151,12 +151,6 @@ class Item:
                 'No specs available. Use the `collection` '
                 'or `action` methods instead.'
             )
-        if name in self.specs.collections and \
-           name in self.specs.actions:
-            raise AttributeError(
-                f'{name} is ambiguous. Use the `collection` '
-                'or `action` methods instead.'
-            )
         if name in self.specs.collections:
             return self.collection(name)
         if name in self.specs.actions:
@@ -175,12 +169,33 @@ class Item:
         ]
 
     def collection(self, name):
-        """Get a collection of objects related to this item."""
-        return Collection(
-            self.client,
-            f'{self.path}/{name}',
-            self.specs.collections.get(name),
-        )
+        """
+        Returns the collection called `name`.
+
+        :param name: The name of the collection.
+        :type name: str
+        :raises: :exc:`~cnct.client.exceptions.NotFoundError` The collection does not exist.
+        :return: The collection called `name`.
+        :rtype: Collection
+        """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
+        if not self.specs:
+            return Collection(
+                self.client,
+                f'{self.path}/{name}',
+            )
+        if name in self.specs.collections:
+            return Collection(
+                self.client,
+                f'{self.path}/{name}',
+                self.specs.collections.get(name),
+            )
+        raise NotFoundError(f'The collection {name} does not exist.')
 
     def action(self, name):
         """Get an action for the current item."""
