@@ -258,10 +258,8 @@ class Action:
         )
 
     def delete(self, **kwargs):
-        return self.client.execute(
-            'delete',
+        return self.client.delete(
             self.path,
-            200,
             **kwargs,
         )
 
@@ -282,13 +280,11 @@ class Search:
     def __len__(self):
         if not self.results:
             self._perform()
-            self._result_iterator = iter(self.results)
-        return self._pagination.count
+        return len(self.results)
 
     def __iter__(self):
         if not self.results:
             self._perform()
-            self._result_iterator = iter(self.results)
         return self
 
     def __next__(self):
@@ -302,7 +298,6 @@ class Search:
                 raise
             self._offset += self._limit
             self._perform()
-            self._result_iterator = iter(self.results)
             item = next(self._result_iterator)
             if self._fields:
                 return self._get_values(item)
@@ -330,17 +325,26 @@ class Search:
 
         if self.results:
             return self.results[key]
+        if isinstance(key, int):
+            self._perform()
+            return self.results[key]
+
         self._offset = key.start
         self._limit = key.stop - key.start
         return self
 
+    def count(self):
+        if not self.results:
+            self._perform()
+        return self._pagination.count
+
     def values_list(self, *fields):
+        self._fields = fields
         if self.results:
             return [
                 self._get_values(item)
                 for item in self.results
             ]
-        self._fields = fields
         return self
 
     def _get_values(self, item):
@@ -361,6 +365,7 @@ class Search:
         self._pagination = parse_content_range(
             self.client.response.headers['Content-Range'],
         )
+        self._result_iterator = iter(self.results)
 
     def help(self):
         print_help(self.specs)

@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.models import NS, Collection, Item
+from cnct.client.models import Action, NS, Collection, Item, Search
 
 
 @pytest.fixture
@@ -22,7 +22,6 @@ def ns_factory(mocker):
 def col_factory(mocker):
     client = mocker.MagicMock()
     client.endpoint = 'https://example.com/api/v1'
-    client.create = mocker.MagicMock()
 
     def _col_factory(
         client=client,
@@ -38,7 +37,6 @@ def col_factory(mocker):
 def item_factory(mocker):
     client = mocker.MagicMock()
     client.endpoint = 'https://example.com/api/v1'
-    client.create = mocker.MagicMock()
 
     def _item_factory(
         client=client,
@@ -48,3 +46,33 @@ def item_factory(mocker):
         item = Item(client, path, specs)
         return item
     return _item_factory
+
+
+@pytest.fixture
+def action_factory(mocker):
+    client = mocker.MagicMock()
+    client.endpoint = 'https://example.com/api/v1'
+
+    def _action_factory(
+        client=client,
+        path='{item_id}',
+    ):
+        action = Action(client, path)
+        return action
+    return _action_factory
+
+
+@pytest.fixture
+def search_factory(mocker):
+    client = mocker.MagicMock()
+    client.endpoint = 'https://example.com/api/v1'
+
+    def _search_factory(
+        client=client,
+        path='resources',
+        query=None,
+        specs=None,
+    ):
+        search = Search(client, path, query, specs)
+        return search
+    return _search_factory

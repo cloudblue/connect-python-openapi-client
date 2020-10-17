@@ -2,6 +2,7 @@ import pytest
 
 from cnct.client.exceptions import NotFoundError
 from cnct.client.models import Action, Collection, Item, Search
+from cnct.client.utils import ContentRange
 
 
 def test_ns_collection_invalid_type(ns_factory):
@@ -366,3 +367,328 @@ def test_item_help(mocker, item_factory, iteminfo_factory):
 
     assert print_help.called_once_with(specs)
     assert item2 == item
+
+
+def test_action_get(action_factory):
+    action = action_factory()
+    action.get()
+
+    assert action.client.get.called_once()
+
+    action.get(headers={'Content-Type': 'application/json'})
+    assert action.client.get.called_once_with(
+        headers={'Content-Type': 'application/json'},
+    )
+
+
+def test_action_post(action_factory):
+    action = action_factory()
+    action.post({'name': 'test'})
+
+    assert action.client.execute.called_once_with(
+        'post',
+        action.path,
+        200,
+        json={'name': 'test'},
+    )
+
+    action.post(
+        {'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+    assert action.client.execute.called_once_with(
+        'post',
+        action.path,
+        200,
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+
+
+def test_action_put(action_factory):
+    action = action_factory()
+    action.put({'name': 'test'})
+
+    assert action.client.execute.called_once_with(
+        'put',
+        action.path,
+        200,
+        json={'name': 'test'},
+    )
+
+    action.put(
+        {'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+    assert action.client.execute.called_once_with(
+        'put',
+        action.path,
+        200,
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+
+
+def test_action_delete(action_factory):
+    action = action_factory()
+    action.delete()
+
+    assert action.client.delete.called_once()
+
+    action.delete(headers={'Content-Type': 'application/json'})
+    assert action.client.delete.called_once_with(
+        headers={'Content-Type': 'application/json'},
+    )
+
+
+def test_search_len(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 100),
+    )
+    results = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=results)
+
+    assert len(search) == 10
+
+
+def test_search_iterate(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=expected)
+
+    results = [item for item in search]
+    assert results == expected
+
+
+def test_search_bool_truthy(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=expected)
+    assert bool(search) is True
+
+
+def test_search_bool_falsy(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 0, 0),
+    )
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=[])
+    assert bool(search) is False
+
+
+def test_search_getitem(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=expected)
+    for i in range(10):
+        assert search[i] == expected[i]
+
+
+def test_search_getitem_slice(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=expected)
+    sliced = search[2:4]
+    assert isinstance(sliced, Search)
+    assert search._limit == 2
+    assert search._offset == 2
+
+
+def test_search_getitem_slice_type(mocker, search_factory):
+    search = search_factory()
+    with pytest.raises(TypeError) as cv:
+        search['invalid']
+
+    assert str(cv.value) == 'Search indices must be integers or slices.'
+
+
+def test_search_getitem_slice_negative(mocker, search_factory):
+    search = search_factory()
+    with pytest.raises(AssertionError) as cv:
+        search[1:-1]
+
+    assert str(cv.value) == 'Negative indexing is not supported.'
+
+
+def test_search_getitem_slice_step(mocker, search_factory):
+    search = search_factory()
+    with pytest.raises(AssertionError) as cv:
+        search[0:10:2]
+
+    assert str(cv.value) == 'Indexing with step is not supported.'
+
+
+def test_search_count(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 100),
+    )
+    expected = [{'id': i} for i in range(10)]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=expected)
+
+    assert search.count() == 100
+
+
+def test_search_values_list(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    return_value = [
+        {
+            'id': i,
+            'name': f'name {i}',
+            'inner': {
+                'title': f'title {i}',
+            }
+        }
+        for i in range(10)
+    ]
+    expected = [
+        {
+            'id': i,
+            'inner.title': f'title {i}',
+        }
+        for i in range(10)
+    ]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=return_value)
+
+    search = search.values_list('id', 'inner.title')
+
+    assert isinstance(search, Search)
+    assert list(search) == expected
+
+
+def test_search_values_list_evaluated(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    return_value = [
+        {
+            'id': i,
+            'name': f'name {i}',
+            'inner': {
+                'title': f'title {i}',
+            }
+        }
+        for i in range(10)
+    ]
+    expected = [
+        {
+            'id': i,
+            'inner.title': f'title {i}',
+        }
+        for i in range(10)
+    ]
+    search = search_factory()
+    search.client.get = mocker.MagicMock(return_value=return_value)
+
+    bool(search)
+    values = search.values_list('id', 'inner.title')
+
+    assert values == expected
+
+
+def test_search_pagination(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        side_effect=[
+            ContentRange(0, 99, 200),
+            ContentRange(100, 199, 200),
+        ],
+    )
+
+    search = search_factory()
+    search.client.get = mocker.MagicMock(side_effect=[
+        [{'id': i} for i in range(100)],
+        [{'id': i} for i in range(100, 200)],
+    ])
+
+    assert list(search) == [{'id': i} for i in range(200)]
+
+
+def test_search_values_list_pagination(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        side_effect=[
+            ContentRange(0, 99, 200),
+            ContentRange(100, 199, 200),
+        ],
+    )
+
+    search = search_factory()
+    search.client.get = mocker.MagicMock(side_effect=[
+        [
+            {
+                'id': i,
+                'name': f'name {i}',
+                'inner': {
+                    'title': f'title {i}',
+                }
+            }
+            for i in range(100)
+        ],
+        [
+            {
+                'id': i,
+                'name': f'name {i}',
+                'inner': {
+                    'title': f'title {i}',
+                }
+            }
+            for i in range(100, 200)
+        ]
+    ])
+
+    expected = [
+        {
+            'id': i,
+            'inner.title': f'title {i}',
+        }
+        for i in range(200)
+    ]
+
+    assert list(search.values_list('id', 'inner.title')) == expected
+
+
+def test_search_with_queries(mocker, search_factory):
+    mocker.patch(
+        'cnct.client.models.parse_content_range',
+        return_value=ContentRange(0, 0, 0),
+    )
+    search = search_factory(query='eq(status,approved)')
+    get_mock = mocker.MagicMock(return_value=[])
+    search.client.get = get_mock
+    bool(search)
+
+    assert search.client.get.called_once_with(f'{search.path}?{search.query}')
+
+
+def test_search_help(mocker, search_factory):
+    search = search_factory(specs='this is a spec')
+    print_help = mocker.patch('cnct.client.models.print_help')
+    search2 = search.help()
+    assert print_help.called_once_with('this is a spec')
+    assert search2 == search
