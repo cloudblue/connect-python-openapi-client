@@ -1,9 +1,10 @@
+from json.decoder import JSONDecodeError
 from keyword import iskeyword
 
 import requests
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import NotFoundError
+from cnct.client.exceptions import ConnectError, NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
 from cnct.help import print_help
@@ -91,7 +92,11 @@ class ConnectFluent:
 
     def execute(self, method, url, expected_status, **kwargs):
         kwargs = kwargs or {}
-        kwargs['headers'] = get_headers(self.api_key)
+        if 'headers' in kwargs:
+            kwargs['headers'].update(get_headers(self.api_key))
+        else:
+            kwargs['headers'] = get_headers(self.api_key)
+
         self.response = requests.request(
             method,
             url,
@@ -99,6 +104,17 @@ class ConnectFluent:
         )
 
         if self.response.status_code != expected_status:
+            try:
+                error = self.response.json()
+                if 'error_code' in error and 'errors' in error:
+                    raise ConnectError(
+                        self.response.status_code,
+                        error['error_code'],
+                        error['errors'],
+                    )
+            except JSONDecodeError:
+                pass
+
             self.response.raise_for_status()
 
         if self.response.status_code == 204:
