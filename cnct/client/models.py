@@ -308,7 +308,6 @@ class Search:
         return bool(self.results)
 
     def __getitem__(self, key):
-        """handle item and slice, return self"""
         if not isinstance(key, (int, slice)):
             raise TypeError('Search indices must be integers or slices.')
 

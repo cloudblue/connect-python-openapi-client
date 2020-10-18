@@ -31,10 +31,10 @@ class ConnectFluent:
                 'or `collection` methods instead.'
             )
         if name in self.specs.namespaces:
-            return self.namespace(name)
+            return self.ns(name)
         if name in self.specs.collections:
             return self.collection(name)
-        raise AttributeError('Unable to resolve {}.'.format(name))
+        raise NotFoundError('Unable to resolve {}.'.format(name))
 
     def __dir__(self):
         default = sorted(super().__dir__() + list(self.__dict__.keys()))
@@ -85,10 +85,10 @@ class ConnectFluent:
         if payload:
             kwargs['json'] = payload
 
-        return self.execute('put', url, 201, **kwargs)
+        return self.execute('put', url, 200, **kwargs)
 
-    def delete(self, url):
-        return self.execute('delete', url, 204)
+    def delete(self, url, **kwargs):
+        return self.execute('delete', url, 204, **kwargs)
 
     def execute(self, method, url, expected_status, **kwargs):
         kwargs = kwargs or {}

@@ -1,6 +1,11 @@
 import pytest
 
-from cnct.specs.models import NSInfo, CollectionInfo, ItemInfo
+from cnct.specs.models import (
+    ApiInfo,
+    NSInfo,
+    # CollectionInfo,
+    ItemInfo,
+)
 
 
 # @pytest.fixture
@@ -52,3 +57,25 @@ def iteminfo_factory(mocker):
                     iteminfo.set_action(action[0], action[1])
         return iteminfo
     return _iteminfo_factory
+
+
+@pytest.fixture
+def apiinfo_factory(mocker):
+    def _apiinfo_factory(
+        title='Test Api',
+        description='Api description',
+        version='Api version',
+        collections=None,
+        namespaces=None,
+    ):
+        apiinfo = ApiInfo(title, description, version)
+
+        if collections:
+            for col in collections:
+                apiinfo.set_collection(col)
+        if namespaces:
+            for ns in namespaces:
+                apiinfo.set_namespace(ns)
+
+        return apiinfo
+    return _apiinfo_factory
