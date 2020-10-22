@@ -45,16 +45,26 @@ def _load(url):
 
 
 def parse(url):
-    specs = _load(url)
+    if url.startswith('http'):
+        specs = _load(url)
+    else:
+        specs = yaml.safe_load(open(url, 'r'))
+
     apihelp = ApiInfo(
         specs['info']['title'],
         specs['info']['description'],
         specs['info']['version'],
+        specs['tags'],
     )
     paths = sorted(specs['paths'].keys(), key=len)
     for path in paths:
+        summary = specs['paths'][path].get('summary', '')
+        description = specs['paths'][path].get('description', '')
         for method, opinfo in specs['paths'][path].items():
+            if method in ('summary', 'description'):
+                continue
             operation_id = opinfo['operationId']
+            tag = opinfo['tags'][0] if 'tags' in opinfo and opinfo['tags'] else None
             components = path[1:].split('/')
             # check if the first component is a namespace or a collection
             ns_name = None
@@ -69,11 +79,11 @@ def parse(url):
             if ns_name:
                 # collection in under a namespace
                 logger.debug('namespace -> %s', ns_name)
-                ns = apihelp.set_namespace(ns_name)
-                collection = ns.set_collection(collection_name)
+                ns = apihelp.set_namespace(ns_name, tag)
+                collection = ns.set_collection(collection_name, summary, description, tag)
             else:
                 # collection is a root collection
-                collection = apihelp.set_collection(collection_name)
+                collection = apihelp.set_collection(collection_name, summary, description, tag)
 
             components = components[1:]
             if not components:
@@ -97,11 +107,13 @@ def parse(url):
                 if idx < last_idx:
                     # <name>/.... (not an action since not latest token)
                     logger.debug('subcollection retrieve/update/delete operation')
-                    collection = collection.item_specs.set_collection(comp)
+                    collection = collection.item_specs.set_collection(comp, summary, description)
                     continue
                 if _is_variable(comp):
                     # <name>/{id}
                     op_type = _get_operation_type(operation_id)
+                    collection.item_specs.summary = summary
+                    collection.item_specs.description = description
                     collection.operations[op_type] = OpInfo(
                         op_type,
                         collection.name,
@@ -112,7 +124,7 @@ def parse(url):
                     continue
                 action_name = _get_action_name(operation_id)
                 if action_name in ('list', 'detail'):
-                    collection = collection.item_specs.set_collection(comp)
+                    collection = collection.item_specs.set_collection(comp, summary, description)
                     op_type = _get_operation_type(operation_id)
                     collection.operations[op_type] = OpInfo(
                         op_type,
@@ -123,6 +135,17 @@ def parse(url):
                     )
                     continue
                 else:
-                    collection.item_specs.set_action(action_name, opinfo)
+                    collection.item_specs.set_action(
+                        action_name,
+                        summary,
+                        description,
+                        OpInfo(
+                            action_name,
+                            collection.name,
+                            path,
+                            method,
+                            opinfo,
+                        ),
+                    )
 
     return apihelp

@@ -140,7 +140,7 @@ class Collection:
 
 class Item:
     """Represent a generic item."""
-    def __init__(self, client, path, specs):
+    def __init__(self, client, path, specs=None):
         self.client = client
         self.path = path
         self.specs = specs
@@ -158,15 +158,15 @@ class Item:
         raise AttributeError('Unable to resolve {}.'.format(name))
 
     def __dir__(self):
-        default = sorted(super().__dir__() + list(self.__dict__.keys()))
         if not self.specs:
-            return default
-        cl = self.specs.collections.keys()
-        ac = self.specs.actions.keys()
-        return default + [
-            name for name in list(set(cl) ^ set(ac))
+            return super().__dir__()
+        ac = list(self.specs.actions.keys())
+        cl = list(self.specs.collections.keys())
+        additional_names = [
+            name for name in cl + ac
             if name.isidentifier() and not iskeyword(name)
         ]
+        return sorted(super().__dir__() + additional_names)
 
     def collection(self, name):
         """
@@ -199,7 +199,24 @@ class Item:
 
     def action(self, name):
         """Get an action for the current item."""
-        return Action(self.client, f'{self.path}/{name}')
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
+        if not self.specs:
+            return Action(
+                self.client,
+                f'{self.path}/{name}',
+            )
+        if name in self.specs.actions:
+            return Action(
+                self.client,
+                f'{self.path}/{name}',
+                self.specs.actions.get(name),
+            )
+        raise NotFoundError(f'The action {name} does not exist.')
 
     def get(self, **kwargs):
         return self.client.get(self.path, **kwargs)
@@ -230,9 +247,10 @@ class Item:
 
 
 class Action:
-    def __init__(self, client, path):
+    def __init__(self, client, path, specs=None):
         self.client = client
         self.path = path
+        self.specs = specs
 
     def get(self, **kwargs):
         return self.client.get(self.path, **kwargs)
@@ -263,9 +281,13 @@ class Action:
             **kwargs,
         )
 
+    def help(self):
+        print_help(self.specs)
+        return self
+
 
 class Search:
-    def __init__(self, client, path, query, specs):
+    def __init__(self, client, path, query, specs=None):
         self.client = client
         self.path = path
         self.query = query or ''

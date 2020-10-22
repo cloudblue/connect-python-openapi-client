@@ -1,4 +1,4 @@
-class NotFoundError(Exception):
+class NotFoundError(AttributeError):
     pass
 
 

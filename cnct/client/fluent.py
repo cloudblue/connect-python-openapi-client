@@ -16,12 +16,12 @@ class ConnectFluent:
         self,
         api_key,
         endpoint=CONNECT_ENDPOINT_URL,
-        specs_url=CONNECT_SPECS_URL,
+        specs_location=CONNECT_SPECS_URL,
     ):
         self.endpoint = endpoint
         self.api_key = api_key
-        self.specs_url = specs_url
-        self.specs = parse(self.specs_url) if self.specs_url else None
+        self.specs_location = specs_location
+        self.specs = parse(self.specs_location) if self.specs_location else None
         self.response = None
 
     def __getattr__(self, name):
@@ -34,18 +34,18 @@ class ConnectFluent:
             return self.ns(name)
         if name in self.specs.collections:
             return self.collection(name)
-        raise NotFoundError('Unable to resolve {}.'.format(name))
+        raise AttributeError('Unable to resolve {}.'.format(name))
 
     def __dir__(self):
-        default = sorted(super().__dir__() + list(self.__dict__.keys()))
         if not self.specs:
-            return default
-        ns = self.specs.namespaces.keys()
-        cl = self.specs.collections.keys()
-        return default + [
-            name for name in list(set(cl) ^ set(ns))
+            return super().__dir__()
+        ns = list(self.specs.namespaces.keys())
+        cl = list(self.specs.collections.keys())
+        additional_names = [
+            name for name in cl + ns
             if name.isidentifier() and not iskeyword(name)
         ]
+        return sorted(super().__dir__() + additional_names)
 
     def ns(self, name):
         if not self.specs:

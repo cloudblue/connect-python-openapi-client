@@ -6,6 +6,10 @@
 Welcome to connect-fluent-client's documentation!
 =================================================
 
+Welcome to`connect-fluent-client` the simple, concise, powerful and REPL-friendly CloudBlue Connect API client.
+
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

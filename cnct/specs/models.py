@@ -1,18 +1,17 @@
 class ApiInfo:
-    def __init__(self, title, description, version):
+    def __init__(self, title, description, version, tags):
         self.title = title
         self.description = description
         self.version = version
-        self.tags = None
-        self.components = None
+        self.tags = {t['name']: t['description'] for t in tags}
         self.namespaces = {}
         self.collections = {}
 
-    def set_namespace(self, ns_name):
-        return self.namespaces.setdefault(ns_name, NSInfo(ns_name))
+    def set_namespace(self, ns_name, tag):
+        return self.namespaces.setdefault(ns_name, NSInfo(ns_name, tag))
 
-    def set_collection(self, col_name):
-        return self.collections.setdefault(col_name, CollectionInfo(col_name))
+    def set_collection(self, col_name, summary, description, tag):
+        return self.collections.setdefault(col_name, CollectionInfo(col_name, summary, description, tag))
 
 
 class OpInfo:
@@ -20,37 +19,52 @@ class OpInfo:
         self.path = path
         self.name = name
         self.collection_name = collection_name
-        self.path = path
         self.method = method
         self.info = info
 
 
 class NSInfo:
-    def __init__(self, name):
+    def __init__(self, name, tag):
         self.name = name
+        self.tag = tag
         self.collections = {}
 
-    def set_collection(self, name):
-        return self.collections.setdefault(name, CollectionInfo(name))
+    def set_collection(self, name, summary, description, tag):
+        return self.collections.setdefault(name, CollectionInfo(name, summary, description, tag))
+
+
+class ActionInfo:
+    def __init__(self, name, summary, description):
+        self.name = name
+        self.summary = summary
+        self.description = description
+        self.methods = {}
+
+    def add_info(self, info):
+        self.methods[info.method] = info
 
 
 class ItemInfo:
     def __init__(self):
+        self.summary = ''
+        self.description = ''
         self.actions = {}
         self.collections = {}
-        self._help = None
 
-    def set_action(self, name, info):
+    def set_action(self, name, summary, description, info):
         if name not in self.actions:
-            self.actions[name] = []
-        self.actions[name].append(info)
+            self.actions[name] = ActionInfo(name, summary, description)
+        self.actions[name].add_info(info)
 
-    def set_collection(self, name):
-        return self.collections.setdefault(name, CollectionInfo(name))
+    def set_collection(self, name, summary, description):
+        return self.collections.setdefault(name, CollectionInfo(name, summary, description))
 
 
 class CollectionInfo:
-    def __init__(self, name):
+    def __init__(self, name, summary, description, tag=None):
         self.name = name
+        self.summary = summary
+        self.description = description
+        self.tag = tag
         self.operations = {}
         self.item_specs = ItemInfo()
