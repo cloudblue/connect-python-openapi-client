@@ -28,13 +28,14 @@ from cnct.specs.models import (
 def nsinfo_factory(mocker):
     def _nsinfo_factory(
         name='namespace',
+        tag='Tag',
         specs=None,
         collections=None,
     ):
-        nsinfo = NSInfo(name)
+        nsinfo = NSInfo(name, tag)
         if collections:
             for col in collections:
-                nsinfo.set_collection(col)
+                nsinfo.set_collection(col, 'summary', 'description', 'tag')
         return nsinfo
     return _nsinfo_factory
 
@@ -48,13 +49,13 @@ def iteminfo_factory(mocker):
         iteminfo = ItemInfo()
         if collections:
             for col in collections:
-                iteminfo.set_collection(col)
+                iteminfo.set_collection(col, 'summary', 'description')
         if actions:
             for action in actions:
                 if isinstance(action, str):
-                    iteminfo.set_action(action, None)
+                    iteminfo.set_action(action, 'summary', 'description', None)
                 elif isinstance(action, (list, tuple)):
-                    iteminfo.set_action(action[0], action[1])
+                    iteminfo.set_action(action[0], 'summary', 'description', action[1])
         return iteminfo
     return _iteminfo_factory
 
@@ -65,17 +66,18 @@ def apiinfo_factory(mocker):
         title='Test Api',
         description='Api description',
         version='Api version',
+        tags=[],
         collections=None,
         namespaces=None,
     ):
-        apiinfo = ApiInfo(title, description, version)
+        apiinfo = ApiInfo(title, description, version, tags)
 
         if collections:
             for col in collections:
-                apiinfo.set_collection(col)
+                apiinfo.set_collection(col, 'summary', 'description', 'tag')
         if namespaces:
             for ns in namespaces:
-                apiinfo.set_namespace(ns)
+                apiinfo.set_namespace(ns, 'tag')
 
         return apiinfo
     return _apiinfo_factory

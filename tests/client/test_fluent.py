@@ -52,7 +52,7 @@ def test_getattr_with_specs_unresolved(mocker, apiinfo_factory):
 
     c = ConnectFluent('Api Key')
 
-    with pytest.raises(NotFoundError) as cv:
+    with pytest.raises(AttributeError) as cv:
         c.others
 
     assert str(cv.value) == 'Unable to resolve others.'
@@ -146,7 +146,7 @@ def test_get(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     c.get(url, **kwargs)
 
@@ -163,7 +163,7 @@ def test_create(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     c.create(url, payload=payload, **kwargs)
 
@@ -185,7 +185,7 @@ def test_update(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     c.update(url, payload=payload, **kwargs)
 
@@ -205,7 +205,7 @@ def test_delete(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     c.delete(url, **kwargs)
 
@@ -220,7 +220,7 @@ def test_execute(requests_mock):
         json=expected,
     )
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     results = c.execute('get', 'https://localhost/resources', 200)
 
@@ -241,7 +241,7 @@ def test_execute_with_kwargs(requests_mock):
         status_code=201,
     )
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
     kwargs = {
         'headers': {
             'X-Custom-Header': 'value',
@@ -272,7 +272,7 @@ def test_execute_connect_error(requests_mock):
         status_code=400,
     )
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     with pytest.raises(ConnectError) as cv:
         c.execute('post', 'https://localhost/resources', 201)
@@ -291,7 +291,7 @@ def test_execute_uparseable_connect_error(requests_mock):
         status_code=400,
     )
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     with pytest.raises(HTTPError):
         c.execute('post', 'https://localhost/resources', 201)
@@ -306,7 +306,7 @@ def test_execute_delete(requests_mock):
         status_code=204,
     )
 
-    c = ConnectFluent('API_KEY', specs_url=None)
+    c = ConnectFluent('API_KEY', specs_location=None)
 
     results = c.execute('delete', 'https://localhost/resources', 204)
 

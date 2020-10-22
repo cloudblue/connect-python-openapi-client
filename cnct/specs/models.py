@@ -41,7 +41,8 @@ class ActionInfo:
         self.methods = {}
 
     def add_info(self, info):
-        self.methods[info.method] = info
+        if info:
+            self.methods[info.method] = info
 
 
 class ItemInfo:
