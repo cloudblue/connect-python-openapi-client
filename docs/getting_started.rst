@@ -1,0 +1,25 @@
+Getting started
+===============
+
+
+Requirements
+------------
+
+*connect-fluent-client* runs on python 3.6 or later and has the following dependencies:
+
+* `connect-markdown-renderer <https://github.com/cloudblue/connect-markdown-renderer>`_ 1.*
+* requests 2.*
+* pyyaml 5.*
+
+
+Install
+-------
+
+*connect-fluent-client* is a small python package that can be installed
+from the `pypi.org <https://pypi.org/project/connect-fluent-client/>`_ repository.
+
+
+.. code-block:: sh
+
+    $ pip install connect-fluent-client
+

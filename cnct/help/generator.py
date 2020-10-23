@@ -89,7 +89,10 @@ def _print_collection(specs):
 
     if specs.operations:
         lines += ['## Operations']
-        lines += [f'- {res}' for res in specs.operations.keys()] + _SPACE
+        lines += [
+            f'- {res}' for res in specs.operations.keys()
+            if res not in ('get', 'update', 'delete')
+        ] + _SPACE
     return render('\n'.join(lines))
 
 

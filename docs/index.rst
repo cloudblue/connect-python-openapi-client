@@ -8,12 +8,19 @@ Welcome to connect-fluent-client's documentation!
 
 Welcome to`connect-fluent-client` the simple, concise, powerful and REPL-friendly CloudBlue Connect API client.
 
+It has been designed following the `fluent interface design pattern <https://en.wikipedia.org/wiki/Fluent_interface>`_.
+
+Due to its REPL-friendly nature, using the CloudBlue Connect OpenAPI specifications it allows developers to learn and
+play with the CloudBlue Connect API using a python REPL like `jupyter <https://jupyter.org/>`_ or
+`ipython <https://ipython.org/>`_.
 
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   getting_started
+   tutorial
    reference
 
 

@@ -296,6 +296,7 @@ class Search:
         self._result_iterator = None
         self._limit = 100
         self._offset = 0
+        self._slice = False
         self._pagination = None
         self._fields = None
 
@@ -316,6 +317,8 @@ class Search:
                 return self._get_values(item)
             return item
         except StopIteration:
+            if self._slice:
+                raise
             if self._pagination.last == self._pagination.count - 1:
                 raise
             self._offset += self._limit
@@ -352,6 +355,7 @@ class Search:
 
         self._offset = key.start
         self._limit = key.stop - key.start
+        self._slice = True
         return self
 
     def count(self):
@@ -378,6 +382,7 @@ class Search:
         url = f'{self.path}'
         if self.query:
             url = f'{url}?{self.query}'
+
         params = {
             'limit': self._limit,
             'offset': self._offset,
