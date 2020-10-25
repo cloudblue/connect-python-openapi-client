@@ -3,6 +3,7 @@ from keyword import iskeyword
 from cnct.client.exceptions import NotFoundError
 from cnct.client.utils import parse_content_range, resolve_attribute
 from cnct.help import print_help
+from cnct.rql import R
 
 
 class NS:
@@ -86,7 +87,35 @@ class Collection:
     def __getitem__(self, item_id):
         return self.item(item_id)
 
-    def search(self, query=None):
+    def all(self):
+        return Search(
+            self.client,
+            self.path,
+            specs=self.specs.operations.get('search') if self.specs else None,
+        )
+
+    def filter(self, *args, **kwargs):
+        query = R()
+        for arg in args:
+            if isinstance(arg, str):
+                query &= R(_expr=arg)
+                continue
+            if isinstance(arg, R):
+                query &= arg
+                continue
+            raise TypeError(f'arguments must be string or R not {type(arg)}')
+
+        if kwargs:
+            query &= R(**kwargs)
+
+        return Search(
+            self.client,
+            self.path,
+            specs=self.specs.operations.get('search') if self.specs else None,
+            query=query,
+        )
+
+    def search(self, term):
         """
         Return a Search object that represents
         a list or search operation on a collection.
@@ -99,8 +128,8 @@ class Collection:
         return Search(
             self.client,
             self.path,
-            query,
             self.specs.operations.get('search') if self.specs else None,
+            search=term,
         )
 
     def create(self, payload=None, **kwargs):
@@ -287,11 +316,18 @@ class Action:
 
 
 class Search:
-    def __init__(self, client, path, query, specs=None):
+    def __init__(
+        self,
+        client,
+        path,
+        specs=None,
+        query=None,
+        search=None
+    ):
         self.client = client
         self.path = path
-        self.query = query or ''
         self.specs = specs
+        self.query = query
         self.results = None
         self._result_iterator = None
         self._limit = 100
@@ -299,6 +335,10 @@ class Search:
         self._slice = False
         self._pagination = None
         self._fields = None
+        self._search = search
+        self._select = []
+        self._ordering = []
+        self._config = {}
 
     def __len__(self):
         if not self.results:
@@ -318,8 +358,10 @@ class Search:
             return item
         except StopIteration:
             if self._slice:
+                self._offset = 0
                 raise
             if self._pagination.last == self._pagination.count - 1:
+                self._offset = 0
                 raise
             self._offset += self._limit
             self._perform()
@@ -358,6 +400,33 @@ class Search:
         self._slice = True
         return self
 
+    def configure(self, **kwargs):
+        self._config = kwargs or {}
+        return self
+
+    def order_by(self, *fields):
+        self._ordering.extend(fields)
+        return self
+
+    def select(self, *fields):
+        self._select.extend(fields)
+        return self
+
+    def filter(self, *args, **kwargs):
+        for arg in args:
+            if isinstance(arg, str):
+                self.query &= R(_expr=arg)
+                continue
+            if isinstance(arg, R):
+                self.query &= arg
+                continue
+            raise TypeError(f'arguments must be string or R not {type(arg)}')
+
+        if kwargs:
+            self.query &= R(**kwargs)
+
+        return self
+
     def count(self):
         if not self.results:
             self._perform()
@@ -378,16 +447,35 @@ class Search:
             for field in self._fields
         }
 
+    def _build_qs(self):
+        qs = ''
+        if self._select:
+            qs += f'&select({",".join(self._select)})'
+        if self.query:
+            qs += f'&{str(self.query)}'
+        if self._ordering:
+            qs += f'&ordering({",".join(self._ordering)})'
+        return qs[1:] if qs else ''
+
     def _perform(self):
         url = f'{self.path}'
-        if self.query:
-            url = f'{url}?{self.query}'
+        qs = self._build_qs()
+        if qs:
+            url = f'{url}?{qs}'
 
-        params = {
+        self._config.setdefault('params', {})
+
+        self._config['params'].update({
             'limit': self._limit,
             'offset': self._offset,
-        }
-        self.results = self.client.get(url, params=params)
+        })
+
+        if self._search:
+            self._config['params']['search'] = self._search
+
+        print(url)
+        print(self._config)
+        self.results = self.client.get(url, **self._config)
         self._pagination = parse_content_range(
             self.client.response.headers['Content-Range'],
         )

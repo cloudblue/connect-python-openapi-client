@@ -162,19 +162,19 @@ def test_collection_create(col_factory):
 def test_collection_search(col_factory):
     collection = col_factory(path='resource')
 
-    search = collection.search()
+    search = collection.filter()
 
     assert isinstance(search, Search)
     assert search.client == collection.client
     assert search.path == collection.path
-    assert search.query == ''
+    assert bool(search.query) is False
     assert search.specs is None
 
-    search = collection.search(query='eq(field,value)')
+    search = collection.filter('eq(field,value)')
 
     assert search.client == collection.client
     assert search.path == collection.path
-    assert search.query == 'eq(field,value)'
+    assert search.query.expr == 'eq(field,value)'
     assert search.specs is None
 
 
