@@ -17,9 +17,11 @@ class ConnectFluent:
         api_key,
         endpoint=CONNECT_ENDPOINT_URL,
         specs_location=CONNECT_SPECS_URL,
+        default_headers={},
     ):
         self.endpoint = endpoint
         self.api_key = api_key
+        self.default_headers = default_headers
         self.specs_location = specs_location
         self.specs = parse(self.specs_location) if self.specs_location else None
         self.response = None
@@ -96,6 +98,9 @@ class ConnectFluent:
             kwargs['headers'].update(get_headers(self.api_key))
         else:
             kwargs['headers'] = get_headers(self.api_key)
+
+        if self.default_headers:
+            kwargs['headers'].update(self.default_headers)
 
         self.response = requests.request(
             method,
