@@ -1,3 +1,6 @@
+from requests.exceptions import HTTPError as RequestHttpError
+
+
 class NotFoundError(AttributeError):
     pass
 
@@ -14,3 +17,7 @@ class ConnectError(Exception):
     def __str__(self):
         errors = ','.join(self.errors)
         return f'{self.error_code}: {errors}'
+
+
+class HttpError(RequestHttpError):
+    pass

@@ -32,6 +32,10 @@ class RQLQuery:
                 self.children.append(RQLQuery(_expr=token))
 
     def __len__(self):
+        if self.op == self.EXPR:
+            if self.expr:
+                return 1
+            return 0
         return len(self.children)
 
     def __bool__(self):
@@ -110,7 +114,7 @@ class RQLQuery:
             return other
 
         if self.op == op:
-            if (other.op == op or len(other) == 1) and not other.negated:
+            if (other.op == op or (len(other) == 1 and other.op != self.EXPR)) and not other.negated:
                 self.children.extend(other.children)
                 return self
 

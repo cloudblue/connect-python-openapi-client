@@ -1,8 +1,6 @@
 import pytest
 
-from requests import HTTPError
-
-from cnct.client.exceptions import ConnectError, NotFoundError
+from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
 from cnct.client.fluent import ConnectFluent
 from cnct.client.models import Collection, NS
 
@@ -293,7 +291,7 @@ def test_execute_uparseable_connect_error(requests_mock):
 
     c = ConnectFluent('API_KEY', specs_location=None)
 
-    with pytest.raises(HTTPError):
+    with pytest.raises(HttpError):
         c.execute('post', 'https://localhost/resources', 201)
 
 

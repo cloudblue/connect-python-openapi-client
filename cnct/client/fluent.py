@@ -4,7 +4,7 @@ from keyword import iskeyword
 import requests
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import ConnectError, NotFoundError
+from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
 from cnct.help import print_help
@@ -120,7 +120,7 @@ class ConnectFluent:
             except JSONDecodeError:
                 pass
 
-            self.response.raise_for_status()
+            self._raise_exception()
 
         if self.response.status_code == 204:
             return
@@ -130,3 +130,20 @@ class ConnectFluent:
     def help(self):
         print_help(self.specs)
         return self
+
+    def _raise_exception(self):
+        message = ''
+        if isinstance(self.response.reason, bytes):
+            try:
+                reason = self.response.reason.decode('utf-8')
+            except UnicodeDecodeError:
+                reason = self.response.reason.decode('iso-8859-1')
+        else:
+            reason = self.response.reason
+
+        if 400 <= self.response.status_code < 500:
+            message = f'{self.response.status_code} Client Error: {reason}'
+        elif 500 <= self.response.status_code < 600:
+            message = f'{self.response.status_code} Server Error: {reason}'
+
+        raise HttpError(message, response=self.response)
