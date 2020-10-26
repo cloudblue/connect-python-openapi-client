@@ -6,3 +6,4 @@
 from cnct.client.exceptions import ConnectError, HttpError, NotFoundError  # noqa
 from cnct.client.fluent import ConnectFluent  # noqa
 from cnct.client.version import get_version  # noqa
+from cnct.rql import R  # noqa

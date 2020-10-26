@@ -88,7 +88,7 @@ class Collection:
         return self.item(item_id)
 
     def all(self):
-        return Search(
+        return ResourceSet(
             self.client,
             self.path,
             specs=self.specs.operations.get('search') if self.specs else None,
@@ -108,7 +108,7 @@ class Collection:
         if kwargs:
             query &= R(**kwargs)
 
-        return Search(
+        return ResourceSet(
             self.client,
             self.path,
             specs=self.specs.operations.get('search') if self.specs else None,
@@ -117,15 +117,15 @@ class Collection:
 
     def search(self, term):
         """
-        Return a Search object that represents
+        Return a ResourceSet object that represents
         a list or search operation on a collection.
 
         :param query: RQL query expression, defaults to None
         :type query: str, optional
-        :return: a Search object.
-        :rtype: Search
+        :return: a ResourceSet object.
+        :rtype: ResourceSet
         """
-        return Search(
+        return ResourceSet(
             self.client,
             self.path,
             self.specs.operations.get('search') if self.specs else None,
@@ -315,7 +315,7 @@ class Action:
         return self
 
 
-class Search:
+class ResourceSet:
     def __init__(
         self,
         client,
@@ -376,7 +376,7 @@ class Search:
 
     def __getitem__(self, key):
         if not isinstance(key, (int, slice)):
-            raise TypeError('Search indices must be integers or slices.')
+            raise TypeError('ResourceSet indices must be integers or slices.')
 
         assert (not isinstance(key, slice) and (key >= 0)) or (
             isinstance(key, slice)

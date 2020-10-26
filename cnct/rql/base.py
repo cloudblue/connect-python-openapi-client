@@ -1,4 +1,7 @@
-from cnct.rql.utils import parse_kwargs
+from datetime import date, datetime
+from decimal import Decimal
+
+from cnct.rql.utils import is_iterable, parse_kwargs
 
 
 COMP = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
@@ -94,15 +97,6 @@ class RQLQuery:
         if self._field:
             raise AttributeError('Already evaluated')
 
-        if name in KEYWORDS:
-            self._field = '.'.join(self._path)
-            if name in (*COMP, *SEARCH):
-                return lambda value: self._bin(name, value)
-            if name in LIST:
-                return lambda value: self._list(name, value)
-            if name in (NULL, EMPTY):
-                return lambda value: self._bool(name, value)
-
         self._path.append(name)
         return self
 
@@ -131,21 +125,74 @@ class RQLQuery:
         self.children = [rql, other]
         return other
 
+    def ne(self, value):
+        return self._bin('ne', value)
+
+    def eq(self, value):
+        return self._bin('eq', value)
+
+    def lt(self, value):
+        return self._bin('lt', value)
+
+    def le(self, value):
+        return self._bin('le', value)
+
+    def gt(self, value):
+        return self._bin('gt', value)
+
+    def ge(self, value):
+        return self._bin('ge', value)
+
+    def out(self, value):
+        return self._list('out', value)
+
+    def in_(self, value):
+        return self._list('in', value)
+
+    def oneof(self, value):
+        return self._list('in', value)
+
+    def null(self, value):
+        return self._bool('null', value)
+
+    def empty(self, value):
+        return self._bool('empty', value)
+
     def _bin(self, op, value):
-        self.expr = f'{op}({self._field},{value})'
-        return self
+        self._field = '.'.join(self._path)
+        actual_value = None
+        if isinstance(value, str):
+            actual_value = value
+        if isinstance(value, bool):
+            actual_value = 'true' if value else 'false'
+        if isinstance(value, (int, float, Decimal)):
+            actual_value = str(value)
+        if isinstance(value, (date, datetime)):
+            actual_value = value.isoformat()
+
+        if actual_value:
+            self.expr = f'{op}({self._field},{value})'
+            return self
+
+        raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
     def _list(self, op, value):
-        if op == 'in_':
-            op = 'in'
-        self.expr = f'{op}({self._field},({",".join(value)}))'
-        return self
+        self._field = '.'.join(self._path)
+        actual_value = None
+        if is_iterable(value):
+            actual_value = ','.join(value)
+        if actual_value:
+            self.expr = f'{op}({self._field},({actual_value}))'
+            return self
+
+        raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
     def _bool(self, expr, value):
-        if value is False:
-            self.expr = f'ne({self._field}, {expr}())'
+        self._field = '.'.join(self._path)
+        if bool(value) is False:
+            self.expr = f'ne({self._field},{expr}())'
             return self
-        self.expr = f'eq({self._field}, {expr}())'
+        self.expr = f'eq({self._field},{expr}())'
         return self
 
     def _to_string(self, query):

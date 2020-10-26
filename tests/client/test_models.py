@@ -1,7 +1,7 @@
 import pytest
 
 from cnct.client.exceptions import NotFoundError
-from cnct.client.models import Action, Collection, Item, Search
+from cnct.client.models import Action, Collection, Item, ResourceSet
 from cnct.client.utils import ContentRange
 from cnct.rql import R
 
@@ -165,7 +165,7 @@ def test_collection_filter(col_factory):
 
     search = collection.filter()
 
-    assert isinstance(search, Search)
+    assert isinstance(search, ResourceSet)
     assert search.client == collection.client
     assert search.path == collection.path
     assert bool(search.query) is False
@@ -205,7 +205,7 @@ def test_collection_all(col_factory):
 
     search = collection.all()
 
-    assert isinstance(search, Search)
+    assert isinstance(search, ResourceSet)
     assert search.client == collection.client
     assert search.path == collection.path
     assert bool(search.query) is False
@@ -217,7 +217,7 @@ def test_collection_search(col_factory):
 
     search = collection.search('search terms')
 
-    assert isinstance(search, Search)
+    assert isinstance(search, ResourceSet)
     assert search.client == collection.client
     assert search.path == collection.path
     assert search._search == 'search terms'
@@ -617,7 +617,7 @@ def test_search_getitem_slice(mocker, search_factory):
     search = search_factory()
     search.client.get = mocker.MagicMock(return_value=expected)
     sliced = search[2:4]
-    assert isinstance(sliced, Search)
+    assert isinstance(sliced, ResourceSet)
     assert search._limit == 2
     assert search._offset == 2
 
@@ -627,7 +627,7 @@ def test_search_getitem_slice_type(mocker, search_factory):
     with pytest.raises(TypeError) as cv:
         search['invalid']
 
-    assert str(cv.value) == 'Search indices must be integers or slices.'
+    assert str(cv.value) == 'ResourceSet indices must be integers or slices.'
 
 
 def test_search_getitem_slice_negative(mocker, search_factory):
@@ -685,7 +685,7 @@ def test_search_values_list(mocker, search_factory):
 
     search = search.values_list('id', 'inner.title')
 
-    assert isinstance(search, Search)
+    assert isinstance(search, ResourceSet)
     assert list(search) == expected
 
 

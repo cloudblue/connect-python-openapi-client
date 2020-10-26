@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.models import Action, NS, Collection, Item, Search
+from cnct.client.models import Action, NS, Collection, Item, ResourceSet
 
 
 @pytest.fixture
@@ -74,6 +74,6 @@ def search_factory(mocker):
         query=None,
         specs=None,
     ):
-        search = Search(client, path, query, specs)
+        search = ResourceSet(client, path, query, specs)
         return search
     return _search_factory

@@ -151,14 +151,33 @@ To list resources belonging to a collection you can do:
 
 .. code-block:: python
 
-    for product in client.products.search():
+    for product in client.products.all():
         print(product)
 
-You can filter the results passing a `RQL query <https://connect.cloudblue.com/community/api/rql/>`_ string to the ``.search`` method:
+You can filter the results passing a `RQL query <https://connect.cloudblue.com/community/api/rql/>`_ string to the ``.filter`` method:
 
 .. code-block:: python
 
-    for product in client.products.search(query='eq(status,published)'):
+    for product in client.products.filter('eq(status,published)'):
+        print(product)
+
+
+Or you can use Django-style lookups:
+
+.. code-block:: python
+
+    for product in client.products.filter(status='published'):
+        print(product)
+
+
+Or you can use the ``R`` object if you need to express more complex queries:
+
+.. code-block:: python
+
+    from cnct.rql import R
+
+
+    for product in client.products.filter(status='published'):
         print(product)
 
 
