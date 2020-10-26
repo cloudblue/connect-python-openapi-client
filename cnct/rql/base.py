@@ -163,18 +163,18 @@ class RQLQuery:
         actual_value = None
         if isinstance(value, str):
             actual_value = value
-        if isinstance(value, bool):
+        elif isinstance(value, bool):
             actual_value = 'true' if value else 'false'
-        if isinstance(value, (int, float, Decimal)):
+            print(actual_value)
+        elif isinstance(value, (int, float, Decimal)):
             actual_value = str(value)
-        if isinstance(value, (date, datetime)):
+        elif isinstance(value, (date, datetime)):
             actual_value = value.isoformat()
+        else:
+            raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
 
-        if actual_value:
-            self.expr = f'{op}({self._field},{value})'
-            return self
-
-        raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
+        self.expr = f'{op}({self._field},{actual_value})'
+        return self
 
     def _list(self, op, value):
         self._field = '.'.join(self._path)
