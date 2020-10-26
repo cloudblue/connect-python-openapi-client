@@ -56,8 +56,9 @@ def action_factory(mocker):
     def _action_factory(
         client=client,
         path='{item_id}',
+        specs=None,
     ):
-        action = Action(client, path)
+        action = Action(client, path, specs)
         return action
     return _action_factory
 

@@ -327,7 +327,7 @@ class Search:
         self.client = client
         self.path = path
         self.specs = specs
-        self.query = query
+        self.query = query or R()
         self.results = None
         self._result_iterator = None
         self._limit = 100

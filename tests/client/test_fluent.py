@@ -311,3 +311,12 @@ def test_execute_delete(requests_mock):
     results = c.execute('delete', 'https://localhost/resources', 204)
 
     assert results is None
+
+
+def test_help(mocker, col_factory):
+    print_help = mocker.patch('cnct.client.fluent.print_help')
+    c = ConnectFluent('API_KEY', specs_location=None)
+    c1 = c.help()
+
+    assert print_help.called_once_with(None)
+    assert c == c1

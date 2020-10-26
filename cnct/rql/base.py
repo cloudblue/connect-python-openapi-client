@@ -16,7 +16,7 @@ class RQLQuery:
     OR = 'or'
     EXPR = 'expr'
 
-    def __init__(self, _op=EXPR, _children=None, _negated=False, _expr=None, **kwargs):
+    def __init__(self, *, _op=EXPR, _children=None, _negated=False, _expr=None, **kwargs):
         self.op = _op
         self.children = _children or []
         self.negated = _negated
@@ -45,6 +45,11 @@ class RQLQuery:
             and self.expr == other.expr
         )
 
+    def __hash__(self):
+        return hash(
+            (self.op, self.expr, self.negated, *(hash(value) for value in self.children))
+        )
+
     def __repr__(self):
         if self.op == self.EXPR:
             return f'<R({self.op}) {self.expr}>'
@@ -58,6 +63,8 @@ class RQLQuery:
         )
 
     def _join(self, other, op):
+        if self == other:
+            return self._copy(self)
         if not other:
             return self._copy(self)
         if not self:
@@ -152,6 +159,8 @@ class RQLQuery:
                 continue
             tokens.append(self._to_string(c))
 
+        if not tokens:
+            return ''
         if len(tokens) == 1:
             if query.negated:
                 return f'not({tokens[0]})'

@@ -3,6 +3,7 @@ import pytest
 from cnct.client.exceptions import NotFoundError
 from cnct.client.models import Action, Collection, Item, Search
 from cnct.client.utils import ContentRange
+from cnct.rql import R
 
 
 def test_ns_collection_invalid_type(ns_factory):
@@ -159,7 +160,7 @@ def test_collection_create(col_factory):
     )
 
 
-def test_collection_search(col_factory):
+def test_collection_filter(col_factory):
     collection = col_factory(path='resource')
 
     search = collection.filter()
@@ -174,7 +175,53 @@ def test_collection_search(col_factory):
 
     assert search.client == collection.client
     assert search.path == collection.path
-    assert search.query.expr == 'eq(field,value)'
+    assert str(search.query) == 'eq(field,value)'
+    assert search.specs is None
+
+    search = collection.filter(R().field.eq('value'))
+
+    assert search.client == collection.client
+    assert search.path == collection.path
+    assert str(search.query) == 'eq(field,value)'
+    assert search.specs is None
+
+    search = collection.filter(status__in=('status1', 'status2'))
+
+    assert search.client == collection.client
+    assert search.path == collection.path
+    assert str(search.query) == 'in(status,(status1,status2))'
+    assert search.specs is None
+
+
+def test_collection_filter_invalid_arg(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError):
+        collection.filter(1)
+
+
+def test_collection_all(col_factory):
+    collection = col_factory(path='resource')
+
+    search = collection.all()
+
+    assert isinstance(search, Search)
+    assert search.client == collection.client
+    assert search.path == collection.path
+    assert bool(search.query) is False
+    assert search.specs is None
+
+
+def test_collection_search(col_factory):
+    collection = col_factory(path='resource')
+
+    search = collection.search('search terms')
+
+    assert isinstance(search, Search)
+    assert search.client == collection.client
+    assert search.path == collection.path
+    assert search._search == 'search terms'
+    assert bool(search.query) is False
     assert search.specs is None
 
 
@@ -238,6 +285,58 @@ def test_item_collection_with_specs_unresolved(item_factory, iteminfo_factory):
         item.collection('other')
 
     assert str(cv.value) == 'The collection other does not exist.'
+
+
+def test_item_action_invalid_type(item_factory):
+    item = item_factory()
+    with pytest.raises(TypeError) as cv:
+        item.action(None)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+    with pytest.raises(TypeError) as cv:
+        item.action(3)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+
+def test_item_action_invalid_value(item_factory):
+    item = item_factory()
+    with pytest.raises(ValueError) as cv:
+        item.action('')
+
+    assert str(cv.value) == '`name` must not be blank.'
+
+
+def test_item_action(item_factory):
+    item = item_factory()
+    action = item.action('action')
+
+    assert isinstance(action, Action)
+    assert action.client == item.client
+    assert action.path == f'{item.path}/action'
+    assert action.specs is None
+
+
+def test_item_action_with_specs(item_factory, iteminfo_factory):
+    specs = iteminfo_factory(actions=['action'])
+    item = item_factory(specs=specs)
+    action = item.action('action')
+
+    assert isinstance(action, Action)
+    assert action.client == item.client
+    assert action.path == f'{item.path}/action'
+    assert action.specs == specs.actions['action']
+
+
+def test_item_action_with_specs_unresolved(item_factory, iteminfo_factory):
+    specs = iteminfo_factory(actions=['action'])
+    item = item_factory(specs=specs)
+
+    with pytest.raises(NotFoundError) as cv:
+        item.action('other')
+
+    assert str(cv.value) == 'The action other does not exist.'
 
 
 def test_item_getattr_no_specs(item_factory):
@@ -441,6 +540,16 @@ def test_action_delete(action_factory):
     )
 
 
+def test_action_help(mocker, action_factory):
+    action = action_factory(path='action')
+    print_help = mocker.patch('cnct.client.models.print_help')
+
+    act2 = action.help()
+
+    assert print_help.called_once_with(None)
+    assert act2 == action
+
+
 def test_search_len(mocker, search_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
@@ -627,6 +736,8 @@ def test_search_pagination(mocker, search_factory):
     ])
 
     assert list(search) == [{'id': i} for i in range(200)]
+    assert search._limit == 100
+    assert search._offset == 0
 
 
 def test_search_values_list_pagination(mocker, search_factory):
@@ -684,6 +795,66 @@ def test_search_with_queries(mocker, search_factory):
     bool(search)
 
     assert search.client.get.called_once_with(f'{search.path}?{search.query}')
+
+
+def test_search_configure(search_factory):
+    search = search_factory()
+    kwargs = {'k': 'v'}
+    s1 = search.configure(**kwargs)
+
+    assert s1._config == kwargs
+    assert s1 == search
+
+
+def test_search_order_by(search_factory):
+    search = search_factory()
+    fields = ('field1', '-field2')
+    s1 = search.order_by(*fields)
+
+    for field in fields:
+        assert field in s1._ordering
+    assert len(fields) == len(s1._ordering)
+    assert s1 == search
+
+
+def test_search_select(search_factory):
+    search = search_factory()
+    fields = ('field1', '-field2')
+    s1 = search.select(*fields)
+
+    for field in fields:
+        assert field in s1._select
+    assert len(fields) == len(s1._select)
+    assert s1 == search
+
+
+def test_search_filter(search_factory):
+    search = search_factory()
+
+    assert search.query is not None
+
+    s1 = search.filter()
+
+    assert s1 == search
+    assert bool(s1.query) is False
+
+    s1 = search.filter('eq(field,value)')
+
+    assert str(s1.query) == 'eq(field,value)'
+
+    s1 = search.filter(R().field.eq('value'))
+    assert str(s1.query) == 'eq(field,value)'
+
+    s1 = search.filter(status__in=('status1', 'status2'))
+
+    assert str(s1.query) == 'and(eq(field,value),in(status,(status1,status2)))'
+
+
+def test_search_filter_invalid_arg(search_factory):
+    search = search_factory()
+
+    with pytest.raises(TypeError):
+        search.filter(1)
 
 
 def test_search_help(mocker, search_factory):
