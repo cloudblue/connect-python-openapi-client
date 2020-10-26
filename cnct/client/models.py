@@ -473,8 +473,6 @@ class Search:
         if self._search:
             self._config['params']['search'] = self._search
 
-        print(url)
-        print(self._config)
         self.results = self.client.get(url, **self._config)
         self._pagination = parse_content_range(
             self.client.response.headers['Content-Range'],
