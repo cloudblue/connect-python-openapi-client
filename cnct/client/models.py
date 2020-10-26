@@ -333,7 +333,7 @@ class Search:
         self._limit = 100
         self._offset = 0
         self._slice = False
-        self._pagination = None
+        self.content_range = None
         self._fields = None
         self._search = search
         self._select = []
@@ -360,7 +360,7 @@ class Search:
             if self._slice:
                 self._offset = 0
                 raise
-            if self._pagination.last == self._pagination.count - 1:
+            if self.content_range.last == self.content_range.count - 1:
                 self._offset = 0
                 raise
             self._offset += self._limit
@@ -430,7 +430,12 @@ class Search:
     def count(self):
         if not self.results:
             self._perform()
-        return self._pagination.count
+        return self.content_range.count
+
+    def first(self):
+        if not self.results:
+            self._perform()
+        return self.results[0] if self.results else None
 
     def values_list(self, *fields):
         self._fields = fields
@@ -474,7 +479,7 @@ class Search:
             self._config['params']['search'] = self._search
 
         self.results = self.client.get(url, **self._config)
-        self._pagination = parse_content_range(
+        self.content_range = parse_content_range(
             self.client.response.headers['Content-Range'],
         )
         self._result_iterator = iter(self.results)
