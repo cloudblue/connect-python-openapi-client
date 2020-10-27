@@ -1,7 +1,7 @@
 import pytest
 
 from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
-from cnct.client.fluent import ConnectFluent
+from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
 
 
@@ -11,7 +11,7 @@ def test_getattr(mocker):
         return_value=None,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     with pytest.raises(AttributeError) as cv:
         c.resources
@@ -32,7 +32,7 @@ def test_getattr_with_specs(mocker, apiinfo_factory):
         return_value=specs,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     assert isinstance(c.resources, Collection)
     assert isinstance(c.namespace, NS)
@@ -48,7 +48,7 @@ def test_getattr_with_specs_unresolved(mocker, apiinfo_factory):
         return_value=specs,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     with pytest.raises(AttributeError) as cv:
         c.others
@@ -62,7 +62,7 @@ def test_ns(mocker):
         return_value=None,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     assert isinstance(c.ns('namespace'), NS)
 
@@ -73,7 +73,7 @@ def test_ns_unresolved(mocker, apiinfo_factory):
         return_value=apiinfo_factory(namespaces=['namespace']),
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     with pytest.raises(NotFoundError) as cv:
         c.ns('invalid')
@@ -87,7 +87,7 @@ def test_collection(mocker):
         return_value=None,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     assert isinstance(c.collection('resources'), Collection)
 
@@ -98,7 +98,7 @@ def test_collection_unresolved(mocker, apiinfo_factory):
         return_value=apiinfo_factory(collections=['resources']),
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     with pytest.raises(NotFoundError) as cv:
         c.collection('invalid')
@@ -115,7 +115,7 @@ def test_dir_with_specs(mocker, apiinfo_factory):
         ),
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     dir_ = dir(c)
     assert 'resources' in dir_
@@ -128,7 +128,7 @@ def test_dir_without_specs(mocker):
         return_value=None,
     )
 
-    c = ConnectFluent('Api Key')
+    c = ConnectClient('Api Key')
 
     dir_ = dir(c)
 
@@ -138,13 +138,13 @@ def test_dir_without_specs(mocker):
 
 
 def test_get(mocker):
-    mocked = mocker.patch.object(ConnectFluent, 'execute')
+    mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
     kwargs = {
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     c.get(url, **kwargs)
 
@@ -152,7 +152,7 @@ def test_get(mocker):
 
 
 def test_create(mocker):
-    mocked = mocker.patch.object(ConnectFluent, 'execute')
+    mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
     payload = {
         'k1': 'v1',
@@ -161,7 +161,7 @@ def test_create(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     c.create(url, payload=payload, **kwargs)
 
@@ -174,7 +174,7 @@ def test_create(mocker):
 
 
 def test_update(mocker):
-    mocked = mocker.patch.object(ConnectFluent, 'execute')
+    mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
     payload = {
         'k1': 'v1',
@@ -183,7 +183,7 @@ def test_update(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     c.update(url, payload=payload, **kwargs)
 
@@ -196,14 +196,14 @@ def test_update(mocker):
 
 
 def test_delete(mocker):
-    mocked = mocker.patch.object(ConnectFluent, 'execute')
+    mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
 
     kwargs = {
         'arg1': 'val1',
     }
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     c.delete(url, **kwargs)
 
@@ -218,7 +218,7 @@ def test_execute(requests_mock):
         json=expected,
     )
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     results = c.execute('get', 'https://localhost/resources', 200)
 
@@ -239,7 +239,7 @@ def test_execute_with_kwargs(requests_mock):
         status_code=201,
     )
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
     kwargs = {
         'headers': {
             'X-Custom-Header': 'value',
@@ -270,7 +270,7 @@ def test_execute_connect_error(requests_mock):
         status_code=400,
     )
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     with pytest.raises(ConnectError) as cv:
         c.execute('post', 'https://localhost/resources', 201)
@@ -289,7 +289,7 @@ def test_execute_uparseable_connect_error(requests_mock):
         status_code=400,
     )
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     with pytest.raises(HttpError):
         c.execute('post', 'https://localhost/resources', 201)
@@ -304,7 +304,7 @@ def test_execute_delete(requests_mock):
         status_code=204,
     )
 
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
 
     results = c.execute('delete', 'https://localhost/resources', 204)
 
@@ -313,7 +313,7 @@ def test_execute_delete(requests_mock):
 
 def test_help(mocker, col_factory):
     print_help = mocker.patch('cnct.client.fluent.print_help')
-    c = ConnectFluent('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', specs_location=None)
     c1 = c.help()
 
     assert print_help.called_once_with(None)

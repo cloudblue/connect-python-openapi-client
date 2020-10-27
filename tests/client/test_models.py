@@ -1,7 +1,7 @@
 import pytest
 
 from cnct.client.exceptions import NotFoundError
-from cnct.client.models import Action, Collection, Item, ResourceSet
+from cnct.client.models import Action, Collection, Resource, ResourceSet
 from cnct.client.utils import ContentRange
 from cnct.rql import R
 
@@ -120,22 +120,22 @@ def test_ns_help(mocker, ns_factory, nsinfo_factory):
     assert ns2 == ns
 
 
-def test_collection_item(col_factory):
+def test_collection_resource(col_factory):
     collection = col_factory(path='resource')
-    item = collection.item('item_id')
+    resource = collection.resource('item_id')
 
-    assert isinstance(item, Item)
-    assert item.path == f'{collection.path}/item_id'
-    assert item.specs is None
+    assert isinstance(resource, Resource)
+    assert resource.path == f'{collection.path}/item_id'
+    assert resource.specs is None
 
 
 def test_collection_getitem(col_factory):
     collection = col_factory(path='resource')
-    item = collection['item_id']
+    resource = collection['item_id']
 
-    assert isinstance(item, Item)
-    assert item.path == f'{collection.path}/item_id'
-    assert item.specs is None
+    assert isinstance(resource, Resource)
+    assert resource.path == f'{collection.path}/item_id'
+    assert resource.specs is None
 
 
 def test_collection_not_iterable(col_factory):
@@ -163,34 +163,34 @@ def test_collection_create(col_factory):
 def test_collection_filter(col_factory):
     collection = col_factory(path='resource')
 
-    search = collection.filter()
+    rs = collection.filter()
 
-    assert isinstance(search, ResourceSet)
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert bool(search.query) is False
-    assert search.specs is None
+    assert isinstance(rs, ResourceSet)
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert bool(rs.query) is False
+    assert rs.specs is None
 
-    search = collection.filter('eq(field,value)')
+    rs = collection.filter('eq(field,value)')
 
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert str(search.query) == 'eq(field,value)'
-    assert search.specs is None
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert str(rs.query) == 'eq(field,value)'
+    assert rs.specs is None
 
-    search = collection.filter(R().field.eq('value'))
+    rs = collection.filter(R().field.eq('value'))
 
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert str(search.query) == 'eq(field,value)'
-    assert search.specs is None
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert str(rs.query) == 'eq(field,value)'
+    assert rs.specs is None
 
-    search = collection.filter(status__in=('status1', 'status2'))
+    rs = collection.filter(status__in=('status1', 'status2'))
 
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert str(search.query) == 'in(status,(status1,status2))'
-    assert search.specs is None
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert str(rs.query) == 'in(status,(status1,status2))'
+    assert rs.specs is None
 
 
 def test_collection_filter_invalid_arg(col_factory):
@@ -203,26 +203,26 @@ def test_collection_filter_invalid_arg(col_factory):
 def test_collection_all(col_factory):
     collection = col_factory(path='resource')
 
-    search = collection.all()
+    rs = collection.all()
 
-    assert isinstance(search, ResourceSet)
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert bool(search.query) is False
-    assert search.specs is None
+    assert isinstance(rs, ResourceSet)
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert bool(rs.query) is False
+    assert rs.specs is None
 
 
 def test_collection_search(col_factory):
     collection = col_factory(path='resource')
 
-    search = collection.search('search terms')
+    rs = collection.search('search terms')
 
-    assert isinstance(search, ResourceSet)
-    assert search.client == collection.client
-    assert search.path == collection.path
-    assert search._search == 'search terms'
-    assert bool(search.query) is False
-    assert search.specs is None
+    assert isinstance(rs, ResourceSet)
+    assert rs.client == collection.client
+    assert rs.path == collection.path
+    assert rs._search == 'search terms'
+    assert bool(rs.query) is False
+    assert rs.specs is None
 
 
 def test_collection_help(mocker, col_factory):
@@ -235,115 +235,115 @@ def test_collection_help(mocker, col_factory):
     assert col2 == collection
 
 
-def test_item_collection_invalid_type(item_factory):
-    item = item_factory()
+def test_resource_collection_invalid_type(res_factory):
+    resource = res_factory()
     with pytest.raises(TypeError) as cv:
-        item.collection(None)
+        resource.collection(None)
 
     assert str(cv.value) == '`name` must be a string.'
 
     with pytest.raises(TypeError) as cv:
-        item.collection(3)
+        resource.collection(3)
 
     assert str(cv.value) == '`name` must be a string.'
 
 
-def test_item_collection_invalid_value(item_factory):
-    item = item_factory()
+def test_resource_collection_invalid_value(res_factory):
+    resource = res_factory()
     with pytest.raises(ValueError) as cv:
-        item.collection('')
+        resource.collection('')
 
     assert str(cv.value) == '`name` must not be blank.'
 
 
-def test_item_collection(item_factory):
-    item = item_factory()
-    collection = item.collection('resource')
+def test_resource_collection(res_factory):
+    resource = res_factory()
+    collection = resource.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == item.client
-    assert collection.path == f'{item.path}/resource'
+    assert collection.client == resource.client
+    assert collection.path == f'{resource.path}/resource'
     assert collection.specs is None
 
 
-def test_item_collection_with_specs(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'])
-    item = item_factory(specs=specs)
-    collection = item.collection('resource')
+def test_resource_collection_with_specs(res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'])
+    resource = res_factory(specs=specs)
+    collection = resource.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == item.client
-    assert collection.path == f'{item.path}/resource'
+    assert collection.client == resource.client
+    assert collection.path == f'{resource.path}/resource'
     assert collection.specs == specs.collections['resource']
 
 
-def test_item_collection_with_specs_unresolved(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'])
-    item = item_factory(specs=specs)
+def test_resource_collection_with_specs_unresolved(res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'])
+    resource = res_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
-        item.collection('other')
+        resource.collection('other')
 
     assert str(cv.value) == 'The collection other does not exist.'
 
 
-def test_item_action_invalid_type(item_factory):
-    item = item_factory()
+def test_resource_action_invalid_type(res_factory):
+    resource = res_factory()
     with pytest.raises(TypeError) as cv:
-        item.action(None)
+        resource.action(None)
 
     assert str(cv.value) == '`name` must be a string.'
 
     with pytest.raises(TypeError) as cv:
-        item.action(3)
+        resource.action(3)
 
     assert str(cv.value) == '`name` must be a string.'
 
 
-def test_item_action_invalid_value(item_factory):
-    item = item_factory()
+def test_resource_action_invalid_value(res_factory):
+    resource = res_factory()
     with pytest.raises(ValueError) as cv:
-        item.action('')
+        resource.action('')
 
     assert str(cv.value) == '`name` must not be blank.'
 
 
-def test_item_action(item_factory):
-    item = item_factory()
-    action = item.action('action')
+def test_resource_action(res_factory):
+    resource = res_factory()
+    action = resource.action('action')
 
     assert isinstance(action, Action)
-    assert action.client == item.client
-    assert action.path == f'{item.path}/action'
+    assert action.client == resource.client
+    assert action.path == f'{resource.path}/action'
     assert action.specs is None
 
 
-def test_item_action_with_specs(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(actions=['action'])
-    item = item_factory(specs=specs)
-    action = item.action('action')
+def test_resource_action_with_specs(res_factory, resinfo_factory):
+    specs = resinfo_factory(actions=['action'])
+    resource = res_factory(specs=specs)
+    action = resource.action('action')
 
     assert isinstance(action, Action)
-    assert action.client == item.client
-    assert action.path == f'{item.path}/action'
+    assert action.client == resource.client
+    assert action.path == f'{resource.path}/action'
     assert action.specs == specs.actions['action']
 
 
-def test_item_action_with_specs_unresolved(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(actions=['action'])
-    item = item_factory(specs=specs)
+def test_resource_action_with_specs_unresolved(res_factory, resinfo_factory):
+    specs = resinfo_factory(actions=['action'])
+    resource = res_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
-        item.action('other')
+        resource.action('other')
 
     assert str(cv.value) == 'The action other does not exist.'
 
 
-def test_item_getattr_no_specs(item_factory):
-    item = item_factory()
+def test_resource_getattr_no_specs(res_factory):
+    resource = res_factory()
 
     with pytest.raises(AttributeError) as cv:
-        item.resource
+        resource.resource
 
     assert str(cv.value) == (
         'No specs available. Use the `collection` '
@@ -351,92 +351,92 @@ def test_item_getattr_no_specs(item_factory):
     )
 
 
-def test_item_getattr_with_specs(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'], actions=['myaction'])
-    item = item_factory(specs=specs)
+def test_resource_getattr_with_specs(res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'], actions=['myaction'])
+    resource = res_factory(specs=specs)
 
-    collection = item.resource
+    collection = resource.resource
 
     assert isinstance(collection, Collection)
-    assert collection.client == item.client
-    assert collection.path == f'{item.path}/resource'
+    assert collection.client == resource.client
+    assert collection.path == f'{resource.path}/resource'
     assert collection.specs == specs.collections['resource']
 
-    action = item.myaction
+    action = resource.myaction
 
     assert isinstance(action, Action)
-    assert action.client == item.client
-    assert action.path == f'{item.path}/myaction'
+    assert action.client == resource.client
+    assert action.path == f'{resource.path}/myaction'
 
 
-def test_item_getattr_with_specs_unresolved(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'])
-    item = item_factory(specs=specs)
+def test_resource_getattr_with_specs_unresolved(res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'])
+    resource = res_factory(specs=specs)
 
     with pytest.raises(AttributeError) as cv:
-        item.other
+        resource.other
 
     assert str(cv.value) == 'Unable to resolve other.'
 
 
-def test_item_dir_with_specs(item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'])
-    item = item_factory(specs=specs)
+def test_resource_dir_with_specs(res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'])
+    resource = res_factory(specs=specs)
 
-    dir_ = dir(item)
+    dir_ = dir(resource)
     assert 'resource' in dir_
     assert 'collection' in dir_
 
 
-def test_item_dir_without_specs(item_factory):
-    item = item_factory()
+def test_resource_dir_without_specs(res_factory):
+    resource = res_factory()
 
-    dir_ = dir(item)
+    dir_ = dir(resource)
 
     assert 'collection' in dir_
     assert 'resource' not in dir_
 
 
-def test_item_get(item_factory):
-    item = item_factory()
-    item.get()
+def test_resource_get(res_factory):
+    resource = res_factory()
+    resource.get()
 
-    assert item.client.get.called_once()
+    assert resource.client.get.called_once()
 
-    item.get(headers={'Content-Type': 'application/json'})
-    assert item.client.create.called_once_with(
+    resource.get(headers={'Content-Type': 'application/json'})
+    assert resource.client.create.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
 
-def test_item_update(item_factory):
-    item = item_factory()
-    item.update({'name': 'test'})
+def test_resource_update(res_factory):
+    resource = res_factory()
+    resource.update({'name': 'test'})
 
-    assert item.client.update.called_once_with(payload={'name': 'test'})
+    assert resource.client.update.called_once_with(payload={'name': 'test'})
 
-    item.update({'name': 'test'}, headers={'Content-Type': 'application/json'})
-    assert item.client.update.called_once_with(
+    resource.update({'name': 'test'}, headers={'Content-Type': 'application/json'})
+    assert resource.client.update.called_once_with(
         payload={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
 
 
-def test_item_delete(item_factory):
-    item = item_factory()
-    item.delete()
+def test_resource_delete(res_factory):
+    resource = res_factory()
+    resource.delete()
 
-    assert item.client.delete.called_once()
+    assert resource.client.delete.called_once()
 
-    item.delete(headers={'Content-Type': 'application/json'})
-    assert item.client.delete.called_once_with(
+    resource.delete(headers={'Content-Type': 'application/json'})
+    assert resource.client.delete.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
 
-def test_item_values(mocker, item_factory):
+def test_resource_values(mocker, res_factory):
     mocker.patch.object(
-        Item,
+        Resource,
         'get',
         return_value={
             'id': 'ID',
@@ -447,8 +447,8 @@ def test_item_values(mocker, item_factory):
         },
     )
 
-    item = item_factory()
-    result = item.values('id', 'sub_object.name')
+    resource = res_factory()
+    result = resource.values('id', 'sub_object.name')
     assert isinstance(result, dict)
     assert 'not_choosen' not in result
     assert 'id' in result and result['id'] == 'ID'
@@ -456,16 +456,16 @@ def test_item_values(mocker, item_factory):
         and result['sub_object.name'] == 'ok'
 
 
-def test_item_help(mocker, item_factory, iteminfo_factory):
-    specs = iteminfo_factory(collections=['resource'])
-    item = item_factory(specs=specs)
+def test_resource_help(mocker, res_factory, resinfo_factory):
+    specs = resinfo_factory(collections=['resource'])
+    resource = res_factory(specs=specs)
 
     print_help = mocker.patch('cnct.client.models.print_help')
 
-    item2 = item.help()
+    resource2 = resource.help()
 
     assert print_help.called_once_with(specs)
-    assert item2 == item
+    assert resource2 == resource
 
 
 def test_action_get(action_factory):
@@ -550,115 +550,115 @@ def test_action_help(mocker, action_factory):
     assert act2 == action
 
 
-def test_search_len(mocker, search_factory):
+def test_rs_len(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 100),
     )
     results = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=results)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=results)
 
-    assert len(search) == 10
+    assert len(rs) == 10
 
 
-def test_search_iterate(mocker, search_factory):
+def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=expected)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=expected)
 
-    results = [item for item in search]
+    results = [resource for resource in rs]
     assert results == expected
 
 
-def test_search_bool_truthy(mocker, search_factory):
+def test_rs_bool_truthy(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=expected)
-    assert bool(search) is True
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=expected)
+    assert bool(rs) is True
 
 
-def test_search_bool_falsy(mocker, search_factory):
+def test_rs_bool_falsy(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=[])
-    assert bool(search) is False
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=[])
+    assert bool(rs) is False
 
 
-def test_search_getitem(mocker, search_factory):
+def test_rs_getitem(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=expected)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=expected)
     for i in range(10):
-        assert search[i] == expected[i]
+        assert rs[i] == expected[i]
 
 
-def test_search_getitem_slice(mocker, search_factory):
+def test_rs_getitem_slice(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=expected)
-    sliced = search[2:4]
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=expected)
+    sliced = rs[2:4]
     assert isinstance(sliced, ResourceSet)
-    assert search._limit == 2
-    assert search._offset == 2
+    assert rs._limit == 2
+    assert rs._offset == 2
 
 
-def test_search_getitem_slice_type(mocker, search_factory):
-    search = search_factory()
+def test_rs_getitem_slice_type(mocker, rs_factory):
+    rs = rs_factory()
     with pytest.raises(TypeError) as cv:
-        search['invalid']
+        rs['invalid']
 
     assert str(cv.value) == 'ResourceSet indices must be integers or slices.'
 
 
-def test_search_getitem_slice_negative(mocker, search_factory):
-    search = search_factory()
+def test_rs_getitem_slice_negative(mocker, rs_factory):
+    rs = rs_factory()
     with pytest.raises(AssertionError) as cv:
-        search[1:-1]
+        rs[1:-1]
 
     assert str(cv.value) == 'Negative indexing is not supported.'
 
 
-def test_search_getitem_slice_step(mocker, search_factory):
-    search = search_factory()
+def test_rs_getitem_slice_step(mocker, rs_factory):
+    rs = rs_factory()
     with pytest.raises(AssertionError) as cv:
-        search[0:10:2]
+        rs[0:10:2]
 
     assert str(cv.value) == 'Indexing with step is not supported.'
 
 
-def test_search_count(mocker, search_factory):
+def test_rs_count(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 100),
     )
     expected = [{'id': i} for i in range(10)]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=expected)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=expected)
 
-    assert search.count() == 100
+    assert rs.count() == 100
 
 
-def test_search_values_list(mocker, search_factory):
+def test_rs_values_list(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
@@ -680,16 +680,16 @@ def test_search_values_list(mocker, search_factory):
         }
         for i in range(10)
     ]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=return_value)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=return_value)
 
-    search = search.values_list('id', 'inner.title')
+    rs = rs.values_list('id', 'inner.title')
 
-    assert isinstance(search, ResourceSet)
-    assert list(search) == expected
+    assert isinstance(rs, ResourceSet)
+    assert list(rs) == expected
 
 
-def test_search_values_list_evaluated(mocker, search_factory):
+def test_rs_values_list_evaluated(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 9, 10),
@@ -711,16 +711,16 @@ def test_search_values_list_evaluated(mocker, search_factory):
         }
         for i in range(10)
     ]
-    search = search_factory()
-    search.client.get = mocker.MagicMock(return_value=return_value)
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(return_value=return_value)
 
-    bool(search)
-    values = search.values_list('id', 'inner.title')
+    bool(rs)
+    values = rs.values_list('id', 'inner.title')
 
     assert values == expected
 
 
-def test_search_pagination(mocker, search_factory):
+def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         side_effect=[
@@ -729,18 +729,18 @@ def test_search_pagination(mocker, search_factory):
         ],
     )
 
-    search = search_factory()
-    search.client.get = mocker.MagicMock(side_effect=[
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(side_effect=[
         [{'id': i} for i in range(100)],
         [{'id': i} for i in range(100, 200)],
     ])
 
-    assert list(search) == [{'id': i} for i in range(200)]
-    assert search._limit == 100
-    assert search._offset == 0
+    assert list(rs) == [{'id': i} for i in range(200)]
+    assert rs._limit == 100
+    assert rs._offset == 0
 
 
-def test_search_values_list_pagination(mocker, search_factory):
+def test_rs_values_list_pagination(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         side_effect=[
@@ -749,8 +749,8 @@ def test_search_values_list_pagination(mocker, search_factory):
         ],
     )
 
-    search = search_factory()
-    search.client.get = mocker.MagicMock(side_effect=[
+    rs = rs_factory()
+    rs.client.get = mocker.MagicMock(side_effect=[
         [
             {
                 'id': i,
@@ -781,85 +781,85 @@ def test_search_values_list_pagination(mocker, search_factory):
         for i in range(200)
     ]
 
-    assert list(search.values_list('id', 'inner.title')) == expected
+    assert list(rs.values_list('id', 'inner.title')) == expected
 
 
-def test_search_with_queries(mocker, search_factory):
+def test_rs_with_queries(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
-    search = search_factory(query='eq(status,approved)')
+    rs = rs_factory(query='eq(status,approved)')
     get_mock = mocker.MagicMock(return_value=[])
-    search.client.get = get_mock
-    bool(search)
+    rs.client.get = get_mock
+    bool(rs)
 
-    assert search.client.get.called_once_with(f'{search.path}?{search.query}')
+    assert rs.client.get.called_once_with(f'{rs.path}?{rs.query}')
 
 
-def test_search_configure(search_factory):
-    search = search_factory()
+def test_rs_configure(rs_factory):
+    rs = rs_factory()
     kwargs = {'k': 'v'}
-    s1 = search.configure(**kwargs)
+    s1 = rs.configure(**kwargs)
 
     assert s1._config == kwargs
-    assert s1 == search
+    assert s1 == rs
 
 
-def test_search_order_by(search_factory):
-    search = search_factory()
+def test_rs_order_by(rs_factory):
+    rs = rs_factory()
     fields = ('field1', '-field2')
-    s1 = search.order_by(*fields)
+    s1 = rs.order_by(*fields)
 
     for field in fields:
         assert field in s1._ordering
     assert len(fields) == len(s1._ordering)
-    assert s1 == search
+    assert s1 == rs
 
 
-def test_search_select(search_factory):
-    search = search_factory()
+def test_rs_select(rs_factory):
+    rs = rs_factory()
     fields = ('field1', '-field2')
-    s1 = search.select(*fields)
+    s1 = rs.select(*fields)
 
     for field in fields:
         assert field in s1._select
     assert len(fields) == len(s1._select)
-    assert s1 == search
+    assert s1 == rs
 
 
-def test_search_filter(search_factory):
-    search = search_factory()
+def test_rs_filter(rs_factory):
+    rs = rs_factory()
 
-    assert search.query is not None
+    assert rs.query is not None
 
-    s1 = search.filter()
+    s1 = rs.filter()
 
-    assert s1 == search
+    assert s1 == rs
     assert bool(s1.query) is False
 
-    s1 = search.filter('eq(field,value)')
+    s1 = rs.filter('eq(field,value)')
 
     assert str(s1.query) == 'eq(field,value)'
 
-    s1 = search.filter(R().field.eq('value'))
+    s1 = rs.filter(R().field.eq('value'))
     assert str(s1.query) == 'eq(field,value)'
 
-    s1 = search.filter(status__in=('status1', 'status2'))
+    s1 = rs.filter(status__in=('status1', 'status2'))
 
     assert str(s1.query) == 'and(eq(field,value),in(status,(status1,status2)))'
 
 
-def test_search_filter_invalid_arg(search_factory):
-    search = search_factory()
+def test_rs_filter_invalid_arg(rs_factory):
+    rs = rs_factory()
 
     with pytest.raises(TypeError):
-        search.filter(1)
+        rs.filter(1)
 
 
-def test_search_help(mocker, search_factory):
-    search = search_factory(specs='this is a spec')
+def test_rs_help(mocker, rs_factory):
+    rs = rs_factory(specs='this is a spec')
     print_help = mocker.patch('cnct.client.models.print_help')
-    search2 = search.help()
+    rs2 = rs.help()
     assert print_help.called_once_with('this is a spec')
-    assert search2 == search
+    assert rs2 == rs

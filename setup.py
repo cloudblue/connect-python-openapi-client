@@ -8,10 +8,10 @@ def read_file(name):
 
 
 setup(
-    name='connect-fluent-client',
+    name='connect-api-client',
     author='CloudBlue',
     url='https://connect.cloudblue.com',
-    description='CloudBlue Connect Fluent REST Client',
+    description='Connect Python OpenAPI Client',
     long_description=read_file('README.md'),
     long_description_content_type='text/markdown',
     python_requires='>=3.7',

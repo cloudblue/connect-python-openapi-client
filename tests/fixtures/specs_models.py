@@ -4,7 +4,7 @@ from cnct.specs.models import (
     ApiInfo,
     NSInfo,
     # CollectionInfo,
-    ItemInfo,
+    ResourceInfo,
 )
 
 
@@ -41,12 +41,12 @@ def nsinfo_factory(mocker):
 
 
 @pytest.fixture
-def iteminfo_factory(mocker):
-    def _iteminfo_factory(
+def resinfo_factory(mocker):
+    def _resinfo_factory(
         collections=None,
         actions=None,
     ):
-        iteminfo = ItemInfo()
+        iteminfo = ResourceInfo()
         if collections:
             for col in collections:
                 iteminfo.set_collection(col, 'summary', 'description')
@@ -57,7 +57,7 @@ def iteminfo_factory(mocker):
                 elif isinstance(action, (list, tuple)):
                     iteminfo.set_action(action[0], 'summary', 'description', action[1])
         return iteminfo
-    return _iteminfo_factory
+    return _resinfo_factory
 
 
 @pytest.fixture

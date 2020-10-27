@@ -84,8 +84,8 @@ class Collection:
     def __iter__(self):
         raise TypeError('A collection object is not iterable.')
 
-    def __getitem__(self, item_id):
-        return self.item(item_id)
+    def __getitem__(self, resource_id):
+        return self.resource(resource_id)
 
     def all(self):
         return ResourceSet(
@@ -147,19 +147,19 @@ class Collection:
             **kwargs,
         )
 
-    def item(self, item_id):
+    def resource(self, resource_id):
         """
-        Returns an Item object
+        Returns an Resource object
 
         :param item_id: [description]
         :type item_id: [type]
         :return: [description]
         :rtype: [type]
         """
-        return Item(
+        return Resource(
             self.client,
-            f'{self.path}/{item_id}',
-            self.specs.item_specs if self.specs else None,
+            f'{self.path}/{resource_id}',
+            self.specs.resource_specs if self.specs else None,
         )
 
     def help(self):
@@ -167,7 +167,7 @@ class Collection:
         return self
 
 
-class Item:
+class Resource:
     """Represent a generic item."""
     def __init__(self, client, path, specs=None):
         self.client = client

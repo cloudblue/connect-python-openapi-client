@@ -107,13 +107,13 @@ def parse(url):
                 if idx < last_idx:
                     # <name>/.... (not an action since not latest token)
                     logger.debug('subcollection retrieve/update/delete operation')
-                    collection = collection.item_specs.set_collection(comp, summary, description)
+                    collection = collection.resource_specs.set_collection(comp, summary, description)
                     continue
                 if _is_variable(comp):
                     # <name>/{id}
                     op_type = _get_operation_type(operation_id)
-                    collection.item_specs.summary = summary
-                    collection.item_specs.description = description
+                    collection.resource_specs.summary = summary
+                    collection.resource_specs.description = description
                     collection.operations[op_type] = OpInfo(
                         op_type,
                         collection.name,
@@ -124,7 +124,7 @@ def parse(url):
                     continue
                 action_name = _get_action_name(operation_id)
                 if action_name in ('list', 'detail'):
-                    collection = collection.item_specs.set_collection(comp, summary, description)
+                    collection = collection.resource_specs.set_collection(comp, summary, description)
                     op_type = _get_operation_type(operation_id)
                     collection.operations[op_type] = OpInfo(
                         op_type,
@@ -135,7 +135,7 @@ def parse(url):
                     )
                     continue
                 else:
-                    collection.item_specs.set_action(
+                    collection.resource_specs.set_action(
                         action_name,
                         summary,
                         description,

@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to connect-fluent-client's documentation!
-=================================================
+Welcome to Connect Python OpenAPI Client documentation
+======================================================
 
-Welcome to`connect-fluent-client` the simple, concise, powerful and REPL-friendly CloudBlue Connect API client.
+Welcome to `Connect Python OpenAPI Client` a simple, concise, powerful and REPL-friendly REST API client.
 
 It has been designed following the `fluent interface design pattern <https://en.wikipedia.org/wiki/Fluent_interface>`_.
 

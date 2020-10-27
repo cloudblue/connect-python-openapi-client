@@ -45,7 +45,7 @@ class ActionInfo:
             self.methods[info.method] = info
 
 
-class ItemInfo:
+class ResourceInfo:
     def __init__(self):
         self.summary = ''
         self.description = ''
@@ -68,4 +68,4 @@ class CollectionInfo:
         self.description = description
         self.tag = tag
         self.operations = {}
-        self.item_specs = ItemInfo()
+        self.resource_specs = ResourceInfo()

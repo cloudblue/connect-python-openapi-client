@@ -4,7 +4,7 @@ from cnct.specs.models import (
     ActionInfo,
     ApiInfo,
     CollectionInfo,
-    ItemInfo,
+    ResourceInfo,
     NSInfo,
     OpInfo,
 )
@@ -169,7 +169,7 @@ def print_help(specs):
         print(_print_namespace(specs))
     if isinstance(specs, CollectionInfo):
         print(_print_collection(specs))
-    if isinstance(specs, ItemInfo):
+    if isinstance(specs, ResourceInfo):
         print(_print_item(specs))
     if isinstance(specs, ActionInfo):
         print(_print_action(specs))

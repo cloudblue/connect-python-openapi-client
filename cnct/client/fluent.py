@@ -11,7 +11,7 @@ from cnct.help import print_help
 from cnct.specs.parser import parse
 
 
-class ConnectFluent:
+class ConnectClient:
     def __init__(
         self,
         api_key,
