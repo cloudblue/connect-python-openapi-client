@@ -300,3 +300,15 @@ def test_dotted_path_already_evaluated():
 def test_str():
     assert str(RQLQuery(id='ID')) == 'eq(id,ID)'
     assert str(~RQLQuery(id='ID')) == 'not(eq(id,ID))'
+    assert str(~RQLQuery(id='ID', field='value')) == 'not(and(eq(id,ID),eq(field,value)))'
+
+
+def test_hash():
+    s = set()
+
+    r = RQLQuery(id='ID', field='value')
+
+    s.add(r)
+    s.add(r)
+
+    assert len(s) == 1

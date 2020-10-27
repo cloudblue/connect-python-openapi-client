@@ -3,16 +3,34 @@ API Reference
 
 .. autoclass:: cnct.client.models.NS
    :members:
+   :special-members:
+   :exclude-members: __weakref__
 
 .. autoclass:: cnct.client.models.Collection
    :members:
+   :special-members:
+   :exclude-members: __weakref__
 
-.. autoclass:: cnct.client.models.Search
+.. autoclass:: cnct.client.models.Resource
    :members:
+   :special-members:
+   :exclude-members: __weakref__
+
+.. autoclass:: cnct.client.models.ResourceSet
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
+
 
 Exceptions
 ----------
 
+
+.. autoclass:: cnct.client.exceptions.ConnectError
+   :members:
+
+.. autoclass:: cnct.client.exceptions.HttpError
+   :members:
 
 .. autoclass:: cnct.client.exceptions.NotFoundError
    :members:

@@ -36,12 +36,3 @@ def parse_kwargs(query_dict):
         query.append(f'{cmpop}({field},{expr})')
 
     return query
-
-
-def is_iterable(x):
-    try:
-        iter(x)
-    except TypeError:
-        return False
-    else:
-        return True

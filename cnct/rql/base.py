@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from cnct.rql.utils import is_iterable, parse_kwargs
+from cnct.rql.utils import parse_kwargs
 
 
 COMP = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
@@ -62,26 +62,6 @@ class RQLQuery:
             return f'<R({self.op}) {self.expr}>'
         return f'<R({self.op})>'
 
-    def _copy(self, other):
-        return RQLQuery(
-            _op=other.op,
-            _children=other.children[:],
-            _expr=other.expr,
-        )
-
-    def _join(self, other, op):
-        if self == other:
-            return self._copy(self)
-        if not other:
-            return self._copy(self)
-        if not self:
-            return self._copy(other)
-
-        query = RQLQuery(_op=op)
-        query._append(self, op)
-        query._append(other, op)
-        return query
-
     def __and__(self, other):
         return self._join(other, self.AND)
 
@@ -90,7 +70,7 @@ class RQLQuery:
 
     def __invert__(self):
         query = RQLQuery(_op=self.AND, _expr=self.expr, _negated=True)
-        query._append(self, self.AND)
+        query._append(self)
         return query
 
     def __getattr__(self, name):
@@ -102,28 +82,6 @@ class RQLQuery:
 
     def __str__(self):
         return self._to_string(self)
-
-    def _append(self, other, op):
-        if other in self.children:
-            return other
-
-        if self.op == op:
-            if (other.op == op or (len(other) == 1 and other.op != self.EXPR)) and not other.negated:
-                self.children.extend(other.children)
-                return self
-
-            self.children.append(other)
-            return self
-
-        rql = RQLQuery(
-            _op=self.op,
-            _children=self.children,
-            _negated=self.negated,
-        )
-
-        self.op = op
-        self.children = [rql, other]
-        return other
 
     def ne(self, value):
         return self._bin('ne', value)
@@ -212,10 +170,38 @@ class RQLQuery:
 
         if not tokens:
             return ''
-        if len(tokens) == 1:
-            if query.negated:
-                return f'not({tokens[0]})'
-            return tokens[0]
+
         if query.negated:
             return f'not({query.op}({",".join(tokens)}))'
         return f'{query.op}({",".join(tokens)})'
+
+    def _copy(self, other):
+        return RQLQuery(
+            _op=other.op,
+            _children=other.children[:],
+            _expr=other.expr,
+        )
+
+    def _join(self, other, op):
+        if self == other:
+            return self._copy(self)
+        if not other:
+            return self._copy(self)
+        if not self:
+            return self._copy(other)
+
+        query = RQLQuery(_op=op)
+        query._append(self)
+        query._append(other)
+        return query
+
+    def _append(self, other):
+        if other in self.children:
+            return other
+
+        if (other.op == self.op or (len(other) == 1 and other.op != self.EXPR)) and not other.negated:
+            self.children.extend(other.children)
+            return self
+
+        self.children.append(other)
+        return self

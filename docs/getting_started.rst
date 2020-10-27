@@ -16,10 +16,10 @@ Install
 -------
 
 *connect-fluent-client* is a small python package that can be installed
-from the `pypi.org <https://pypi.org/project/connect-fluent-client/>`_ repository.
+from the `pypi.org <https://pypi.org/project/connect-api-client/>`_ repository.
 
 
 .. code-block:: sh
 
-    $ pip install connect-fluent-client
+    $ pip install connect-api-client
 
