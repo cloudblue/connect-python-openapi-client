@@ -12,6 +12,9 @@ from cnct.specs.parser import parse
 
 
 class ConnectClient:
+    """
+    Connect Rest API client.
+    """
     def __init__(
         self,
         api_key,
@@ -19,6 +22,18 @@ class ConnectClient:
         specs_location=CONNECT_SPECS_URL,
         default_headers={},
     ):
+        """
+        Create a new instance of the ConnectClient.
+
+        :param api_key: The API key used for authentication.
+        :type api_key: str
+        :param endpoint: The API endpoint, defaults to CONNECT_ENDPOINT_URL
+        :type endpoint: str, optional
+        :param specs_location: The Connect OpenAPI specification local path or URL, defaults to CONNECT_SPECS_URL
+        :type specs_location: str, optional
+        :param default_headers: Http headers to apply to each request, defaults to {}
+        :type default_headers: dict, optional
+        """
         self.endpoint = endpoint
         self.api_key = api_key
         self.default_headers = default_headers
@@ -27,6 +42,16 @@ class ConnectClient:
         self.response = None
 
     def __getattr__(self, name):
+        """
+        Returns a NS or a Collection object called ``name``.
+
+        :param name: The name of the NS or Collection to retrieve.
+        :type name: str
+        :raises AttributeError: If OpenAPI specs are not avaliable.
+        :raises AttributeError: If the name does not exist.
+        :return: a Collection or a NS called ``name``.
+        :rtype: Collection, NS
+        """
         if not self.specs:
             raise AttributeError(
                 'No specs available. Use `ns` '
@@ -50,6 +75,15 @@ class ConnectClient:
         return sorted(super().__dir__() + additional_names)
 
     def ns(self, name):
+        """
+        Returns the namespace called ``name``.
+
+        :param name: The name of the namespace to access.
+        :type name: str
+        :raises NotFoundError: If a namespace with name ``name`` does not exist.
+        :return: The namespace called ``name``.
+        :rtype: NS
+        """
         if not self.specs:
             return NS(self, name)
         if name in self.specs.namespaces:
@@ -57,6 +91,15 @@ class ConnectClient:
         raise NotFoundError(f'The namespace {name} does not exist.')
 
     def collection(self, name):
+        """
+        Returns the collection called ``name``.
+
+        :param name: The name of the collection to access.
+        :type name: str
+        :raises NotFoundError: If a collection with name ``name`` does not exist.
+        :return: The collection called ``name``.
+        :rtype: Collection
+        """
         if not self.specs:
             return Collection(
                 self,

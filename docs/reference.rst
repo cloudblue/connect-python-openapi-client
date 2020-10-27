@@ -1,6 +1,19 @@
 API Reference
 =============
 
+Client
+------
+
+.. autoclass:: cnct.client.fluent.ConnectClient
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
+
+
+
+Models
+------
+
 .. autoclass:: cnct.client.models.NS
    :members:
    :special-members:
@@ -22,9 +35,17 @@ API Reference
    :exclude-members: __weakref__
 
 
+RQL utility
+-----------
+
+.. autoclass:: cnct.rql.base.RQLQuery
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
+
+
 Exceptions
 ----------
-
 
 .. autoclass:: cnct.client.exceptions.ConnectError
    :members:
