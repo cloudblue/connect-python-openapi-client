@@ -57,6 +57,8 @@ class ConnectClient:
                 'No specs available. Use `ns` '
                 'or `collection` methods instead.'
             )
+        if '_' in name:
+            name = name.replace('_', '-')
         if name in self.specs.namespaces:
             return self.ns(name)
         if name in self.specs.collections:
@@ -64,14 +66,23 @@ class ConnectClient:
         raise AttributeError('Unable to resolve {}.'.format(name))
 
     def __dir__(self):
+        """
+        Return a list of attributes defined for this ConnectClient instance.
+        The returned list includes the names of the root namespaces and collections.
+
+        :return: List of attributes.
+        :rtype: list
+        """
         if not self.specs:
             return super().__dir__()
         ns = list(self.specs.namespaces.keys())
         cl = list(self.specs.collections.keys())
-        additional_names = [
-            name for name in cl + ns
-            if name.isidentifier() and not iskeyword(name)
-        ]
+        additional_names = []
+        for name in cl + ns:
+            if '-' in name:
+                name = name.replace('-', '_')
+            if name.isidentifier() and not iskeyword(name):
+                additional_names.append(name)
         return sorted(super().__dir__() + additional_names)
 
     def ns(self, name):
@@ -85,9 +96,9 @@ class ConnectClient:
         :rtype: NS
         """
         if not self.specs:
-            return NS(self, name)
+            return NS(self, f'{self.endpoint}/{name}',)
         if name in self.specs.namespaces:
-            return NS(self, name, self.specs.namespaces[name])
+            return NS(self, f'{self.endpoint}/{name}',, self.specs.namespaces[name])
         raise NotFoundError(f'The namespace {name} does not exist.')
 
     def collection(self, name):
