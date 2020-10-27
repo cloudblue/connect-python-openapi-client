@@ -78,8 +78,8 @@ class RQLQuery:
             return self._copy(other)
 
         query = RQLQuery(_op=op)
-        query.append(self, op)
-        query.append(other, op)
+        query._append(self, op)
+        query._append(other, op)
         return query
 
     def __and__(self, other):
@@ -90,7 +90,7 @@ class RQLQuery:
 
     def __invert__(self):
         query = RQLQuery(_op=self.AND, _expr=self.expr, _negated=True)
-        query.append(self, self.AND)
+        query._append(self, self.AND)
         return query
 
     def __getattr__(self, name):
@@ -103,7 +103,7 @@ class RQLQuery:
     def __str__(self):
         return self._to_string(self)
 
-    def append(self, other, op):
+    def _append(self, other, op):
         if other in self.children:
             return other
 
@@ -179,7 +179,7 @@ class RQLQuery:
     def _list(self, op, value):
         self._field = '.'.join(self._path)
         actual_value = None
-        if is_iterable(value):
+        if isinstance(value, (list, tuple)):
             actual_value = ','.join(value)
         if actual_value:
             self.expr = f'{op}({self._field},({actual_value}))'

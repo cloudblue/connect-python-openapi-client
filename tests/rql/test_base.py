@@ -129,6 +129,15 @@ def test_or_merge():
     assert len(or3.children) == 4
     assert [r1, r2, r3, r4] == or3.children
 
+    r1 = RQLQuery(id='ID')
+    r2 = RQLQuery(field='value')
+
+    r3 = r1 | r2 | r2
+
+    assert len(r3) == 2
+    assert r3.op == RQLQuery.OR
+    assert [r1, r2] == r3.children
+
 
 def test_and():
     r1 = RQLQuery()
@@ -163,6 +172,44 @@ def test_and():
     assert r & RQLQuery() == r
     assert RQLQuery() & r == r
 
+    r1 = RQLQuery(id='ID')
+    r2 = RQLQuery(field='value')
+
+    r3 = r1 & r2 & r2
+
+    assert len(r3) == 2
+    assert r3.op == RQLQuery.AND
+    assert [r1, r2] == r3.children
+
+
+def test_and_or():
+    r1 = RQLQuery(id='ID')
+    r2 = RQLQuery(field='value')
+
+    r3 = RQLQuery(other='value2')
+    r4 = RQLQuery(inop__in=('a', 'b'))
+
+    r5 = r1 & r2 & (r3 | r4)
+
+    assert r5.op == RQLQuery.AND
+    assert str(r5) == 'and(eq(id,ID),eq(field,value),or(eq(other,value2),in(inop,(a,b))))'
+
+    r5 = r1 & r2 | r3
+
+    assert str(r5) == 'or(and(eq(id,ID),eq(field,value)),eq(other,value2))'
+
+    r5 = r1 & (r2 | r3)
+
+    assert str(r5) == 'and(eq(id,ID),or(eq(field,value),eq(other,value2)))'
+
+    r5 = (r1 & r2) | (r3 & r4)
+
+    assert str(r5) == 'or(and(eq(id,ID),eq(field,value)),and(eq(other,value2),in(inop,(a,b))))'
+
+    r5 = (r1 & r2) | ~r3
+
+    assert str(r5) == 'or(and(eq(id,ID),eq(field,value)),not(eq(other,value2)))'
+
 
 def test_and_merge():
     r1 = RQLQuery(id='ID')
@@ -183,7 +230,7 @@ def test_and_merge():
 
 
 @pytest.mark.parametrize('op', ('eq', 'ne', 'gt', 'ge', 'le', 'lt'))
-def test_dotted_path(op):
+def test_dotted_path_comp(op):
     R = RQLQuery
     assert str(getattr(R().asset.id, op)('value')) == f'{op}(asset.id,value)'
     assert str(getattr(R().asset.id, op)(True)) == f'{op}(asset.id,true)'
@@ -207,3 +254,49 @@ def test_dotted_path(op):
 
     with pytest.raises(TypeError):
         getattr(R().asset.id, op)(test)
+
+
+@pytest.mark.parametrize(
+    ('method', 'op'),
+    (
+        ('in_', 'in'),
+        ('oneof', 'in'),
+        ('out', 'out'),
+    ),
+)
+def test_dotted_path_list(method, op):
+    R = RQLQuery
+
+    assert str(getattr(R().asset.id, method)(('first', 'second'))) == f'{op}(asset.id,(first,second))'
+    assert str(getattr(R().asset.id, method)(['first', 'second'])) == f'{op}(asset.id,(first,second))'
+
+    with pytest.raises(TypeError):
+        getattr(R().asset.id, method)('Test')
+
+
+@pytest.mark.parametrize(
+    ('expr', 'value', 'expected_op'),
+    (
+        ('null', True, 'eq'),
+        ('null', False, 'ne'),
+        ('empty', True, 'eq'),
+        ('empty', False, 'ne'),
+    ),
+)
+def test_dotted_path_bool(expr, value, expected_op):
+    R = RQLQuery
+
+    assert str(getattr(R().asset.id, expr)(value)) == f'{expected_op}(asset.id,{expr}())'
+
+
+def test_dotted_path_already_evaluated():
+
+    q = RQLQuery().first.second.eq('value')
+
+    with pytest.raises(AttributeError):
+        q.third
+
+
+def test_str():
+    assert str(RQLQuery(id='ID')) == 'eq(id,ID)'
+    assert str(~RQLQuery(id='ID')) == 'not(eq(id,ID))'
