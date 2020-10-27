@@ -98,7 +98,7 @@ class ConnectClient:
         if not self.specs:
             return NS(self, f'{self.endpoint}/{name}',)
         if name in self.specs.namespaces:
-            return NS(self, f'{self.endpoint}/{name}',, self.specs.namespaces[name])
+            return NS(self, f'{self.endpoint}/{name}', self.specs.namespaces[name])
         raise NotFoundError(f'The namespace {name} does not exist.')
 
     def collection(self, name):
