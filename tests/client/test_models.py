@@ -60,12 +60,8 @@ def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory):
 
 def test_ns_getattr(ns_factory):
     ns = ns_factory()
-    collection = ns.resource
-
-    assert isinstance(collection, Collection)
-    assert collection._client == ns._client
-    assert collection.path == f'{ns.path}/resource'
-    assert collection._specs is None
+    with pytest.raises(AttributeError):
+        ns.resource
 
 
 def test_ns_getattr_with_specs(ns_factory, nsinfo_factory):

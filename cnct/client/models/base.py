@@ -41,7 +41,12 @@ class NS:
         :rtype: Collection
         """
         if not self._specs:
-            return self.collection(name)
+            raise AttributeError(
+                'No specs available. Use the `collection` '
+                'method instead.'
+            )
+        if '_' in name:
+            name = name.replace('_', '-')
         if name in self._specs.collections:
             return self.collection(name)
         raise AttributeError(f'Unable to resolve {name}.')
@@ -59,10 +64,13 @@ class NS:
         if not self._specs:
             return default
         cl = self._specs.collections.keys()
-        return default + [
-            name for name in cl
-            if name.isidentifier() and not iskeyword(name)
-        ]
+        additional_names = []
+        for name in cl:
+            if '-' in name:
+                name = name.replace('-', '_')
+            if name.isidentifier() and not iskeyword(name):
+                additional_names.append(name)
+        return sorted(super().__dir__() + additional_names)
 
     def collection(self, name):
         """
@@ -240,6 +248,12 @@ class Collection:
         :return: The Resource identified by ``resource_id``.
         :rtype: Resource
         """
+        if not isinstance(resource_id, (str, int)):
+            raise TypeError('`resource_id` must be a string or int.')
+
+        if not resource_id:
+            raise ValueError('`resource_id` must not be blank.')
+
         return Resource(
             self._client,
             f'{self._path}/{resource_id}',
@@ -294,6 +308,8 @@ class Resource:
                 'No specs available. Use the `collection` '
                 'or `action` methods instead.'
             )
+        if '_' in name:
+            name = name.replace('_', '-')
         if name in self._specs.collections:
             return self.collection(name)
         if name in self._specs.actions:
@@ -313,10 +329,12 @@ class Resource:
             return super().__dir__()
         ac = list(self._specs.actions.keys())
         cl = list(self._specs.collections.keys())
-        additional_names = [
-            name for name in cl + ac
-            if name.isidentifier() and not iskeyword(name)
-        ]
+        additional_names = []
+        for name in cl + ac:
+            if '-' in name:
+                name = name.replace('-', '_')
+            if name.isidentifier() and not iskeyword(name):
+                additional_names.append(name)
         return sorted(super().__dir__() + additional_names)
 
     def collection(self, name):
@@ -552,4 +570,3 @@ class Action:
         """
         print_help(self._specs)
         return self
-

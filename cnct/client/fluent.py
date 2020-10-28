@@ -52,6 +52,12 @@ class ConnectClient:
         :return: a Collection or a NS called ``name``.
         :rtype: Collection, NS
         """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
         if not self.specs:
             raise AttributeError(
                 'No specs available. Use `ns` '
@@ -95,6 +101,12 @@ class ConnectClient:
         :return: The namespace called ``name``.
         :rtype: NS
         """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
         if not self.specs:
             return NS(self, f'{self.endpoint}/{name}',)
         if name in self.specs.namespaces:
@@ -111,6 +123,12 @@ class ConnectClient:
         :return: The collection called ``name``.
         :rtype: Collection
         """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
         if not self.specs:
             return Collection(
                 self,

@@ -289,7 +289,7 @@ using method chaining like in the following example:
 Filtering resources
 ^^^^^^^^^^^^^^^^^^^
 
-The :class:`cnct.client.models.ResourceSet` object offers two way to define
+The :class:`cnct.client.models.ResourceSet` object offers three way to define
 your RQL query filters:
 
 
@@ -373,6 +373,9 @@ using the ``&``, ``|`` and and ``~`` bitwise operators:
         R(status='published') | R().category.name.ilike('*awesome*')
     ) & ~R(description__empty=True)
 
+
+Other RQL operators
+-------------------
 
 Searching
 ^^^^^^^^^
