@@ -52,12 +52,6 @@ class ConnectClient:
         :return: a Collection or a NS called ``name``.
         :rtype: Collection, NS
         """
-        if not isinstance(name, str):
-            raise TypeError('`name` must be a string.')
-
-        if not name:
-            raise ValueError('`name` must not be blank.')
-
         if not self.specs:
             raise AttributeError(
                 'No specs available. Use `ns` '

@@ -22,7 +22,22 @@ def test_getattr(mocker):
     )
 
 
-def test_getattr_with_specs(mocker, apiinfo_factory):
+def test_getattr_with_specs_dash(mocker, apiinfo_factory):
+    specs = apiinfo_factory(
+        collections=['my-resources'],
+        namespaces=['name-space'],
+    )
+    mocker.patch(
+        'cnct.client.fluent.parse',
+        return_value=specs,
+    )
+
+    c = ConnectClient('Api Key')
+
+    assert isinstance(c.my_resources, Collection)
+    assert isinstance(c.name_space, NS)
+
+
     specs = apiinfo_factory(
         collections=['resources'],
         namespaces=['namespace'],
