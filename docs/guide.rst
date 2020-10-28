@@ -373,3 +373,55 @@ using the ``&``, ``|`` and and ``~`` bitwise operators:
         R(status='published') | R().category.name.ilike('*awesome*')
     ) & ~R(description__empty=True)
 
+
+Searching
+^^^^^^^^^
+
+For endpoints that supports the RQL search operator you can specify
+your search term has shown below:
+
+.. code-block::python
+
+    with_search = rs.search('term')
+
+
+
+Ordering
+^^^^^^^^
+
+To apply ordering you can specify the fields that have to be used to order the results:
+
+
+.. code-block:: python
+
+    ordered = rs.order_by('+field1', '-field2')
+
+
+Any subsequent calls append other fields to the previous one.
+
+So the previous statement can also be expressed with chaining:
+
+.. code-block:: python
+
+    ordered = rs.order_by('+field1').order_by('-field2')
+
+
+Apply RQL ``select``
+^^^^^^^^^^^^^^^^^^^^
+
+For collections that supports the ``select`` RQL operator you can
+specify the object to be selected/unselected the following way:
+
+.. code-block:: python
+
+    with_select = rs.select('+object1', '-object2')
+
+
+Any subsequent calls append other select expression to the previous.
+
+So the previous statement can also be expressed with chaining:
+
+.. code-block:: python
+
+    with_select = rs.select('+object1').select('-object2')
+

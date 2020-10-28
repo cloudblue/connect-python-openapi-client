@@ -124,14 +124,20 @@ class ResourceSet:
 
         assert (not isinstance(key, slice) and (key >= 0)) or (
             isinstance(key, slice)
-            and (key.start is None or key.start >= 0)
-            and (key.stop is None or key.stop >= 0)
-        ), "Negative indexing is not supported."
+            and key.start is not None
+            and key.stop is not None
+        ), 'Both start and stop indexes must be specified.'
+
+        assert (not isinstance(key, slice) and (key >= 0)) or (
+            isinstance(key, slice)
+            and key.start >= 0
+            and key.stop >= 0
+        ), 'Negative indexing is not supported.'
 
         assert (not isinstance(key, slice) and (key >= 0)) or (
             isinstance(key, slice)
             and (key.step is None or key.step == 0)
-        ), "Indexing with step is not supported."
+        ), 'Indexing with step is not supported.'
 
         if self._results:
             return self._results[key]
