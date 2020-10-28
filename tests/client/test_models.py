@@ -112,7 +112,7 @@ def test_ns_help(mocker, ns_factory, nsinfo_factory):
     specs = nsinfo_factory(collections=['resource'])
     ns = ns_factory(specs=specs)
 
-    print_help = mocker.patch('cnct.client.models.print_help')
+    print_help = mocker.patch('cnct.client.models.base.print_help')
 
     ns2 = ns.help()
 
@@ -227,7 +227,7 @@ def test_collection_all(col_factory):
 
 def test_collection_help(mocker, col_factory):
     collection = col_factory(path='resource')
-    print_help = mocker.patch('cnct.client.models.print_help')
+    print_help = mocker.patch('cnct.client.models.base.print_help')
 
     col2 = collection.help()
 
@@ -460,7 +460,7 @@ def test_resource_help(mocker, res_factory, resinfo_factory):
     specs = resinfo_factory(collections=['resource'])
     resource = res_factory(specs=specs)
 
-    print_help = mocker.patch('cnct.client.models.print_help')
+    print_help = mocker.patch('cnct.client.models.base.print_help')
 
     resource2 = resource.help()
 
@@ -542,7 +542,7 @@ def test_action_delete(action_factory):
 
 def test_action_help(mocker, action_factory):
     action = action_factory(path='action')
-    print_help = mocker.patch('cnct.client.models.print_help')
+    print_help = mocker.patch('cnct.client.models.base.print_help')
 
     act2 = action.help()
 
@@ -552,7 +552,7 @@ def test_action_help(mocker, action_factory):
 
 def test_rs_len(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 100),
     )
     results = [{'id': i} for i in range(10)]
@@ -564,7 +564,7 @@ def test_rs_len(mocker, rs_factory):
 
 def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -577,7 +577,7 @@ def test_rs_iterate(mocker, rs_factory):
 
 def test_rs_bool_truthy(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -588,7 +588,7 @@ def test_rs_bool_truthy(mocker, rs_factory):
 
 def test_rs_bool_falsy(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
     rs = rs_factory()
@@ -598,7 +598,7 @@ def test_rs_bool_falsy(mocker, rs_factory):
 
 def test_rs_getitem(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -610,7 +610,7 @@ def test_rs_getitem(mocker, rs_factory):
 
 def test_rs_getitem_slice(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -648,7 +648,7 @@ def test_rs_getitem_slice_step(mocker, rs_factory):
 
 def test_rs_count(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 100),
     )
     expected = [{'id': i} for i in range(10)]
@@ -660,7 +660,7 @@ def test_rs_count(mocker, rs_factory):
 
 def test_rs_values_list(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -691,7 +691,7 @@ def test_rs_values_list(mocker, rs_factory):
 
 def test_rs_values_list_evaluated(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -722,7 +722,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
 
 def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -742,7 +742,7 @@ def test_rs_pagination(mocker, rs_factory):
 
 def test_rs_values_list_pagination(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -786,7 +786,7 @@ def test_rs_values_list_pagination(mocker, rs_factory):
 
 def test_rs_with_queries(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.parse_content_range',
+        'cnct.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
     rs = rs_factory(query='eq(status,approved)')
@@ -859,7 +859,7 @@ def test_rs_filter_invalid_arg(rs_factory):
 
 def test_rs_help(mocker, rs_factory):
     rs = rs_factory(specs='this is a spec')
-    print_help = mocker.patch('cnct.client.models.print_help')
+    print_help = mocker.patch('cnct.client.models.resourceset.print_help')
     rs2 = rs.help()
     assert print_help.called_once_with('this is a spec')
     assert rs2 == rs
