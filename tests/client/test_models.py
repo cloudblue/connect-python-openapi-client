@@ -32,9 +32,9 @@ def test_ns_collection(ns_factory):
     collection = ns.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == ns.client
+    assert collection._client == ns._client
     assert collection.path == f'{ns.path}/resource'
-    assert collection.specs is None
+    assert collection._specs is None
 
 
 def test_ns_collection_with_specs(ns_factory, nsinfo_factory):
@@ -43,9 +43,9 @@ def test_ns_collection_with_specs(ns_factory, nsinfo_factory):
     collection = ns.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == ns.client
+    assert collection._client == ns._client
     assert collection.path == f'{ns.path}/resource'
-    assert collection.specs == specs.collections['resource']
+    assert collection._specs == specs.collections['resource']
 
 
 def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory):
@@ -63,9 +63,9 @@ def test_ns_getattr(ns_factory):
     collection = ns.resource
 
     assert isinstance(collection, Collection)
-    assert collection.client == ns.client
+    assert collection._client == ns._client
     assert collection.path == f'{ns.path}/resource'
-    assert collection.specs is None
+    assert collection._specs is None
 
 
 def test_ns_getattr_with_specs(ns_factory, nsinfo_factory):
@@ -75,9 +75,9 @@ def test_ns_getattr_with_specs(ns_factory, nsinfo_factory):
     collection = ns.resource
 
     assert isinstance(collection, Collection)
-    assert collection.client == ns.client
+    assert collection._client == ns._client
     assert collection.path == f'{ns.path}/resource'
-    assert collection.specs == specs.collections['resource']
+    assert collection._specs == specs.collections['resource']
 
 
 def test_ns_getattr_with_specs_unresolved(ns_factory, nsinfo_factory):
@@ -126,7 +126,7 @@ def test_collection_resource(col_factory):
 
     assert isinstance(resource, Resource)
     assert resource.path == f'{collection.path}/item_id'
-    assert resource.specs is None
+    assert resource._specs is None
 
 
 def test_collection_getitem(col_factory):
@@ -135,7 +135,7 @@ def test_collection_getitem(col_factory):
 
     assert isinstance(resource, Resource)
     assert resource.path == f'{collection.path}/item_id'
-    assert resource.specs is None
+    assert resource._specs is None
 
 
 def test_collection_not_iterable(col_factory):
@@ -151,10 +151,10 @@ def test_collection_create(col_factory):
     collection = col_factory(path='resource')
     collection.create({'name': 'test'})
 
-    assert collection.client.create.called_once_with(payload={'name': 'test'})
+    assert collection._client.create.called_once_with(payload={'name': 'test'})
 
     collection.create({'name': 'test'}, headers={'Content-Type': 'application/json'})
-    assert collection.client.create.called_once_with(
+    assert collection._client.create.called_once_with(
         payload={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -166,31 +166,31 @@ def test_collection_filter(col_factory):
     rs = collection.filter()
 
     assert isinstance(rs, ResourceSet)
-    assert rs.client == collection.client
+    assert rs._client == collection._client
     assert rs.path == collection.path
     assert bool(rs.query) is False
-    assert rs.specs is None
+    assert rs._specs is None
 
     rs = collection.filter('eq(field,value)')
 
-    assert rs.client == collection.client
+    assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'eq(field,value)'
-    assert rs.specs is None
+    assert rs._specs is None
 
     rs = collection.filter(R().field.eq('value'))
 
-    assert rs.client == collection.client
+    assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'eq(field,value)'
-    assert rs.specs is None
+    assert rs._specs is None
 
     rs = collection.filter(status__in=('status1', 'status2'))
 
-    assert rs.client == collection.client
+    assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'in(status,(status1,status2))'
-    assert rs.specs is None
+    assert rs._specs is None
 
 
 def test_collection_filter_invalid_arg(col_factory):
@@ -206,23 +206,23 @@ def test_collection_all(col_factory):
     rs = collection.all()
 
     assert isinstance(rs, ResourceSet)
-    assert rs.client == collection.client
+    assert rs._client == collection._client
     assert rs.path == collection.path
     assert bool(rs.query) is False
-    assert rs.specs is None
+    assert rs._specs is None
 
 
-def test_collection_search(col_factory):
-    collection = col_factory(path='resource')
+# def test_collection_search(col_factory):
+#     collection = col_factory(path='resource')
 
-    rs = collection.search('search terms')
+#     rs = collection.search('search terms')
 
-    assert isinstance(rs, ResourceSet)
-    assert rs.client == collection.client
-    assert rs.path == collection.path
-    assert rs._search == 'search terms'
-    assert bool(rs.query) is False
-    assert rs.specs is None
+#     assert isinstance(rs, ResourceSet)
+#     assert rs._client == collection._client
+#     assert rs.path == collection.path
+#     assert rs._search == 'search terms'
+#     assert bool(rs.query) is False
+#     assert rs._specs is None
 
 
 def test_collection_help(mocker, col_factory):
@@ -261,9 +261,9 @@ def test_resource_collection(res_factory):
     collection = resource.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == resource.client
+    assert collection._client == resource._client
     assert collection.path == f'{resource.path}/resource'
-    assert collection.specs is None
+    assert collection._specs is None
 
 
 def test_resource_collection_with_specs(res_factory, resinfo_factory):
@@ -272,9 +272,9 @@ def test_resource_collection_with_specs(res_factory, resinfo_factory):
     collection = resource.collection('resource')
 
     assert isinstance(collection, Collection)
-    assert collection.client == resource.client
+    assert collection._client == resource._client
     assert collection.path == f'{resource.path}/resource'
-    assert collection.specs == specs.collections['resource']
+    assert collection._specs == specs.collections['resource']
 
 
 def test_resource_collection_with_specs_unresolved(res_factory, resinfo_factory):
@@ -313,9 +313,9 @@ def test_resource_action(res_factory):
     action = resource.action('action')
 
     assert isinstance(action, Action)
-    assert action.client == resource.client
+    assert action._client == resource._client
     assert action.path == f'{resource.path}/action'
-    assert action.specs is None
+    assert action._specs is None
 
 
 def test_resource_action_with_specs(res_factory, resinfo_factory):
@@ -324,9 +324,9 @@ def test_resource_action_with_specs(res_factory, resinfo_factory):
     action = resource.action('action')
 
     assert isinstance(action, Action)
-    assert action.client == resource.client
+    assert action._client == resource._client
     assert action.path == f'{resource.path}/action'
-    assert action.specs == specs.actions['action']
+    assert action._specs == specs.actions['action']
 
 
 def test_resource_action_with_specs_unresolved(res_factory, resinfo_factory):
@@ -358,14 +358,14 @@ def test_resource_getattr_with_specs(res_factory, resinfo_factory):
     collection = resource.resource
 
     assert isinstance(collection, Collection)
-    assert collection.client == resource.client
+    assert collection._client == resource._client
     assert collection.path == f'{resource.path}/resource'
-    assert collection.specs == specs.collections['resource']
+    assert collection._specs == specs.collections['resource']
 
     action = resource.myaction
 
     assert isinstance(action, Action)
-    assert action.client == resource.client
+    assert action._client == resource._client
     assert action.path == f'{resource.path}/myaction'
 
 
@@ -401,10 +401,10 @@ def test_resource_get(res_factory):
     resource = res_factory()
     resource.get()
 
-    assert resource.client.get.called_once()
+    assert resource._client.get.called_once()
 
     resource.get(headers={'Content-Type': 'application/json'})
-    assert resource.client.create.called_once_with(
+    assert resource._client.create.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
@@ -413,10 +413,10 @@ def test_resource_update(res_factory):
     resource = res_factory()
     resource.update({'name': 'test'})
 
-    assert resource.client.update.called_once_with(payload={'name': 'test'})
+    assert resource._client.update.called_once_with(payload={'name': 'test'})
 
     resource.update({'name': 'test'}, headers={'Content-Type': 'application/json'})
-    assert resource.client.update.called_once_with(
+    assert resource._client.update.called_once_with(
         payload={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -426,10 +426,10 @@ def test_resource_delete(res_factory):
     resource = res_factory()
     resource.delete()
 
-    assert resource.client.delete.called_once()
+    assert resource._client.delete.called_once()
 
     resource.delete(headers={'Content-Type': 'application/json'})
-    assert resource.client.delete.called_once_with(
+    assert resource._client.delete.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
@@ -472,10 +472,10 @@ def test_action_get(action_factory):
     action = action_factory()
     action.get()
 
-    assert action.client.get.called_once()
+    assert action._client.get.called_once()
 
     action.get(headers={'Content-Type': 'application/json'})
-    assert action.client.get.called_once_with(
+    assert action._client.get.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
@@ -484,7 +484,7 @@ def test_action_post(action_factory):
     action = action_factory()
     action.post({'name': 'test'})
 
-    assert action.client.execute.called_once_with(
+    assert action._client.execute.called_once_with(
         'post',
         action.path,
         200,
@@ -495,7 +495,7 @@ def test_action_post(action_factory):
         {'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action.client.execute.called_once_with(
+    assert action._client.execute.called_once_with(
         'post',
         action.path,
         200,
@@ -508,7 +508,7 @@ def test_action_put(action_factory):
     action = action_factory()
     action.put({'name': 'test'})
 
-    assert action.client.execute.called_once_with(
+    assert action._client.execute.called_once_with(
         'put',
         action.path,
         200,
@@ -519,7 +519,7 @@ def test_action_put(action_factory):
         {'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action.client.execute.called_once_with(
+    assert action._client.execute.called_once_with(
         'put',
         action.path,
         200,
@@ -532,10 +532,10 @@ def test_action_delete(action_factory):
     action = action_factory()
     action.delete()
 
-    assert action.client.delete.called_once()
+    assert action._client.delete.called_once()
 
     action.delete(headers={'Content-Type': 'application/json'})
-    assert action.client.delete.called_once_with(
+    assert action._client.delete.called_once_with(
         headers={'Content-Type': 'application/json'},
     )
 
@@ -557,7 +557,7 @@ def test_rs_len(mocker, rs_factory):
     )
     results = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=results)
+    rs._client.get = mocker.MagicMock(return_value=results)
 
     assert len(rs) == 10
 
@@ -569,7 +569,7 @@ def test_rs_iterate(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=expected)
+    rs._client.get = mocker.MagicMock(return_value=expected)
 
     results = [resource for resource in rs]
     assert results == expected
@@ -582,7 +582,7 @@ def test_rs_bool_truthy(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=expected)
+    rs._client.get = mocker.MagicMock(return_value=expected)
     assert bool(rs) is True
 
 
@@ -592,7 +592,7 @@ def test_rs_bool_falsy(mocker, rs_factory):
         return_value=ContentRange(0, 0, 0),
     )
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=[])
+    rs._client.get = mocker.MagicMock(return_value=[])
     assert bool(rs) is False
 
 
@@ -603,7 +603,7 @@ def test_rs_getitem(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=expected)
+    rs._client.get = mocker.MagicMock(return_value=expected)
     for i in range(10):
         assert rs[i] == expected[i]
 
@@ -615,7 +615,7 @@ def test_rs_getitem_slice(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=expected)
+    rs._client.get = mocker.MagicMock(return_value=expected)
     sliced = rs[2:4]
     assert isinstance(sliced, ResourceSet)
     assert rs._limit == 2
@@ -653,7 +653,7 @@ def test_rs_count(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=expected)
+    rs._client.get = mocker.MagicMock(return_value=expected)
 
     assert rs.count() == 100
 
@@ -681,7 +681,7 @@ def test_rs_values_list(mocker, rs_factory):
         for i in range(10)
     ]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=return_value)
+    rs._client.get = mocker.MagicMock(return_value=return_value)
 
     rs = rs.values_list('id', 'inner.title')
 
@@ -712,7 +712,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
         for i in range(10)
     ]
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(return_value=return_value)
+    rs._client.get = mocker.MagicMock(return_value=return_value)
 
     bool(rs)
     values = rs.values_list('id', 'inner.title')
@@ -730,7 +730,7 @@ def test_rs_pagination(mocker, rs_factory):
     )
 
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(side_effect=[
+    rs._client.get = mocker.MagicMock(side_effect=[
         [{'id': i} for i in range(100)],
         [{'id': i} for i in range(100, 200)],
     ])
@@ -750,7 +750,7 @@ def test_rs_values_list_pagination(mocker, rs_factory):
     )
 
     rs = rs_factory()
-    rs.client.get = mocker.MagicMock(side_effect=[
+    rs._client.get = mocker.MagicMock(side_effect=[
         [
             {
                 'id': i,
@@ -791,10 +791,10 @@ def test_rs_with_queries(mocker, rs_factory):
     )
     rs = rs_factory(query='eq(status,approved)')
     get_mock = mocker.MagicMock(return_value=[])
-    rs.client.get = get_mock
+    rs._client.get = get_mock
     bool(rs)
 
-    assert rs.client.get.called_once_with(f'{rs.path}?{rs.query}')
+    assert rs._client.get.called_once_with(f'{rs.path}?{rs.query}')
 
 
 def test_rs_configure(rs_factory):

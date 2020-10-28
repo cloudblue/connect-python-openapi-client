@@ -1,4 +1,4 @@
-.. connect-fluent-client documentation master file, created by
+.. connect-api-client documentation master file, created by
    sphinx-quickstart on Tue Oct  6 20:32:26 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -6,7 +6,7 @@
 Welcome to Connect Python OpenAPI Client documentation
 ======================================================
 
-Welcome to `Connect Python OpenAPI Client` a simple, concise, powerful and REPL-friendly REST API client.
+Welcome to `Connect Python OpenAPI Client` a simple, concise, powerful and REPL-friendly ReST API client.
 
 It has been designed following the `fluent interface design pattern <https://en.wikipedia.org/wiki/Fluent_interface>`_.
 
@@ -20,7 +20,8 @@ play with the CloudBlue Connect API using a python REPL like `jupyter <https://j
    :caption: Contents:
 
    getting_started
-   tutorial
+   first_steps
+   the_resourceset_object
    reference
 
 

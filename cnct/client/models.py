@@ -21,9 +21,13 @@ class NS:
         :param specs: OpenAPI specs, defaults to None
         :type specs: NSInfo, optional
         """
-        self.client = client
-        self.path = path
-        self.specs = specs
+        self._client = client
+        self._path = path
+        self._specs = specs
+
+    @property
+    def path(self):
+        return self._path
 
     def __getattr__(self, name):
         """
@@ -35,9 +39,9 @@ class NS:
         :return: The Collection named ``name``.
         :rtype: Collection
         """
-        if not self.specs:
+        if not self._specs:
             return self.collection(name)
-        if name in self.specs.collections:
+        if name in self._specs.collections:
             return self.collection(name)
         raise AttributeError(f'Unable to resolve {name}.')
 
@@ -51,9 +55,9 @@ class NS:
         :rtype: list
         """
         default = sorted(super().__dir__() + list(self.__dict__.keys()))
-        if not self.specs:
+        if not self._specs:
             return default
-        cl = self.specs.collections.keys()
+        cl = self._specs.collections.keys()
         return default + [
             name for name in cl
             if name.isidentifier() and not iskeyword(name)
@@ -77,16 +81,16 @@ class NS:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self.specs:
+        if not self._specs:
             return Collection(
-                self.client,
-                f'{self.path}/{name}',
+                self._client,
+                f'{self._path}/{name}',
             )
-        if name in self.specs.collections:
+        if name in self._specs.collections:
             return Collection(
-                self.client,
-                f'{self.path}/{name}',
-                self.specs.collections.get(name),
+                self._client,
+                f'{self._path}/{name}',
+                self._specs.collections.get(name),
             )
         raise NotFoundError(f'The collection {name} does not exist.')
 
@@ -97,7 +101,7 @@ class NS:
         :return: self
         :rtype: NS
         """
-        print_help(self.specs)
+        print_help(self._specs)
         return self
 
 
@@ -116,9 +120,13 @@ class Collection:
         :param specs: OpenAPI specs, defaults to None
         :type specs: CollectionInfo, optional
         """
-        self.client = client
-        self.path = path
-        self.specs = specs
+        self._client = client
+        self._path = path
+        self._specs = specs
+
+    @property
+    def path(self):
+        return self._path
 
     def __iter__(self):
         raise TypeError('A collection object is not iterable.')
@@ -143,9 +151,9 @@ class Collection:
         :rtype: ResourceSet
         """
         return ResourceSet(
-            self.client,
-            self.path,
-            specs=self.specs.operations.get('search') if self.specs else None,
+            self._client,
+            self._path,
+            specs=self._specs.operations.get('search') if self._specs else None,
         )
 
     def filter(self, *args, **kwargs):
@@ -201,9 +209,9 @@ class Collection:
             query &= R(**kwargs)
 
         return ResourceSet(
-            self.client,
-            self.path,
-            specs=self.specs.operations.get('search') if self.specs else None,
+            self._client,
+            self._path,
+            specs=self._specs.operations.get('search') if self._specs else None,
             query=query,
         )
 
@@ -216,8 +224,8 @@ class Collection:
         :return: The newly created resource.
         :rtype: dict
         """
-        return self.client.create(
-            self.path,
+        return self._client.create(
+            self._path,
             payload=payload,
             **kwargs,
         )
@@ -232,9 +240,9 @@ class Collection:
         :rtype: Resource
         """
         return Resource(
-            self.client,
-            f'{self.path}/{resource_id}',
-            self.specs.resource_specs if self.specs else None,
+            self._client,
+            f'{self._path}/{resource_id}',
+            self._specs.resource_specs if self._specs else None,
         )
 
     def help(self):
@@ -244,7 +252,7 @@ class Collection:
         :return: self
         :rtype: Collection
         """
-        print_help(self.specs)
+        print_help(self._specs)
         return self
 
 
@@ -261,9 +269,13 @@ class Resource:
         :param specs: OpenAPI specs, defaults to None
         :type specs: ResourceInfo, optional
         """
-        self.client = client
-        self.path = path
-        self.specs = specs
+        self._client = client
+        self._path = path
+        self._specs = specs
+
+    @property
+    def path(self):
+        return self._path
 
     def __getattr__(self, name):
         """
@@ -276,14 +288,14 @@ class Resource:
         :return: a Collection or an Action called ``name``.
         :rtype: Action, Collection
         """
-        if not self.specs:
+        if not self._specs:
             raise AttributeError(
                 'No specs available. Use the `collection` '
                 'or `action` methods instead.'
             )
-        if name in self.specs.collections:
+        if name in self._specs.collections:
             return self.collection(name)
-        if name in self.specs.actions:
+        if name in self._specs.actions:
             return self.action(name)
         raise AttributeError('Unable to resolve {}.'.format(name))
 
@@ -296,10 +308,10 @@ class Resource:
         :return: List of attributes.
         :rtype: list
         """
-        if not self.specs:
+        if not self._specs:
             return super().__dir__()
-        ac = list(self.specs.actions.keys())
-        cl = list(self.specs.collections.keys())
+        ac = list(self._specs.actions.keys())
+        cl = list(self._specs.collections.keys())
         additional_names = [
             name for name in cl + ac
             if name.isidentifier() and not iskeyword(name)
@@ -324,16 +336,16 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self.specs:
+        if not self._specs:
             return Collection(
-                self.client,
-                f'{self.path}/{name}',
+                self._client,
+                f'{self._path}/{name}',
             )
-        if name in self.specs.collections:
+        if name in self._specs.collections:
             return Collection(
-                self.client,
-                f'{self.path}/{name}',
-                self.specs.collections.get(name),
+                self._client,
+                f'{self._path}/{name}',
+                self._specs.collections.get(name),
             )
         raise NotFoundError(f'The collection {name} does not exist.')
 
@@ -355,16 +367,16 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self.specs:
+        if not self._specs:
             return Action(
-                self.client,
-                f'{self.path}/{name}',
+                self._client,
+                f'{self._path}/{name}',
             )
-        if name in self.specs.actions:
+        if name in self._specs.actions:
             return Action(
-                self.client,
-                f'{self.path}/{name}',
-                self.specs.actions.get(name),
+                self._client,
+                f'{self._path}/{name}',
+                self._specs.actions.get(name),
             )
         raise NotFoundError(f'The action {name} does not exist.')
 
@@ -378,7 +390,7 @@ class Resource:
         :return: The resource data.
         :rtype: dict
         """
-        return self.client.get(self.path, **kwargs)
+        return self._client.get(self._path, **kwargs)
 
     def update(self, payload=None, **kwargs):
         """
@@ -392,8 +404,8 @@ class Resource:
         :return: The updated resource.
         :rtype: dict
         """
-        return self.client.update(
-            self.path,
+        return self._client.update(
+            self._path,
             payload=payload,
             **kwargs,
         )
@@ -405,8 +417,8 @@ class Resource:
         will be forwarded to the underlying DELETE of the ``requests``
         library.
         """
-        return self.client.delete(
-            self.path,
+        return self._client.delete(
+            self._path,
             **kwargs,
         )
 
@@ -437,7 +449,7 @@ class Resource:
         :return: self
         :rtype: Resource
         """
-        print_help(self.specs)
+        print_help(self._specs)
         return self
 
 
@@ -456,9 +468,13 @@ class Action:
         :param specs: OpenAPI specs, defaults to None
         :type specs: ActionInfo, optional
         """
-        self.client = client
-        self.path = path
-        self.specs = specs
+        self._client = client
+        self._path = path
+        self._specs = specs
+
+    @property
+    def path(self):
+        return self._path
 
     def get(self, **kwargs):
         """
@@ -470,7 +486,7 @@ class Action:
         :return: The action data.
         :rtype: dict, None
         """
-        return self.client.get(self.path, **kwargs)
+        return self._client.get(self._path, **kwargs)
 
     def post(self, payload=None, **kwargs):
         """
@@ -486,9 +502,9 @@ class Action:
         """
         if payload:
             kwargs['json'] = payload
-        return self.client.execute(
+        return self._client.execute(
             'post',
-            self.path,
+            self._path,
             200,
             **kwargs,
         )
@@ -507,9 +523,9 @@ class Action:
         """
         if payload:
             kwargs['json'] = payload
-        return self.client.execute(
+        return self._client.execute(
             'put',
-            self.path,
+            self._path,
             200,
             **kwargs,
         )
@@ -521,8 +537,8 @@ class Action:
         will be forwarded to the underlying DELETE of the ``requests``
         library.
         """
-        return self.client.delete(
-            self.path,
+        return self._client.delete(
+            self._path,
             **kwargs,
         )
 
@@ -533,7 +549,7 @@ class Action:
         :return: self
         :rtype: Action
         """
-        print_help(self.specs)
+        print_help(self._specs)
         return self
 
 
@@ -549,21 +565,33 @@ class ResourceSet:
         query=None
     ):
 
-        self.client = client
-        self.path = path
-        self.specs = specs
-        self.query = query or R()
-        self.results = None
+        self._client = client
+        self._path = path
+        self._specs = specs
+        self._query = query or R()
+        self._results = None
         self._result_iterator = None
         self._limit = 100
         self._offset = 0
         self._slice = False
-        self.content_range = None
+        self._content_range = None
         self._fields = None
         self._search = None
         self._select = []
         self._ordering = []
         self._config = {}
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def query(self):
+        return self._query
+
+    @property
+    def content_range(self):
+        return self._content_range
 
     def __len__(self):
         """
@@ -572,9 +600,9 @@ class ResourceSet:
         :return: the length of the result cache.
         :rtype: int
         """
-        if not self.results:
+        if not self._results:
             self._perform()
-        return len(self.results)
+        return len(self._results)
 
     def __iter__(self):
         """
@@ -583,7 +611,7 @@ class ResourceSet:
         :return: A resources iterator.
         :rtype: ResourceSet
         """
-        if not self.results:
+        if not self._results:
             self._perform()
         return self
 
@@ -604,7 +632,7 @@ class ResourceSet:
             if self._slice:
                 self._offset = 0
                 raise
-            if self.content_range.last == self.content_range.count - 1:
+            if self._content_range.last == self._content_range.count - 1:
                 self._offset = 0
                 raise
             self._offset += self._limit
@@ -623,7 +651,7 @@ class ResourceSet:
         :rtype: bool
         """
         self._perform()
-        return bool(self.results)
+        return bool(self._results)
 
     def __getitem__(self, key):
         """
@@ -653,11 +681,11 @@ class ResourceSet:
             and (key.step is None or key.step == 0)
         ), "Indexing with step is not supported."
 
-        if self.results:
-            return self.results[key]
+        if self._results:
+            return self._results[key]
         if isinstance(key, int):
             self._perform()
-            return self.results[key]
+            return self._results[key]
 
         self._offset = key.start
         self._limit = key.stop - key.start
@@ -735,15 +763,15 @@ class ResourceSet:
         """
         for arg in args:
             if isinstance(arg, str):
-                self.query &= R(_expr=arg)
+                self._query &= R(_expr=arg)
                 continue
             if isinstance(arg, R):
-                self.query &= arg
+                self._query &= arg
                 continue
             raise TypeError(f'arguments must be string or R not {type(arg)}')
 
         if kwargs:
-            self.query &= R(**kwargs)
+            self._query &= R(**kwargs)
 
         return self
 
@@ -754,9 +782,9 @@ class ResourceSet:
         :return: The total number of resources present.
         :rtype: int
         """
-        if not self.results:
+        if not self._results:
             self._perform()
-        return self.content_range.count
+        return self._content_range.count
 
     def first(self):
         """
@@ -766,9 +794,9 @@ class ResourceSet:
         :return: The first resource.
         :rtype: dict, None
         """
-        if not self.results:
+        if not self._results:
             self._perform()
-        return self.results[0] if self.results else None
+        return self._results[0] if self._results else None
 
     def values_list(self, *fields):
         """
@@ -787,10 +815,10 @@ class ResourceSet:
         :rtype: list
         """
         self._fields = fields
-        if self.results:
+        if self._results:
             return [
                 self._get_values(item)
-                for item in self.results
+                for item in self._results
             ]
         return self
 
@@ -804,14 +832,14 @@ class ResourceSet:
         qs = ''
         if self._select:
             qs += f'&select({",".join(self._select)})'
-        if self.query:
-            qs += f'&{str(self.query)}'
+        if self._query:
+            qs += f'&{str(self._query)}'
         if self._ordering:
             qs += f'&ordering({",".join(self._ordering)})'
         return qs[1:] if qs else ''
 
     def _perform(self):
-        url = f'{self.path}'
+        url = f'{self._path}'
         qs = self._build_qs()
         if qs:
             url = f'{url}?{qs}'
@@ -826,11 +854,11 @@ class ResourceSet:
         if self._search:
             self._config['params']['search'] = self._search
 
-        self.results = self.client.get(url, **self._config)
-        self.content_range = parse_content_range(
-            self.client.response.headers['Content-Range'],
+        self._results = self._client.get(url, **self._config)
+        self._content_range = parse_content_range(
+            self._client.response.headers['Content-Range'],
         )
-        self._result_iterator = iter(self.results)
+        self._result_iterator = iter(self._results)
 
     def help(self):
         """
@@ -839,5 +867,5 @@ class ResourceSet:
         :return: self
         :rtype: ResourceSet
         """
-        print_help(self.specs)
+        print_help(self._specs)
         return self

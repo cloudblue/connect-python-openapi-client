@@ -6,7 +6,7 @@ from cnct.client.models import Action, NS, Collection, Resource, ResourceSet
 @pytest.fixture
 def ns_factory(mocker):
     client = mocker.MagicMock()
-    client.endpoint = 'https://example.com/api/v1'
+    client._endpoint = 'https://example.com/api/v1'
 
     def _ns_factory(
         client=client,
@@ -21,7 +21,7 @@ def ns_factory(mocker):
 @pytest.fixture
 def col_factory(mocker):
     client = mocker.MagicMock()
-    client.endpoint = 'https://example.com/api/v1'
+    client._endpoint = 'https://example.com/api/v1'
 
     def _col_factory(
         client=client,
@@ -36,7 +36,7 @@ def col_factory(mocker):
 @pytest.fixture
 def res_factory(mocker):
     client = mocker.MagicMock()
-    client.endpoint = 'https://example.com/api/v1'
+    client._endpoint = 'https://example.com/api/v1'
 
     def _res_factory(
         client=client,
@@ -51,7 +51,7 @@ def res_factory(mocker):
 @pytest.fixture
 def action_factory(mocker):
     client = mocker.MagicMock()
-    client.endpoint = 'https://example.com/api/v1'
+    client._endpoint = 'https://example.com/api/v1'
 
     def _action_factory(
         client=client,
@@ -66,7 +66,7 @@ def action_factory(mocker):
 @pytest.fixture
 def rs_factory(mocker):
     client = mocker.MagicMock()
-    client.endpoint = 'https://example.com/api/v1'
+    client._endpoint = 'https://example.com/api/v1'
 
     def _rs_factory(
         client=client,
