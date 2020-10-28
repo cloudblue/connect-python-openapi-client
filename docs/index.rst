@@ -19,9 +19,7 @@ play with the CloudBlue Connect API using a python REPL like `jupyter <https://j
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
-   first_steps
-   the_resourceset_object
+   guide
    reference
 
 

@@ -312,3 +312,6 @@ class RQLQuery:
 
         self.children.append(other)
         return self
+
+
+R = RQLQuery

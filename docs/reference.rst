@@ -38,6 +38,12 @@ Models
 RQL utility
 -----------
 
+.. autoclass:: cnct.rql.base.R
+   :members:
+   :special-members:
+   :exclude-members: __weakref__
+
+
 .. autoclass:: cnct.rql.base.RQLQuery
    :members:
    :special-members:

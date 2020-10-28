@@ -1,3 +1,1 @@
-from cnct.rql.base import RQLQuery
-
-R = RQLQuery
+from cnct.rql.base import R  # noqa

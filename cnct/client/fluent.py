@@ -13,7 +13,7 @@ from cnct.specs.parser import parse
 
 class ConnectClient:
     """
-    Connect Rest API client.
+    Connect ReST API client.
     """
     def __init__(
         self,
