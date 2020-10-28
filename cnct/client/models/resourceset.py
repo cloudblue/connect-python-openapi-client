@@ -1,3 +1,5 @@
+import copy
+
 from cnct.client.utils import parse_content_range, resolve_attribute
 from cnct.help import print_help
 from cnct.rql import R
@@ -133,14 +135,19 @@ class ResourceSet:
 
         if self._results:
             return self._results[key]
-        if isinstance(key, int):
-            self._perform()
-            return self._results[key]
 
-        self._offset = key.start
-        self._limit = key.stop - key.start
-        self._slice = True
-        return self
+        if isinstance(key, int):
+            copy = self._copy()
+            copy._limit = 1
+            copy._offset = key
+            copy._perform()
+            return copy._results[0] if copy._results else None
+
+        copy = self._copy()
+        copy._offset = key.start
+        copy._limit = key.stop - key.start
+        copy._slice = True
+        return copy
 
     def configure(self, **kwargs):
         """
@@ -150,8 +157,9 @@ class ResourceSet:
         :return: This ResourceSet object.
         :rtype: ResourceSet
         """
-        self._config = kwargs or {}
-        return self
+        copy = self._copy()
+        copy._config = kwargs or {}
+        return copy
 
     def order_by(self, *fields):
         """
@@ -160,8 +168,9 @@ class ResourceSet:
         :return: This ResourceSet object.
         :rtype: ResourceSet
         """
-        self._ordering.extend(fields)
-        return self
+        copy = self._copy()
+        copy._ordering.extend(fields)
+        return copy
 
     def select(self, *fields):
         """
@@ -171,8 +180,9 @@ class ResourceSet:
         :return: This ResourceSet object.
         :rtype: ResourceSet
         """
-        self._select.extend(fields)
-        return self
+        copy = self._copy()
+        copy._select.extend(fields)
+        return copy
 
     def filter(self, *args, **kwargs):
         """
@@ -211,19 +221,20 @@ class ResourceSet:
         :return: This ResourceSet object.
         :rtype: ResourceSet
         """
+        copy = self._copy()
         for arg in args:
             if isinstance(arg, str):
-                self._query &= R(_expr=arg)
+                copy._query &= R(_expr=arg)
                 continue
             if isinstance(arg, R):
-                self._query &= arg
+                copy._query &= arg
                 continue
             raise TypeError(f'arguments must be string or R not {type(arg)}')
 
         if kwargs:
-            self._query &= R(**kwargs)
+            copy._query &= R(**kwargs)
 
-        return self
+        return copy
 
     def count(self):
         """
@@ -264,13 +275,16 @@ class ResourceSet:
         :return: A list of dictionaries containing field,value pairs.
         :rtype: list
         """
-        self._fields = fields
         if self._results:
+            self._fields = fields
             return [
                 self._get_values(item)
                 for item in self._results
             ]
-        return self
+
+        copy = self._copy()
+        copy._fields = fields
+        return copy
 
     def _get_values(self, item):
         return {
@@ -309,6 +323,19 @@ class ResourceSet:
             self._client.response.headers['Content-Range'],
         )
         self._result_iterator = iter(self._results)
+
+    def _copy(self):
+        rs = ResourceSet(self._client, self._path, self._specs, self._query)
+        rs._limit = self._limit
+        rs._offset = self._offset
+        rs._slice = self._slice
+        rs._fields = self._fields
+        rs._search = self._search
+        rs._select = copy.copy(self._select)
+        rs._ordering = copy.copy(self._ordering)
+        rs._config = copy.deepcopy(self._config)
+
+        return rs
 
     def help(self):
         """

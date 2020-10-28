@@ -604,8 +604,7 @@ def test_rs_getitem(mocker, rs_factory):
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
     rs._client.get = mocker.MagicMock(return_value=expected)
-    for i in range(10):
-        assert rs[i] == expected[i]
+    assert rs[0] == expected[0]
 
 
 def test_rs_getitem_slice(mocker, rs_factory):
@@ -618,8 +617,8 @@ def test_rs_getitem_slice(mocker, rs_factory):
     rs._client.get = mocker.MagicMock(return_value=expected)
     sliced = rs[2:4]
     assert isinstance(sliced, ResourceSet)
-    assert rs._limit == 2
-    assert rs._offset == 2
+    assert sliced._limit == 2
+    assert sliced._offset == 2
 
 
 def test_rs_getitem_slice_type(mocker, rs_factory):
@@ -803,7 +802,7 @@ def test_rs_configure(rs_factory):
     s1 = rs.configure(**kwargs)
 
     assert s1._config == kwargs
-    assert s1 == rs
+    assert s1 != rs
 
 
 def test_rs_order_by(rs_factory):
@@ -814,7 +813,7 @@ def test_rs_order_by(rs_factory):
     for field in fields:
         assert field in s1._ordering
     assert len(fields) == len(s1._ordering)
-    assert s1 == rs
+    assert s1 != rs
 
 
 def test_rs_select(rs_factory):
@@ -825,7 +824,7 @@ def test_rs_select(rs_factory):
     for field in fields:
         assert field in s1._select
     assert len(fields) == len(s1._select)
-    assert s1 == rs
+    assert s1 != rs
 
 
 def test_rs_filter(rs_factory):
@@ -835,7 +834,7 @@ def test_rs_filter(rs_factory):
 
     s1 = rs.filter()
 
-    assert s1 == rs
+    assert s1 != rs
     assert bool(s1.query) is False
 
     s1 = rs.filter('eq(field,value)')
@@ -843,11 +842,14 @@ def test_rs_filter(rs_factory):
     assert str(s1.query) == 'eq(field,value)'
 
     s1 = rs.filter(R().field.eq('value'))
+
     assert str(s1.query) == 'eq(field,value)'
 
-    s1 = rs.filter(status__in=('status1', 'status2'))
+    s2 = s1.filter(status__in=('status1', 'status2'))
 
-    assert str(s1.query) == 'and(eq(field,value),in(status,(status1,status2)))'
+    assert s1 != s2
+
+    assert str(s2.query) == 'and(eq(field,value),in(status,(status1,status2)))'
 
 
 def test_rs_filter_invalid_arg(rs_factory):
