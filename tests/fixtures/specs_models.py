@@ -51,7 +51,7 @@ def resinfo_factory(mocker):
         iteminfo = ResourceInfo()
         if collections:
             for col in collections:
-                iteminfo.set_collection(col, 'summary', 'description')
+                iteminfo.set_collection(col.name, col.summary, col.description)
         if actions:
             for action in actions:
                 if isinstance(action, str):

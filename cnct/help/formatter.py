@@ -94,7 +94,7 @@ class DefaultFormatter:
             ] + _SPACE
         return render('\n'.join(lines))
 
-    def print_item(self, specs):
+    def print_resource(self, specs):
         lines = []
         if specs.summary:
             lines += ['## Summary'] + _SPACE
@@ -165,7 +165,7 @@ class DefaultFormatter:
         if isinstance(specs, CollectionInfo):
             print(self.print_collection(specs))
         if isinstance(specs, ResourceInfo):
-            print(self.print_item(specs))
+            print(self.print_resource(specs))
         if isinstance(specs, ActionInfo):
             print(self.print_action(specs))
         if isinstance(specs, OpInfo):

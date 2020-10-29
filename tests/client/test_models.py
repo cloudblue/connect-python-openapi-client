@@ -50,7 +50,7 @@ def test_ns_collection_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
 
 
 def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory('resource')])
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
@@ -106,7 +106,7 @@ def test_ns_dir_without_specs(ns_factory):
 
 
 def test_ns_help(mocker, ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory('resource')])
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
 
     print_help = mocker.patch.object(DefaultFormatter, 'print_help')
@@ -263,8 +263,8 @@ def test_resource_collection(res_factory):
     assert collection._specs is None
 
 
-def test_resource_collection_with_specs(res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'])
+def test_resource_collection_with_specs(res_factory, colinfo_factory, resinfo_factory):
+    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
     resource = res_factory(specs=specs)
     collection = resource.collection('resource')
 
@@ -274,8 +274,8 @@ def test_resource_collection_with_specs(res_factory, resinfo_factory):
     assert collection._specs == specs.collections['resource']
 
 
-def test_resource_collection_with_specs_unresolved(res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'])
+def test_resource_collection_with_specs_unresolved(res_factory, colinfo_factory, resinfo_factory):
+    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
     resource = res_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
@@ -348,8 +348,11 @@ def test_resource_getattr_no_specs(res_factory):
     )
 
 
-def test_resource_getattr_with_specs(res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'], actions=['myaction'])
+def test_resource_getattr_with_specs(res_factory, resinfo_factory, colinfo_factory):
+    specs = resinfo_factory(
+        collections=[colinfo_factory(name='resource')],
+        actions=['myaction'],
+    )
     resource = res_factory(specs=specs)
 
     collection = resource.resource
@@ -366,8 +369,8 @@ def test_resource_getattr_with_specs(res_factory, resinfo_factory):
     assert action.path == f'{resource.path}/myaction'
 
 
-def test_resource_getattr_with_specs_unresolved(res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'])
+def test_resource_getattr_with_specs_unresolved(res_factory, resinfo_factory, colinfo_factory):
+    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
     resource = res_factory(specs=specs)
 
     with pytest.raises(AttributeError) as cv:
@@ -376,8 +379,8 @@ def test_resource_getattr_with_specs_unresolved(res_factory, resinfo_factory):
     assert str(cv.value) == 'Unable to resolve other.'
 
 
-def test_resource_dir_with_specs(res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'])
+def test_resource_dir_with_specs(res_factory, colinfo_factory, resinfo_factory):
+    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
     resource = res_factory(specs=specs)
 
     dir_ = dir(resource)
@@ -453,8 +456,8 @@ def test_resource_values(mocker, res_factory):
         and result['sub_object.name'] == 'ok'
 
 
-def test_resource_help(mocker, res_factory, resinfo_factory):
-    specs = resinfo_factory(collections=['resource'])
+def test_resource_help(mocker, res_factory, colinfo_factory, resinfo_factory):
+    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
     resource = res_factory(specs=specs)
 
     print_help = mocker.patch.object(DefaultFormatter, 'print_help')
