@@ -39,6 +39,8 @@ def test_parse_content_range():
     assert content_range.last == last
     assert content_range.count == count
 
+    assert parse_content_range(None) is None
+
 
 def test_resolve_attribute():
     data = {

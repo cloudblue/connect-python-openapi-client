@@ -46,16 +46,16 @@ class ActionInfo:
 
 
 class ResourceInfo:
-    def __init__(self):
-        self.summary = ''
-        self.description = ''
+    def __init__(self, summary='', description=''):
+        self.summary = summary
+        self.description = description
         self.actions = {}
         self.collections = {}
 
     def set_action(self, name, summary, description, info):
-        if name not in self.actions:
-            self.actions[name] = ActionInfo(name, summary, description)
-        self.actions[name].add_info(info)
+        action = self.actions.setdefault(name, ActionInfo(name, summary, description))
+        action.add_info(info)
+        return action
 
     def set_collection(self, name, summary, description):
         return self.collections.setdefault(name, CollectionInfo(name, summary, description))

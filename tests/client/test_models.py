@@ -315,8 +315,8 @@ def test_resource_action(res_factory):
     assert action._specs is None
 
 
-def test_resource_action_with_specs(res_factory, resinfo_factory):
-    specs = resinfo_factory(actions=['action'])
+def test_resource_action_with_specs(res_factory, resinfo_factory, actinfo_factory):
+    specs = resinfo_factory(actions=[actinfo_factory(name='action')])
     resource = res_factory(specs=specs)
     action = resource.action('action')
 
@@ -326,8 +326,8 @@ def test_resource_action_with_specs(res_factory, resinfo_factory):
     assert action._specs == specs.actions['action']
 
 
-def test_resource_action_with_specs_unresolved(res_factory, resinfo_factory):
-    specs = resinfo_factory(actions=['action'])
+def test_resource_action_with_specs_unresolved(res_factory, resinfo_factory, actinfo_factory):
+    specs = resinfo_factory(actions=[actinfo_factory(name='action')])
     resource = res_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
@@ -348,10 +348,10 @@ def test_resource_getattr_no_specs(res_factory):
     )
 
 
-def test_resource_getattr_with_specs(res_factory, resinfo_factory, colinfo_factory):
+def test_resource_getattr_with_specs(res_factory, colinfo_factory, resinfo_factory, actinfo_factory):
     specs = resinfo_factory(
         collections=[colinfo_factory(name='resource')],
-        actions=['myaction'],
+        actions=[actinfo_factory(name='myaction')],
     )
     resource = res_factory(specs=specs)
 
