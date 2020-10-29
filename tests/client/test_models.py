@@ -38,8 +38,8 @@ def test_ns_collection(ns_factory):
     assert collection._specs is None
 
 
-def test_ns_collection_with_specs(ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_collection_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
     collection = ns.collection('resource')
 
@@ -49,8 +49,8 @@ def test_ns_collection_with_specs(ns_factory, nsinfo_factory):
     assert collection._specs == specs.collections['resource']
 
 
-def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory('resource')])
     ns = ns_factory(specs=specs)
 
     with pytest.raises(NotFoundError) as cv:
@@ -65,8 +65,8 @@ def test_ns_getattr(ns_factory):
         ns.resource
 
 
-def test_ns_getattr_with_specs(ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_getattr_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
 
     collection = ns.resource
@@ -77,8 +77,8 @@ def test_ns_getattr_with_specs(ns_factory, nsinfo_factory):
     assert collection._specs == specs.collections['resource']
 
 
-def test_ns_getattr_with_specs_unresolved(ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_getattr_with_specs_unresolved(ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
 
     with pytest.raises(AttributeError) as cv:
@@ -87,8 +87,8 @@ def test_ns_getattr_with_specs_unresolved(ns_factory, nsinfo_factory):
     assert str(cv.value) == 'Unable to resolve other.'
 
 
-def test_ns_dir_with_specs(ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_dir_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
     ns = ns_factory(specs=specs)
 
     dir_ = dir(ns)
@@ -105,8 +105,8 @@ def test_ns_dir_without_specs(ns_factory):
     assert 'resource' not in dir_
 
 
-def test_ns_help(mocker, ns_factory, nsinfo_factory):
-    specs = nsinfo_factory(collections=['resource'])
+def test_ns_help(mocker, ns_factory, nsinfo_factory, colinfo_factory):
+    specs = nsinfo_factory(collections=[colinfo_factory('resource')])
     ns = ns_factory(specs=specs)
 
     print_help = mocker.patch.object(DefaultFormatter, 'print_help')

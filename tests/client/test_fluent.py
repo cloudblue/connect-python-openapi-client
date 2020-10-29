@@ -42,10 +42,10 @@ def test_getattr(mocker):
     )
 
 
-def test_getattr_with_specs_dash(mocker, apiinfo_factory):
+def test_getattr_with_specs_dash(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
     specs = apiinfo_factory(
-        collections=['my-resources'],
-        namespaces=['name-space'],
+        collections=[colinfo_factory(name='my-resources')],
+        namespaces=[nsinfo_factory(name='name-space')],
     )
     mocker.patch(
         'cnct.client.fluent.parse',
@@ -58,8 +58,8 @@ def test_getattr_with_specs_dash(mocker, apiinfo_factory):
     assert isinstance(c.name_space, NS)
 
     specs = apiinfo_factory(
-        collections=['resources'],
-        namespaces=['namespace'],
+        collections=[colinfo_factory('resources')],
+        namespaces=[nsinfo_factory('namespace')],
     )
     mocker.patch(
         'cnct.client.fluent.parse',
@@ -72,10 +72,10 @@ def test_getattr_with_specs_dash(mocker, apiinfo_factory):
     assert isinstance(c.namespace, NS)
 
 
-def test_getattr_with_specs_unresolved(mocker, apiinfo_factory):
+def test_getattr_with_specs_unresolved(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
     specs = apiinfo_factory(
-        collections=['resources'],
-        namespaces=['namespace'],
+        collections=[colinfo_factory(name='resources')],
+        namespaces=[nsinfo_factory(name='namespace')],
     )
     mocker.patch(
         'cnct.client.fluent.parse',
@@ -113,10 +113,10 @@ def test_ns_invalid_value():
         c.ns('')
 
 
-def test_ns_unresolved(mocker, apiinfo_factory):
+def test_ns_unresolved(mocker, apiinfo_factory, nsinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
-        return_value=apiinfo_factory(namespaces=['namespace']),
+        return_value=apiinfo_factory(namespaces=[nsinfo_factory(name='namespace')]),
     )
 
     c = ConnectClient('Api Key')
@@ -150,10 +150,10 @@ def test_collection_invalid_value():
         c.collection('')
 
 
-def test_collection_unresolved(mocker, apiinfo_factory):
+def test_collection_unresolved(mocker, apiinfo_factory, colinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
-        return_value=apiinfo_factory(collections=['resources']),
+        return_value=apiinfo_factory(collections=[colinfo_factory('resources')]),
     )
 
     c = ConnectClient('Api Key')
@@ -164,12 +164,18 @@ def test_collection_unresolved(mocker, apiinfo_factory):
     assert str(cv.value) == 'The collection invalid does not exist.'
 
 
-def test_dir_with_specs(mocker, apiinfo_factory):
+def test_dir_with_specs(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
         return_value=apiinfo_factory(
-            collections=['resources', 'res-with-dash'],
-            namespaces=['namespace', 'ns-with-dash'],
+            collections=[
+                colinfo_factory(name='resources'),
+                colinfo_factory(name='res-with-dash')
+            ],
+            namespaces=[
+                nsinfo_factory(name='namespace'),
+                nsinfo_factory(name='ns-with-dash'),
+            ],
         ),
     )
 

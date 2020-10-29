@@ -3,25 +3,28 @@ import pytest
 from cnct.specs.models import (
     ApiInfo,
     NSInfo,
-    # CollectionInfo,
+    CollectionInfo,
     ResourceInfo,
 )
 
 
-# @pytest.fixture
-# def colinfo_factory(mocker):
-#     def _colinfo_factory(
-#         name='resource',
-#         specs=None,
-#         operations=None,
-#         client_specs=None,
-#     ):
-#         colinfo = CollectionInfo(name)
-#         if collections:
-#             for col in collections:
-#                 nsinfo.set_collection(col.name)
-#         return nsinfo
-#     return _nsinfo_factory
+@pytest.fixture
+def colinfo_factory(mocker):
+    def _colinfo_factory(
+        name='resources',
+        summary='Collection summary',
+        description='Collection description',
+        tag='Tag',
+        operations=None,
+        resource_specs=None,
+    ):
+        colinfo = CollectionInfo(name, summary, description, tag)
+        colinfo.resource_specs = resource_specs
+        if operations:
+            for op in operations:
+                colinfo.operations[op.name] = op
+        return colinfo
+    return _colinfo_factory
 
 
 @pytest.fixture
@@ -29,13 +32,12 @@ def nsinfo_factory(mocker):
     def _nsinfo_factory(
         name='namespace',
         tag='Tag',
-        specs=None,
         collections=None,
     ):
         nsinfo = NSInfo(name, tag)
         if collections:
             for col in collections:
-                nsinfo.set_collection(col, 'summary', 'description', 'tag')
+                nsinfo.set_collection(col.name, col.summary, col.description, col.tag)
         return nsinfo
     return _nsinfo_factory
 
@@ -66,7 +68,7 @@ def apiinfo_factory(mocker):
         title='Test Api',
         description='Api description',
         version='Api version',
-        tags=[],
+        tags=[{'name': 'Tag', 'description': 'Tag description.'}],
         collections=None,
         namespaces=None,
     ):
@@ -74,10 +76,10 @@ def apiinfo_factory(mocker):
 
         if collections:
             for col in collections:
-                apiinfo.set_collection(col, 'summary', 'description', 'tag')
+                apiinfo.set_collection(col.name, col.summary, col.description, col.tag)
         if namespaces:
             for ns in namespaces:
-                apiinfo.set_namespace(ns, 'tag')
+                apiinfo.set_namespace(ns.name, ns.tag)
 
         return apiinfo
     return _apiinfo_factory

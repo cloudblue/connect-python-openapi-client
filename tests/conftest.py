@@ -7,6 +7,7 @@ from tests.fixtures.client_models import (  # noqa
 )
 from tests.fixtures.specs_models import (  # noqa
     apiinfo_factory,
+    colinfo_factory,
     resinfo_factory,
     nsinfo_factory,
 )
