@@ -3,7 +3,6 @@ from keyword import iskeyword
 from cnct.client.exceptions import NotFoundError
 from cnct.client.models.resourceset import ResourceSet
 from cnct.client.utils import resolve_attribute
-from cnct.help import print_help
 from cnct.rql import R
 
 
@@ -110,7 +109,7 @@ class NS:
         :return: self
         :rtype: NS
         """
-        print_help(self._specs)
+        self._client._help_formatter.print_help(self._specs)
         return self
 
 
@@ -267,7 +266,7 @@ class Collection:
         :return: self
         :rtype: Collection
         """
-        print_help(self._specs)
+        self._client._help_formatter.print_help(self._specs)
         return self
 
 
@@ -468,7 +467,7 @@ class Resource:
         :return: self
         :rtype: Resource
         """
-        print_help(self._specs)
+        self._client._help_formatter.print_help(self._specs)
         return self
 
 
@@ -568,5 +567,5 @@ class Action:
         :return: self
         :rtype: Action
         """
-        print_help(self._specs)
+        self._client._help_formatter.print_help(self._specs)
         return self

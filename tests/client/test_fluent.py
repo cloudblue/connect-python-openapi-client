@@ -3,6 +3,26 @@ import pytest
 from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
 from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
+from cnct.help import DefaultFormatter
+
+
+def test_default_headers():
+    c = ConnectClient(
+        'Api Key',
+        specs_location=None,
+        default_headers={'X-Custom-Header': 'value'},
+    )
+
+    assert c.default_headers == {'X-Custom-Header': 'value'}
+
+
+def test_default_headers_invalid():
+    with pytest.raises(ValueError):
+        ConnectClient(
+            'Api Key',
+            specs_location=None,
+            default_headers={'Authorization': 'value'},
+        )
 
 
 def test_getattr(mocker):
@@ -81,6 +101,18 @@ def test_ns(mocker):
     assert isinstance(c.ns('namespace'), NS)
 
 
+def test_ns_invalid_type():
+    c = ConnectClient('Api Key', specs_location=None)
+    with pytest.raises(TypeError):
+        c.ns(c)
+
+
+def test_ns_invalid_value():
+    c = ConnectClient('Api Key', specs_location=None)
+    with pytest.raises(ValueError):
+        c.ns('')
+
+
 def test_ns_unresolved(mocker, apiinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
@@ -106,6 +138,18 @@ def test_collection(mocker):
     assert isinstance(c.collection('resources'), Collection)
 
 
+def test_collection_invalid_type():
+    c = ConnectClient('Api Key', specs_location=None)
+    with pytest.raises(TypeError):
+        c.collection(c)
+
+
+def test_collection_invalid_value():
+    c = ConnectClient('Api Key', specs_location=None)
+    with pytest.raises(ValueError):
+        c.collection('')
+
+
 def test_collection_unresolved(mocker, apiinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
@@ -124,8 +168,8 @@ def test_dir_with_specs(mocker, apiinfo_factory):
     mocker.patch(
         'cnct.client.fluent.parse',
         return_value=apiinfo_factory(
-            collections=['resources'],
-            namespaces=['namespace']
+            collections=['resources', 'res-with-dash'],
+            namespaces=['namespace', 'ns-with-dash'],
         ),
     )
 
@@ -134,6 +178,8 @@ def test_dir_with_specs(mocker, apiinfo_factory):
     dir_ = dir(c)
     assert 'resources' in dir_
     assert 'namespace' in dir_
+    assert 'res_with_dash' in dir_
+    assert 'ns_with_dash' in dir_
 
 
 def test_dir_without_specs(mocker):
@@ -245,6 +291,28 @@ def test_execute(requests_mock):
     assert results == expected
 
 
+def test_execute_default_headers(requests_mock):
+    mock = requests_mock.request(
+        'get',
+        'https://localhost/resources',
+        json=[],
+    )
+
+    c = ConnectClient(
+        'API_KEY',
+        specs_location=None,
+        default_headers={'X-Custom-Header': 'custom-header-value'},
+    )
+
+    c.execute('get', 'https://localhost/resources', 200)
+
+    headers = mock.last_request.headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+    assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'custom-header-value'
+
+
 def test_execute_with_kwargs(requests_mock):
     mock = requests_mock.request(
         'post',
@@ -309,6 +377,22 @@ def test_execute_uparseable_connect_error(requests_mock):
         c.execute('post', 'https://localhost/resources', 201)
 
 
+@pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
+def test_execute_error_with_reason(requests_mock, encoding):
+
+    requests_mock.request(
+        'post',
+        'https://localhost/resources',
+        status_code=500,
+        reason='Interñal Server Error'.encode(encoding),
+    )
+
+    c = ConnectClient('API_KEY', specs_location=None)
+
+    with pytest.raises(HttpError):
+        c.execute('post', 'https://localhost/resources', 201)
+
+
 def test_execute_delete(requests_mock):
 
     requests_mock.request(
@@ -326,7 +410,7 @@ def test_execute_delete(requests_mock):
 
 
 def test_help(mocker, col_factory):
-    print_help = mocker.patch('cnct.client.fluent.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
     c = ConnectClient('API_KEY', specs_location=None)
     c1 = c.help()
 

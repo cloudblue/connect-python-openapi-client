@@ -1,48 +1,52 @@
 import copy
 
-from cnct.client.utils import parse_content_range, resolve_attribute
-from cnct.help import print_help
+from cnct.client.utils import get_values, parse_content_range, resolve_attribute
 from cnct.rql import R
 
 
-class ResourceIterable:
-    def __init__(self, rs):
-        self._rs = rs
+class AbstractIterable:
+    def __init__(self, client, path, query, config, **kwargs):
+        self._client = client
+        self._path = path
+        self._query = query
+        self._config = config
+        self._kwargs = kwargs
+
+    def get_item(self, item):
+        raise NotImplementedError('get_item must be implemented in subclasses.')
 
     def __iter__(self):
-        print('retrieve page', id(self._rs))
-        while self._has_more():
-            print(self._rs._limit, self._rs._offset, self._rs.content_range)
-            self._rs._perform()
-            print(self._rs._limit, self._rs._offset, self._rs.content_range)
-            yield from self._rs._results
-            self._rs._offset += self._rs._limit
-            print(self._rs._offset)
-        print('end retrieve page')
+        cr = None
+        while cr is None or cr.last < cr.count - 1:
+            results, cr = self._execute_request()
+            if not (results and cr):
+                return
+            for item in results:
+                yield self.get_item(item)
 
-    def _has_more(self):
-        return (
-            self._rs.content_range is None
-            or self._rs.content_range.last < self._rs.content_range.count - 1
+            self._config['params']['offset'] += self._config['params']['offset']
+
+    def _execute_request(self):
+        results = self._client.get(
+            f'{self._path}?{self._query}',
+            **self._kwargs,
         )
-
-
-class ValuesListIterable:
-    def __init__(self, rs):
-        self._rs = rs
-
-    def __iter__(self):
-        while self._has_more():
-            self._rs._perform()
-            for item in self._rs._results:
-                yield self._rs._get_values(item)
-            self._rs._offset += self._rs._limit
-
-    def _has_more(self):
-        return (
-            self._rs.content_range is None
-            or self._rs.content_range.last < self._rs.content_range.count - 1
+        content_range = parse_content_range(
+            self._client.response.headers.get('Content-Range'),
         )
+        return results, content_range
+
+
+class ResourceIterable(AbstractIterable):
+
+    def get_item(self, item):
+        return item
+
+
+class ValuesListIterable(AbstractIterable):
+
+    def get_item(self, item):
+        return get_values(item, self._kwargs['fields'])
 
 
 class ResourceSet:
@@ -85,16 +89,15 @@ class ResourceSet:
     def content_range(self):
         return self._content_range
 
-    # def __len__(self):
-    #     """
-    #     Returns the length of the result cache.
+    def __len__(self):
+        """
+        Returns the length of the result cache.
 
-    #     :return: the length of the result cache.
-    #     :rtype: int
-    #     """
-    #     if not self._results:
-    #         self._perform()
-    #     return len(self._results)
+        :return: the length of the result cache.
+        :rtype: int
+        """
+        self._fetch_all()
+        return len(self._results)
 
     def __iter__(self):
         """
@@ -103,39 +106,11 @@ class ResourceSet:
         :return: A resources iterator.
         :rtype: ResourceSet
         """
-        if self._fields:
-            return iter(ValuesListIterable(self._copy()))
-        return iter(ResourceIterable(self._copy()))
-        # if not self._results:
-        #     self._perform()
-        # return self
 
-    # def __next__(self):
-    #     """
-    #     Returns the next element from the results iterator.
-    #     The ResourceSet handles pagination automatically.
+        if self._results is None:
+            return self._iterator()
 
-    #     :return: The next resource belonging to this ResourceSet.
-    #     :rtype: dict
-    #     """
-    #     try:
-    #         item = next(self._result_iterator)
-    #         if self._fields:
-    #             return self._get_values(item)
-    #         return item
-    #     except StopIteration:
-    #         if self._slice:
-    #             self._offset = 0
-    #             raise
-    #         if self._content_range.last == self._content_range.count - 1:
-    #             self._offset = 0
-    #             raise
-    #         self._offset += self._limit
-    #         self._perform()
-    #         item = next(self._result_iterator)
-    #         if self._fields:
-    #             return self._get_values(item)
-    #         return item
+        return iter(self._results)
 
     def __bool__(self):
         """
@@ -145,7 +120,7 @@ class ResourceSet:
         :return: True if contains a resource otherwise False.
         :rtype: bool
         """
-        self._perform()
+        self._fetch_all()
         return bool(self._results)
 
     def __getitem__(self, key):
@@ -165,22 +140,17 @@ class ResourceSet:
         if not isinstance(key, (int, slice)):
             raise TypeError('ResourceSet indices must be integers or slices.')
 
-        assert (not isinstance(key, slice) and (key >= 0)) or (
-            isinstance(key, slice)
-            and key.start is not None
-            and key.stop is not None
-        ), 'Both start and stop indexes must be specified.'
+        if isinstance(key, slice) and (key.start is None or key.stop is None):
+            raise ValueError('Both start and stop indexes must be specified.')
 
-        assert (not isinstance(key, slice) and (key >= 0)) or (
+        if (not isinstance(key, slice) and (key < 0)) or (
             isinstance(key, slice)
-            and key.start >= 0
-            and key.stop >= 0
-        ), 'Negative indexing is not supported.'
+            and (key.start < 0 or key.stop < 0)
+        ):
+            raise ValueError('Negative indexing is not supported.')
 
-        assert (not isinstance(key, slice) and (key >= 0)) or (
-            isinstance(key, slice)
-            and (key.step is None or key.step == 0)
-        ), 'Indexing with step is not supported.'
+        if isinstance(key, slice) and not (key.step is None or key.step == 0):
+            raise ValueError('Indexing with step is not supported.')
 
         if self._results:
             return self._results[key]
@@ -189,7 +159,7 @@ class ResourceSet:
             copy = self._copy()
             copy._limit = 1
             copy._offset = key
-            copy._perform()
+            copy._fetch_all()
             return copy._results[0] if copy._results else None
 
         copy = self._copy()
@@ -329,8 +299,7 @@ class ResourceSet:
         :return: The first resource.
         :rtype: dict, None
         """
-        if not self._results:
-            self._perform()
+        self._fetch_all()
         return self._results[0] if self._results else None
 
     def all(self):
@@ -407,6 +376,19 @@ class ResourceSet:
 
         return url
 
+    def _iterator(self):
+        args = (
+            self._client,
+            self._path,
+            self._build_qs(),
+            self._get_request_kwargs(),
+        )
+        iterable = (
+            ValuesListIterable(*args, fields=self._fields)
+            if self._fields else ResourceIterable(*args)
+        )
+        return iter(iterable)
+
     def _get_request_kwargs(self):
         config = copy.deepcopy(self._config)
         config.setdefault('params', {})
@@ -422,22 +404,15 @@ class ResourceSet:
         return config
 
     def _execute_request(self, url, kwargs):
-        print('execute call', (id(self)))
-        self._results = self._client.get(url, **kwargs)
+        results = self._client.get(url, **kwargs)
         self._content_range = parse_content_range(
-            self._client.response.headers['Content-Range'],
+            self._client.response.headers.get('Content-Range'),
         )
-        print(self.content_range)
-        print('** end execute **')
-
-    def _perform(self):
-        url = self._get_request_url()
-        kwargs = self._get_request_kwargs()
-        self._execute_request(url, kwargs)
-        # self._result_iterator = iter(self._results)
+        return results
 
     def _fetch_all(self):
-        pass
+        if self._results is None:
+            self._results = list(self._iterator())
 
     def _copy(self):
         rs = ResourceSet(self._client, self._path, self._specs, self._query)
@@ -459,5 +434,5 @@ class ResourceSet:
         :return: self
         :rtype: ResourceSet
         """
-        print_help(self._specs)
+        self._client._help_formatter.print_help(self._specs)
         return self

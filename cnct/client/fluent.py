@@ -7,7 +7,7 @@ from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
-from cnct.help import print_help
+from cnct.help import DefaultFormatter
 from cnct.specs.parser import parse
 
 
@@ -21,6 +21,8 @@ class ConnectClient:
         endpoint=CONNECT_ENDPOINT_URL,
         specs_location=CONNECT_SPECS_URL,
         default_headers={},
+        default_limit=100,
+        help_formatter=DefaultFormatter(),
     ):
         """
         Create a new instance of the ConnectClient.
@@ -34,12 +36,16 @@ class ConnectClient:
         :param default_headers: Http headers to apply to each request, defaults to {}
         :type default_headers: dict, optional
         """
+        if default_headers and 'Authorization' in default_headers:
+            raise ValueError('`default_headers` cannot contains `Authorization`')
+
         self.endpoint = endpoint
         self.api_key = api_key
         self.default_headers = default_headers
         self.specs_location = specs_location
         self.specs = parse(self.specs_location) if self.specs_location else None
         self.response = None
+        self._help_formatter = help_formatter
 
     def __getattr__(self, name):
         """
@@ -194,7 +200,7 @@ class ConnectClient:
         return self.response.json()
 
     def help(self):
-        print_help(self.specs)
+        self._help_formatter.print_help(self.specs)
         return self
 
     def _raise_exception(self):

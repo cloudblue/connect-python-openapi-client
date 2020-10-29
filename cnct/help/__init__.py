@@ -1,1 +1,1 @@
-from cnct.help.generator import print_help  # noqa
+from cnct.help.formatter import DefaultFormatter  # noqa

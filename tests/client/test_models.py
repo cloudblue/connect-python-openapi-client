@@ -3,6 +3,7 @@ import pytest
 from cnct.client.exceptions import NotFoundError
 from cnct.client.models import Action, Collection, Resource, ResourceSet
 from cnct.client.utils import ContentRange
+from cnct.help import DefaultFormatter
 from cnct.rql import R
 
 
@@ -108,7 +109,7 @@ def test_ns_help(mocker, ns_factory, nsinfo_factory):
     specs = nsinfo_factory(collections=['resource'])
     ns = ns_factory(specs=specs)
 
-    print_help = mocker.patch('cnct.client.models.base.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
 
     ns2 = ns.help()
 
@@ -223,7 +224,7 @@ def test_collection_all(col_factory):
 
 def test_collection_help(mocker, col_factory):
     collection = col_factory(path='resource')
-    print_help = mocker.patch('cnct.client.models.base.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
 
     col2 = collection.help()
 
@@ -456,7 +457,7 @@ def test_resource_help(mocker, res_factory, resinfo_factory):
     specs = resinfo_factory(collections=['resource'])
     resource = res_factory(specs=specs)
 
-    print_help = mocker.patch('cnct.client.models.base.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
 
     resource2 = resource.help()
 
@@ -538,7 +539,7 @@ def test_action_delete(action_factory):
 
 def test_action_help(mocker, action_factory):
     action = action_factory(path='action')
-    print_help = mocker.patch('cnct.client.models.base.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
 
     act2 = action.help()
 
@@ -549,7 +550,7 @@ def test_action_help(mocker, action_factory):
 def test_rs_len(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 100),
+        return_value=ContentRange(0, 9, 10),
     )
     results = [{'id': i} for i in range(10)]
     rs = rs_factory()
@@ -627,7 +628,7 @@ def test_rs_getitem_slice_type(mocker, rs_factory):
 
 def test_rs_getitem_slice_negative(mocker, rs_factory):
     rs = rs_factory()
-    with pytest.raises(AssertionError) as cv:
+    with pytest.raises(ValueError) as cv:
         rs[1:-1]
 
     assert str(cv.value) == 'Negative indexing is not supported.'
@@ -635,7 +636,7 @@ def test_rs_getitem_slice_negative(mocker, rs_factory):
 
 def test_rs_getitem_slice_step(mocker, rs_factory):
     rs = rs_factory()
-    with pytest.raises(AssertionError) as cv:
+    with pytest.raises(ValueError) as cv:
         rs[0:10:2]
 
     assert str(cv.value) == 'Indexing with step is not supported.'
@@ -655,7 +656,7 @@ def test_rs_count(mocker, rs_factory):
 
 
 def test_rs_first(mocker, rs_factory):
-    content_range = ContentRange(0, 9, 100)
+    content_range = ContentRange(0, 9, 10)
     mocker.patch(
         'cnct.client.models.resourceset.parse_content_range',
         return_value=content_range,
@@ -722,6 +723,7 @@ def test_rs_request(mocker, rs_factory):
     list(rs)
 
     rs._client.get.assert_called_once()
+
     assert rs._client.get.call_args[0][0] == (
         'resources?select(obj1,-obj2)'
         '&and(eq(field,value),in(field2,(a,b)))'
@@ -933,7 +935,7 @@ def test_rs_filter_invalid_arg(rs_factory):
 
 def test_rs_help(mocker, rs_factory):
     rs = rs_factory(specs='this is a spec')
-    print_help = mocker.patch('cnct.client.models.resourceset.print_help')
+    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
     rs2 = rs.help()
     assert print_help.called_once_with('this is a spec')
     assert rs2 == rs

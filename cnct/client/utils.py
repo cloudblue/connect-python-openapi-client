@@ -23,6 +23,8 @@ def get_headers(api_key):
 
 
 def parse_content_range(value):
+    if not value:
+        return
     _, info = value.split()
     first_last, count = info.split('/')
     first, last = first_last.split('-')
@@ -36,3 +38,7 @@ def resolve_attribute(attr, data):
         return data
     except:  # noqa
         pass
+
+
+def get_values(item, fields):
+    return {field: resolve_attribute(field, item) for field in fields}
