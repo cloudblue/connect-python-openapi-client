@@ -5,6 +5,46 @@ from cnct.help import print_help
 from cnct.rql import R
 
 
+class ResourceIterable:
+    def __init__(self, rs):
+        self._rs = rs
+
+    def __iter__(self):
+        print('retrieve page', id(self._rs))
+        while self._has_more():
+            print(self._rs._limit, self._rs._offset, self._rs.content_range)
+            self._rs._perform()
+            print(self._rs._limit, self._rs._offset, self._rs.content_range)
+            yield from self._rs._results
+            self._rs._offset += self._rs._limit
+            print(self._rs._offset)
+        print('end retrieve page')
+
+    def _has_more(self):
+        return (
+            self._rs.content_range is None
+            or self._rs.content_range.last < self._rs.content_range.count - 1
+        )
+
+
+class ValuesListIterable:
+    def __init__(self, rs):
+        self._rs = rs
+
+    def __iter__(self):
+        while self._has_more():
+            self._rs._perform()
+            for item in self._rs._results:
+                yield self._rs._get_values(item)
+            self._rs._offset += self._rs._limit
+
+    def _has_more(self):
+        return (
+            self._rs.content_range is None
+            or self._rs.content_range.last < self._rs.content_range.count - 1
+        )
+
+
 class ResourceSet:
     """
     Represent a set of resources.
@@ -45,16 +85,16 @@ class ResourceSet:
     def content_range(self):
         return self._content_range
 
-    def __len__(self):
-        """
-        Returns the length of the result cache.
+    # def __len__(self):
+    #     """
+    #     Returns the length of the result cache.
 
-        :return: the length of the result cache.
-        :rtype: int
-        """
-        if not self._results:
-            self._perform()
-        return len(self._results)
+    #     :return: the length of the result cache.
+    #     :rtype: int
+    #     """
+    #     if not self._results:
+    #         self._perform()
+    #     return len(self._results)
 
     def __iter__(self):
         """
@@ -63,36 +103,39 @@ class ResourceSet:
         :return: A resources iterator.
         :rtype: ResourceSet
         """
-        if not self._results:
-            self._perform()
-        return self
+        if self._fields:
+            return iter(ValuesListIterable(self._copy()))
+        return iter(ResourceIterable(self._copy()))
+        # if not self._results:
+        #     self._perform()
+        # return self
 
-    def __next__(self):
-        """
-        Returns the next element from the results iterator.
-        The ResourceSet handles pagination automatically.
+    # def __next__(self):
+    #     """
+    #     Returns the next element from the results iterator.
+    #     The ResourceSet handles pagination automatically.
 
-        :return: The next resource belonging to this ResourceSet.
-        :rtype: dict
-        """
-        try:
-            item = next(self._result_iterator)
-            if self._fields:
-                return self._get_values(item)
-            return item
-        except StopIteration:
-            if self._slice:
-                self._offset = 0
-                raise
-            if self._content_range.last == self._content_range.count - 1:
-                self._offset = 0
-                raise
-            self._offset += self._limit
-            self._perform()
-            item = next(self._result_iterator)
-            if self._fields:
-                return self._get_values(item)
-            return item
+    #     :return: The next resource belonging to this ResourceSet.
+    #     :rtype: dict
+    #     """
+    #     try:
+    #         item = next(self._result_iterator)
+    #         if self._fields:
+    #             return self._get_values(item)
+    #         return item
+    #     except StopIteration:
+    #         if self._slice:
+    #             self._offset = 0
+    #             raise
+    #         if self._content_range.last == self._content_range.count - 1:
+    #             self._offset = 0
+    #             raise
+    #         self._offset += self._limit
+    #         self._perform()
+    #         item = next(self._result_iterator)
+    #         if self._fields:
+    #             return self._get_values(item)
+    #         return item
 
     def __bool__(self):
         """
@@ -165,6 +208,28 @@ class ResourceSet:
         """
         copy = self._copy()
         copy._config = kwargs or {}
+        return copy
+
+    def limit(self, limit):
+        """
+        Set the number of results to be fetched from the remote
+        endpoint at once.
+
+        :param limit: maximum number of results to fetch in a batch.
+        :type limit: int
+        :raises TypeError: if `limit` is not an integer.
+        :raises ValueError: if `limit` is not positive non-zero.
+        :return: A copy of this ResourceSet class with the new limit.
+        :rtype: ResourceSet
+        """
+        if not isinstance(limit, int):
+            raise TypeError('`limit` must be an integer.')
+
+        if limit <= 0:
+            raise ValueError('`limit` must be a positive, non-zero integer.')
+
+        copy = self._copy()
+        copy._limit = limit
         return copy
 
     def order_by(self, *fields):
@@ -249,8 +314,11 @@ class ResourceSet:
         :return: The total number of resources present.
         :rtype: int
         """
-        if not self._results:
-            self._perform()
+        if not self._content_range:
+            url = self._get_request_url()
+            kwargs = self._get_request_kwargs()
+            kwargs['params']['limit'] = 0
+            self._execute_request(url, kwargs)
         return self._content_range.count
 
     def first(self):
@@ -264,6 +332,29 @@ class ResourceSet:
         if not self._results:
             self._perform()
         return self._results[0] if self._results else None
+
+    def all(self):
+        """
+        Returns a copy of the current ResourceSet.
+
+        :return: A copy of this ResourceSet.
+        :rtype: ResourceSet
+        """
+        return self._copy()
+
+    def search(self, term):
+        """
+        Create a copy of the current ResourceSet with
+        the search set to `term`.
+
+        :param term: The term to search for.
+        :type term: str
+        :return: A copy of the current ResourceSet.
+        :rtype: ResourceSet
+        """
+        copy = self._copy()
+        copy._search = term
+        return copy
 
     def values_list(self, *fields):
         """
@@ -308,27 +399,45 @@ class ResourceSet:
             qs += f'&ordering({",".join(self._ordering)})'
         return qs[1:] if qs else ''
 
-    def _perform(self):
+    def _get_request_url(self):
         url = f'{self._path}'
         qs = self._build_qs()
         if qs:
             url = f'{url}?{qs}'
 
-        self._config.setdefault('params', {})
+        return url
 
-        self._config['params'].update({
+    def _get_request_kwargs(self):
+        config = copy.deepcopy(self._config)
+        config.setdefault('params', {})
+
+        config['params'].update({
             'limit': self._limit,
             'offset': self._offset,
         })
 
         if self._search:
-            self._config['params']['search'] = self._search
+            config['params']['search'] = self._search
 
-        self._results = self._client.get(url, **self._config)
+        return config
+
+    def _execute_request(self, url, kwargs):
+        print('execute call', (id(self)))
+        self._results = self._client.get(url, **kwargs)
         self._content_range = parse_content_range(
             self._client.response.headers['Content-Range'],
         )
-        self._result_iterator = iter(self._results)
+        print(self.content_range)
+        print('** end execute **')
+
+    def _perform(self):
+        url = self._get_request_url()
+        kwargs = self._get_request_kwargs()
+        self._execute_request(url, kwargs)
+        # self._result_iterator = iter(self._results)
+
+    def _fetch_all(self):
+        pass
 
     def _copy(self):
         rs = ResourceSet(self._client, self._path, self._specs, self._query)

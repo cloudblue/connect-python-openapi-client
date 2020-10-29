@@ -37,7 +37,6 @@ def test_getattr_with_specs_dash(mocker, apiinfo_factory):
     assert isinstance(c.my_resources, Collection)
     assert isinstance(c.name_space, NS)
 
-
     specs = apiinfo_factory(
         collections=['resources'],
         namespaces=['namespace'],

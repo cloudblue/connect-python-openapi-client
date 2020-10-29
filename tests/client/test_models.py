@@ -642,15 +642,91 @@ def test_rs_getitem_slice_step(mocker, rs_factory):
 
 
 def test_rs_count(mocker, rs_factory):
+    content_range = ContentRange(0, 9, 100)
     mocker.patch(
         'cnct.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 100),
+        return_value=content_range,
+    )
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=[])
+
+    assert rs.count() == 100
+    assert rs.content_range == content_range
+
+
+def test_rs_first(mocker, rs_factory):
+    content_range = ContentRange(0, 9, 100)
+    mocker.patch(
+        'cnct.client.models.resourceset.parse_content_range',
+        return_value=content_range,
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
     rs._client.get = mocker.MagicMock(return_value=expected)
 
-    assert rs.count() == 100
+    first = rs.first()
+
+    assert first == expected[0]
+
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=[])
+
+    first = rs.first()
+
+    assert first is None
+
+
+def test_rs_all(rs_factory):
+    rs = rs_factory()
+    rs1 = rs.all()
+
+    assert isinstance(rs1, ResourceSet)
+    assert rs1 != rs
+
+
+def test_rs_limit(rs_factory):
+    rs = rs_factory()
+    rs1 = rs.limit(300)
+
+    assert rs1._limit == 300
+    assert rs1 != rs
+
+
+def test_rs_limit_invalid(rs_factory):
+    rs = rs_factory()
+    with pytest.raises(TypeError):
+        rs.limit('3')
+
+    with pytest.raises(ValueError):
+        rs.limit(-1)
+
+
+def test_rs_request(mocker, rs_factory):
+    rs = rs_factory()
+    content_range = ContentRange(0, 0, 0)
+    mocker.patch(
+        'cnct.client.models.resourceset.parse_content_range',
+        return_value=content_range,
+    )
+    rs._client.get = mocker.MagicMock(return_value=[])
+
+    rs = (
+        rs.filter(field='value', field2__in=('a', 'b'))
+        .search('search term')
+        .select('obj1', '-obj2')
+        .order_by('field1', '-field2')
+    )
+
+    rs._client.get.assert_not_called()
+
+    list(rs)
+
+    rs._client.get.assert_called_once()
+    assert rs._client.get.call_args[0][0] == (
+        'resources?select(obj1,-obj2)'
+        '&and(eq(field,value),in(field2,(a,b)))'
+        '&ordering(field1,-field2)'
+    )
 
 
 def test_rs_values_list(mocker, rs_factory):
