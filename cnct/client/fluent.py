@@ -4,7 +4,7 @@ from keyword import iskeyword
 import requests
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
+from cnct.client.exceptions import APIError, HttpError, NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
 from cnct.help import DefaultFormatter
@@ -184,7 +184,7 @@ class ConnectClient:
             try:
                 error = self.response.json()
                 if 'error_code' in error and 'errors' in error:
-                    raise ConnectError(
+                    raise APIError(
                         self.response.status_code,
                         error['error_code'],
                         error['errors'],

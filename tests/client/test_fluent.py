@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.exceptions import ConnectError, HttpError, NotFoundError
+from cnct.client.exceptions import APIError, HttpError, NotFoundError
 from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
 from cnct.help import DefaultFormatter
@@ -360,7 +360,7 @@ def test_execute_connect_error(requests_mock):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    with pytest.raises(ConnectError) as cv:
+    with pytest.raises(APIError) as cv:
         c.execute('post', 'https://localhost/resources', 201)
 
     assert cv.value.status_code == 400

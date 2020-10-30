@@ -286,6 +286,43 @@ using method chaining like in the following example:
     products = client.products.filter(status='published').order_by('-created')
 
 
+Count results
+^^^^^^^^^^^^^
+
+To get the total number of resources represented by a ``ResourceSet`` you can use
+the :meth:`cnct.client.models.Collection.count` method. 
+
+.. code-block:: python
+
+    no_of_published = client.products.filter(status='published').count()
+
+or
+
+.. code-block:: python
+
+    no_of_published = client.products.all().count()
+
+
+
+
+
+First result
+^^^^^^^^^^^^
+
+To get the first resource represented by a ``ResourceSet`` you can use
+the :meth:`cnct.client.models.Collection.first` method. 
+
+.. code-block:: python
+
+    first = client.products.all().first()
+
+or
+
+.. code-block:: python
+
+    first = client.products.filter(status='published').first()
+
+
 Filtering resources
 ^^^^^^^^^^^^^^^^^^^
 

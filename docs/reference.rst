@@ -53,7 +53,7 @@ RQL utility
 Exceptions
 ----------
 
-.. autoclass:: cnct.client.exceptions.ConnectError
+.. autoclass:: cnct.client.exceptions.APIError
    :members:
 
 .. autoclass:: cnct.client.exceptions.HttpError
