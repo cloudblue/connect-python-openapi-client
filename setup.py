@@ -8,7 +8,7 @@ def read_file(name):
 
 
 setup(
-    name='connect-api-client',
+    name='connect-openapi-client',
     author='CloudBlue',
     url='https://connect.cloudblue.com',
     description='Connect Python OpenAPI Client',
