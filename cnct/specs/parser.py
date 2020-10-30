@@ -1,9 +1,7 @@
 import logging
 
-from collections import namedtuple
 from io import StringIO
 
-#import mdv
 import requests
 import yaml
 
@@ -42,21 +40,31 @@ def _load(url):
         for chunk in res.iter_content(chunk_size=8192):
             result.write(str(chunk, encoding='utf-8'))
         result.seek(0)
-        return yaml.load(result, Loader=yaml.CSafeLoader)
+        return yaml.safe_load(result)
     res.raise_for_status()
 
 
 def parse(url):
-    specs = _load(url)
+    if url.startswith('http'):
+        specs = _load(url)
+    else:
+        specs = yaml.safe_load(open(url, 'r'))
+
     apihelp = ApiInfo(
         specs['info']['title'],
         specs['info']['description'],
         specs['info']['version'],
+        specs['tags'],
     )
     paths = sorted(specs['paths'].keys(), key=len)
     for path in paths:
+        summary = specs['paths'][path].get('summary', '')
+        description = specs['paths'][path].get('description', '')
         for method, opinfo in specs['paths'][path].items():
+            if method in ('summary', 'description'):
+                continue
             operation_id = opinfo['operationId']
+            tag = opinfo['tags'][0] if 'tags' in opinfo and opinfo['tags'] else None
             components = path[1:].split('/')
             # check if the first component is a namespace or a collection
             ns_name = None
@@ -71,11 +79,11 @@ def parse(url):
             if ns_name:
                 # collection in under a namespace
                 logger.debug('namespace -> %s', ns_name)
-                ns = apihelp.set_namespace(ns_name)
-                collection = ns.set_collection(collection_name)
+                ns = apihelp.set_namespace(ns_name, tag)
+                collection = ns.set_collection(collection_name, summary, description, tag)
             else:
                 # collection is a root collection
-                collection = apihelp.set_collection(collection_name)
+                collection = apihelp.set_collection(collection_name, summary, description, tag)
 
             components = components[1:]
             if not components:
@@ -93,17 +101,19 @@ def parse(url):
             last_idx = len(components) - 1
             for idx, comp in enumerate(components):
                 if _is_variable(comp) and idx < last_idx:
-                    # {id}/<name> 
+                    # {id}/<name>
                     logger.debug('skip variable -> %s', comp)
                     continue
                 if idx < last_idx:
                     # <name>/.... (not an action since not latest token)
                     logger.debug('subcollection retrieve/update/delete operation')
-                    collection = collection.item_specs.set_collection(comp)
+                    collection = collection.resource_specs.set_collection(comp, summary, description)
                     continue
                 if _is_variable(comp):
                     # <name>/{id}
                     op_type = _get_operation_type(operation_id)
+                    collection.resource_specs.summary = summary
+                    collection.resource_specs.description = description
                     collection.operations[op_type] = OpInfo(
                         op_type,
                         collection.name,
@@ -114,7 +124,7 @@ def parse(url):
                     continue
                 action_name = _get_action_name(operation_id)
                 if action_name in ('list', 'detail'):
-                    collection = collection.item_specs.set_collection(comp)
+                    collection = collection.resource_specs.set_collection(comp, summary, description)
                     op_type = _get_operation_type(operation_id)
                     collection.operations[op_type] = OpInfo(
                         op_type,
@@ -125,6 +135,17 @@ def parse(url):
                     )
                     continue
                 else:
-                    collection.item_specs.set_action(method, action_name, opinfo)
+                    collection.resource_specs.set_action(
+                        action_name,
+                        summary,
+                        description,
+                        OpInfo(
+                            action_name,
+                            collection.name,
+                            path,
+                            method,
+                            opinfo,
+                        ),
+                    )
 
     return apihelp
