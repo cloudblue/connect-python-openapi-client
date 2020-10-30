@@ -9,7 +9,7 @@ Getting started
 Requirements
 ^^^^^^^^^^^^
 
-*connect-api-client* runs on python 3.6 or later and has the following dependencies:
+*connect-openapi-client* runs on python 3.6 or later and has the following dependencies:
 
 * `connect-markdown-renderer <https://github.com/cloudblue/connect-markdown-renderer>`_ 1.*
 * requests 2.*
@@ -19,13 +19,13 @@ Requirements
 Install
 ^^^^^^^
 
-*connect-api-client* is a small python package that can be installed
-from the `pypi.org <https://pypi.org/project/connect-api-client/>`_ repository.
+*connect-openapi-client* is a small python package that can be installed
+from the `pypi.org <https://pypi.org/project/connect-openapi-client/>`_ repository.
 
 
 .. code-block:: sh
 
-    $ pip install connect-api-client
+    $ pip install connect-openapi-client
 
 
 
@@ -35,7 +35,7 @@ First steps with Connect Python OpenAPI Client
 Create a client instance
 ^^^^^^^^^^^^^^^^^^^^^^^^ 
 
-To use *connect-api-client* first of all you have to create an instance of the ``ConnectClient`` object:
+To use *connect-openapi-client* first of all you have to create an instance of the ``ConnectClient`` object:
 
 .. code-block:: python
 

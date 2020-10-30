@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'connect-api-client'
+project = 'connect-openapi-client'
 copyright = '{}, CloudBlue Inc.'.format(datetime.now().year)
 author = 'CloudBlue'
 
