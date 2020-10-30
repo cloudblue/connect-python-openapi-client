@@ -230,7 +230,6 @@ class RQLQuery:
             actual_value = value
         elif isinstance(value, bool):
             actual_value = 'true' if value else 'false'
-            print(actual_value)
         elif isinstance(value, (int, float, Decimal)):
             actual_value = str(value)
         elif isinstance(value, (date, datetime)):

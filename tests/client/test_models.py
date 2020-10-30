@@ -209,19 +209,6 @@ def test_collection_all(col_factory):
     assert rs._specs is None
 
 
-# def test_collection_search(col_factory):
-#     collection = col_factory(path='resource')
-
-#     rs = collection.search('search terms')
-
-#     assert isinstance(rs, ResourceSet)
-#     assert rs._client == collection._client
-#     assert rs.path == collection.path
-#     assert rs._search == 'search terms'
-#     assert bool(rs.query) is False
-#     assert rs._specs is None
-
-
 def test_collection_help(mocker, col_factory):
     collection = col_factory(path='resource')
     print_help = mocker.patch.object(DefaultFormatter, 'print_help')
@@ -550,18 +537,6 @@ def test_action_help(mocker, action_factory):
     assert act2 == action
 
 
-def test_rs_len(mocker, rs_factory):
-    mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
-    )
-    results = [{'id': i} for i in range(10)]
-    rs = rs_factory()
-    rs._client.get = mocker.MagicMock(return_value=results)
-
-    assert len(rs) == 10
-
-
 def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.resourceset.parse_content_range',
@@ -810,8 +785,8 @@ def test_rs_pagination(mocker, rs_factory):
         [{'id': i} for i in range(100)],
         [{'id': i} for i in range(100, 200)],
     ])
-
-    assert list(rs) == [{'id': i} for i in range(200)]
+    results = list(rs)
+    assert results == [{'id': i} for i in range(200)]
     assert rs._limit == 100
     assert rs._offset == 0
 

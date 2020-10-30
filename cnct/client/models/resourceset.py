@@ -17,19 +17,24 @@ class AbstractIterable:
 
     def __iter__(self):
         cr = None
+        results = None
         while cr is None or cr.last < cr.count - 1:
-            results, cr = self._execute_request()
+            try:
+                results, cr = self._execute_request()
+            except StopIteration:
+                return
+
             if not (results and cr):
                 return
+
             for item in results:
                 yield self.get_item(item)
-
-            self._config['params']['offset'] += self._config['params']['offset']
+            self._config['params']['offset'] += self._config['params']['limit']
 
     def _execute_request(self):
         results = self._client.get(
             f'{self._path}?{self._query}',
-            **self._kwargs,
+            **self._config,
         )
         content_range = parse_content_range(
             self._client.response.headers.get('Content-Range'),
@@ -89,16 +94,6 @@ class ResourceSet:
     def content_range(self):
         return self._content_range
 
-    def __len__(self):
-        """
-        Returns the length of the result cache.
-
-        :return: the length of the result cache.
-        :rtype: int
-        """
-        self._fetch_all()
-        return len(self._results)
-
     def __iter__(self):
         """
         Returns an iterator to iterate over the set of resources.
@@ -106,10 +101,8 @@ class ResourceSet:
         :return: A resources iterator.
         :rtype: ResourceSet
         """
-
         if self._results is None:
             return self._iterator()
-
         return iter(self._results)
 
     def __bool__(self):

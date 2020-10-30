@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "connect-api-client"
+version = "21.0.0"
+description = "Connect Python OpenAPI Client"
+authors = ["CloudBlue"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+connect-markdown-renderer = "^1.0.0"
+PyYAML = "^5.3.1"
+requests = "^2.24.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.1.2"
+pytest-cov = "^2.10.1"
+pytest-mock = "^3.3.1"
+requests-mock = "^1.8.0"
+coverage = {extras = ["toml"], version = "^5.3"}
+flakehell = "^0.7.0"
+Sphinx = "^3.2.1"
+sphinx-rtd-theme = "^0.5.0"
+sphinx-copybutton = "^0.3.0"
+setuptools-scm = "^4.1.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+addopts = "--cov=cnct --cov-report=term-missing:skip-covered --cov-report=html"
+python_files = "test_*.py"
+junit_family = "xunit2"
+log_cli = true
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+omit = [
+    "*/migrations/*",
+    "*/config/*",
+    "*/settings/*",
+    "*/manage.py",
+    "*/wsgi.py",
+    "*/urls.py"
+]
+
+exclude_lines = [
+    "pragma: no cover",
+    "def __str__",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+
+
+[tool.flakehell]
+
+exclude = [
+    ".idea",
+    ".vscode",
+    ".git",
+    "postgres_data",
+    "*/migrations/*.py",
+    "*/settings/*.py",
+    "*/manage.py",
+    "*.eggs",
+    "*.egg",
+    "tests/",
+    "./docs/*.rst",
+    "demo.ipynb"
+]
+show_source = true
+max_line_length = 120
+# application-import-names = "smarkets"
+
+[tool.flakehell.plugins]
+pycodestyle = ["+*"]
+pyflakes = ["+*"]
+pylint = ["+F*", "+E*", "-FI1", "-I100", "-W503"]
+ignore = ["FI1", "I100", "W503"]
