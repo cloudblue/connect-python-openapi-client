@@ -137,8 +137,7 @@ class ResourceSet:
             raise ValueError('Both start and stop indexes must be specified.')
 
         if (not isinstance(key, slice) and (key < 0)) or (
-            isinstance(key, slice)
-            and (key.start < 0 or key.stop < 0)
+            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
         ):
             raise ValueError('Negative indexing is not supported.')
 
