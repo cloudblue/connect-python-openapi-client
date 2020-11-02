@@ -23,7 +23,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Echoing events
-      run: echo "${{ toJson(${{ github.event }}) }}"
+      run: echo "${{ toJson(github.event) }}"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
