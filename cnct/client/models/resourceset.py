@@ -279,7 +279,7 @@ class ResourceSet:
         if not self._content_range:
             url = self._get_request_url()
             kwargs = self._get_request_kwargs()
-            kwargs['params']['limit'] = 0
+            kwargs['params']['limit'] = 1
             self._execute_request(url, kwargs)
         return self._content_range.count
 
