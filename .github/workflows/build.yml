@@ -16,6 +16,8 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -37,8 +39,12 @@ jobs:
         file: ./coverage.xml
         fail_ci_if_error: true
         verbose: true
+    - name: Fix coverage.xml for Sonar
+      run: |
+        sed -i 's/\/home\/runner\/work\/connect-python-openapi-client\/connect-python-openapi-client\//\/github\/workspace\//g' coverage.xml
     - name: SonarCloud
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  
