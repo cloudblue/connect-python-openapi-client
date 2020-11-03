@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "connect-api-client"
+name = "connect-openapi-client"
 version = "21.0.0"
 description = "Connect Python OpenAPI Client"
 authors = ["CloudBlue"]
@@ -38,9 +38,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = "tests"
 addopts = "--cov=cnct --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
-python_files = "test_*.py"
-junit_family = "xunit2"
-log_cli = true
 
 [tool.coverage.run]
 branch = true
