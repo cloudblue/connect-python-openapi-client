@@ -2,7 +2,7 @@ name: Build Connect Python OpenAPI Client
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: '*'
     tags:
         - '*'
   pull_request:
