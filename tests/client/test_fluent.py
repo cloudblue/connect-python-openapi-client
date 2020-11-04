@@ -1,5 +1,7 @@
 import pytest
 
+import responses
+
 from cnct.client.exceptions import APIError, HttpError, NotFoundError
 from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
@@ -276,10 +278,10 @@ def test_delete(mocker):
     mocked.assert_called_once_with('delete', url, 204, **kwargs)
 
 
-def test_execute(requests_mock):
+def test_execute(mocked_responses):
     expected = [{'id': i} for i in range(10)]
-    mock = requests_mock.request(
-        'get',
+    mocked_responses.add(
+        responses.GET,
         'https://localhost/resources',
         json=expected,
     )
@@ -288,8 +290,8 @@ def test_execute(requests_mock):
 
     results = c.execute('get', 'https://localhost/resources', 200)
 
-    assert mock.last_request.method == 'GET'
-    headers = mock.last_request.headers
+    assert mocked_responses.calls[0].request.method == 'GET'
+    headers = mocked_responses.calls[0].request.headers
 
     assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
     assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
@@ -297,9 +299,9 @@ def test_execute(requests_mock):
     assert results == expected
 
 
-def test_execute_default_headers(requests_mock):
-    mock = requests_mock.request(
-        'get',
+def test_execute_default_headers(mocked_responses):
+    mocked_responses.add(
+        responses.GET,
         'https://localhost/resources',
         json=[],
     )
@@ -312,19 +314,19 @@ def test_execute_default_headers(requests_mock):
 
     c.execute('get', 'https://localhost/resources', 200)
 
-    headers = mock.last_request.headers
+    headers = mocked_responses.calls[0].request.headers
 
     assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
     assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
     assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'custom-header-value'
 
 
-def test_execute_with_kwargs(requests_mock):
-    mock = requests_mock.request(
-        'post',
+def test_execute_with_kwargs(mocked_responses):
+    mocked_responses.add(
+        responses.POST,
         'https://localhost/resources',
         json=[],
-        status_code=201,
+        status=201,
     )
 
     c = ConnectClient('API_KEY', specs_location=None)
@@ -336,26 +338,26 @@ def test_execute_with_kwargs(requests_mock):
 
     c.execute('post', 'https://localhost/resources', 201, **kwargs)
 
-    assert mock.last_request.method == 'POST'
+    assert mocked_responses.calls[0].request.method == 'POST'
 
-    headers = mock.last_request.headers
+    headers = mocked_responses.calls[0].request.headers
 
     assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
     assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
     assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'value'
 
 
-def test_execute_connect_error(requests_mock):
+def test_execute_connect_error(mocked_responses):
     connect_error = {
         'error_code': 'code',
         'errors': ['first', 'second'],
     }
 
-    requests_mock.request(
-        'post',
+    mocked_responses.add(
+        responses.POST,
         'https://localhost/resources',
         json=connect_error,
-        status_code=400,
+        status=400,
     )
 
     c = ConnectClient('API_KEY', specs_location=None)
@@ -368,13 +370,13 @@ def test_execute_connect_error(requests_mock):
     assert cv.value.errors == ['first', 'second']
 
 
-def test_execute_uparseable_connect_error(requests_mock):
+def test_execute_uparseable_connect_error(mocked_responses):
 
-    requests_mock.request(
-        'post',
+    mocked_responses.add(
+        responses.POST,
         'https://localhost/resources',
-        text='error text',
-        status_code=400,
+        body='error text',
+        status=400,
     )
 
     c = ConnectClient('API_KEY', specs_location=None)
@@ -384,13 +386,13 @@ def test_execute_uparseable_connect_error(requests_mock):
 
 
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
-def test_execute_error_with_reason(requests_mock, encoding):
+def test_execute_error_with_reason(mocked_responses, encoding):
 
-    requests_mock.request(
-        'post',
+    mocked_responses.add(
+        responses.POST,
         'https://localhost/resources',
-        status_code=500,
-        reason='Interñal Server Error'.encode(encoding),
+        status=500,
+        body='Interñal Server Error'.encode(encoding),
     )
 
     c = ConnectClient('API_KEY', specs_location=None)
@@ -399,13 +401,13 @@ def test_execute_error_with_reason(requests_mock, encoding):
         c.execute('post', 'https://localhost/resources', 201)
 
 
-def test_execute_delete(requests_mock):
+def test_execute_delete(mocked_responses):
 
-    requests_mock.request(
-        'delete',
+    mocked_responses.add(
+        responses.DELETE,
         'https://localhost/resources',
-        text='error text',
-        status_code=204,
+        body='error text',
+        status=204,
     )
 
     c = ConnectClient('API_KEY', specs_location=None)

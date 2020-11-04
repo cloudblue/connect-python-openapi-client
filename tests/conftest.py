@@ -1,3 +1,7 @@
+import pytest
+
+import responses
+
 from tests.fixtures.client_models import (  # noqa
     action_factory,
     col_factory,
@@ -14,3 +18,9 @@ from tests.fixtures.specs_models import (  # noqa
     opinfo_factory,
     nsinfo_factory,
 )
+
+
+@pytest.fixture
+def mocked_responses():
+    with responses.RequestsMock() as rsps:
+        yield rsps

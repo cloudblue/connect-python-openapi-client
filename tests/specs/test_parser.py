@@ -1,3 +1,5 @@
+import responses
+
 from cnct.specs.models import ApiInfo, CollectionInfo, NSInfo
 from cnct.specs.parser import parse
 
@@ -15,10 +17,11 @@ def test_parser():
     assert isinstance(nsinfo.collections['assets'], CollectionInfo)
 
 
-def test_parser_from_url(requests_mock):
-    requests_mock.get(
+def test_parser_from_url(mocked_responses):
+    mocked_responses.add(
+        responses.GET,
         'https://localhost/specs.yml',
-        text=open('tests/data/specs.yml', 'r').read(),
+        body=open('tests/data/specs.yml', 'r').read(),
     )
     specs = parse('https://localhost/specs.yml')
     assert specs is not None
