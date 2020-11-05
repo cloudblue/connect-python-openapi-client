@@ -2,9 +2,10 @@ from json.decoder import JSONDecodeError
 from keyword import iskeyword
 
 import requests
+from requests.exceptions import RequestException
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import APIError, HttpError, NotFoundError
+from cnct.client.exceptions import ClientError, NotFoundError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
 from cnct.help import DefaultFormatter
@@ -143,7 +144,7 @@ class ConnectClient:
         raise NotFoundError(f'The collection {name} does not exist.')
 
     def get(self, url, **kwargs):
-        return self.execute('get', url, 200, **kwargs)
+        return self.execute('get', url, **kwargs)
 
     def create(self, url, payload=None, **kwargs):
         kwargs = kwargs or {}
@@ -151,7 +152,7 @@ class ConnectClient:
         if payload:
             kwargs['json'] = payload
 
-        return self.execute('post', url, 201, **kwargs)
+        return self.execute('post', url, **kwargs)
 
     def update(self, url, payload=None, **kwargs):
         kwargs = kwargs or {}
@@ -159,12 +160,12 @@ class ConnectClient:
         if payload:
             kwargs['json'] = payload
 
-        return self.execute('put', url, 200, **kwargs)
+        return self.execute('put', url, **kwargs)
 
     def delete(self, url, **kwargs):
-        return self.execute('delete', url, 204, **kwargs)
+        return self.execute('delete', url, **kwargs)
 
-    def execute(self, method, url, expected_status, **kwargs):
+    def execute(self, method, url, **kwargs):
         kwargs = kwargs or {}
         if 'headers' in kwargs:
             kwargs['headers'].update(get_headers(self.api_key))
@@ -174,48 +175,36 @@ class ConnectClient:
         if self.default_headers:
             kwargs['headers'].update(self.default_headers)
 
-        self.response = requests.request(
-            method,
-            url,
-            **kwargs,
-        )
+        self.response = None
 
-        if self.response.status_code != expected_status:
-            try:
-                error = self.response.json()
-                if 'error_code' in error and 'errors' in error:
-                    raise APIError(
-                        self.response.status_code,
-                        error['error_code'],
-                        error['errors'],
-                    )
-            except JSONDecodeError:
-                pass
+        try:
+            self._execute_http_call(method, url, kwargs)
+            if self.response.status_code == 204:
+                return None
+            if self.response.headers['Content-Type'] == 'application/json':
+                return self.response.json()
+            else:
+                return self.response.content
 
-            self._raise_exception()
-
-        if self.response.status_code == 204:
-            return
-
-        return self.response.json()
+        except RequestException as re:
+            api_error = self._get_api_error_details() or {}
+            status_code = self.response.status_code if self.response is not None else None
+            raise ClientError(status_code=status_code, **api_error) from re
 
     def help(self):
         self._help_formatter.print_help(self.specs)
         return self
 
-    def _raise_exception(self):
-        message = ''
-        if isinstance(self.response.reason, bytes):
+    def _execute_http_call(self, method, url, kwargs):
+        self.response = requests.request(method, url, **kwargs)
+        if self.response.status_code >= 400:
+            self.response.raise_for_status()
+
+    def _get_api_error_details(self):
+        if self.response is not None:
             try:
-                reason = self.response.reason.decode('utf-8')
-            except UnicodeDecodeError:
-                reason = self.response.reason.decode('iso-8859-1')
-        else:
-            reason = self.response.reason
-
-        if 400 <= self.response.status_code < 500:
-            message = f'{self.response.status_code} Client Error: {reason}'
-        elif 500 <= self.response.status_code < 600:
-            message = f'{self.response.status_code} Server Error: {reason}'
-
-        raise HttpError(message, response=self.response)
+                error = self.response.json()
+                if 'error_code' in error and 'errors' in error:
+                    return error
+            except JSONDecodeError:
+                pass

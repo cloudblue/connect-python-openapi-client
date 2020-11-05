@@ -1,23 +1,30 @@
-from requests.exceptions import HTTPError as RequestHttpError
+from http import HTTPStatus
 
 
 class NotFoundError(AttributeError):
     pass
 
 
-class APIError(Exception):
-    def __init__(self, status_code, error_code, errors):
+class ClientError(Exception):
+    def __init__(self, message=None, status_code=None, error_code=None, errors=None):
+        self.message = message
         self.status_code = status_code
         self.error_code = error_code
         self.errors = errors
 
     def __repr__(self):
-        return f'<APIError {self.status_code}: {self.error_code}>'
+        return f'<ClientError {self.status_code}: {self.error_code}>'
 
     def __str__(self):
-        errors = ','.join(self.errors)
-        return f'{self.error_code}: {errors}'
+        message = self.message or self._get_status_description() or 'Unexpected error'
+        if self.error_code and self.errors:
+            errors = ','.join(self.errors)
+            return f'{message}: {self.error_code} - {errors}'
+        return message
 
-
-class HttpError(RequestHttpError):
-    pass
+    def _get_status_description(self):
+        if not self.status_code:
+            return
+        status = HTTPStatus(self.status_code)
+        description = status.name.replace('_', ' ').title()
+        return f'{self.status_code} {description}'

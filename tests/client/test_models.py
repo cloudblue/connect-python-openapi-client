@@ -550,6 +550,19 @@ def test_rs_iterate(mocker, rs_factory):
     assert results == expected
 
 
+def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
+    mocker.patch(
+        'cnct.client.models.resourceset.parse_content_range',
+        return_value=None,
+    )
+    expected = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=expected)
+
+    results = [resource for resource in rs]
+    assert results == expected
+
+
 def test_rs_bool_truthy(mocker, rs_factory):
     mocker.patch(
         'cnct.client.models.resourceset.parse_content_range',
