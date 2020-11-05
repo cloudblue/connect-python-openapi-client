@@ -2,7 +2,7 @@ import pytest
 
 import responses
 
-from cnct.client.exceptions import APIError, HttpError, NotFoundError
+from cnct.client.exceptions import ClientError, NotFoundError
 from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
 from cnct.help import DefaultFormatter
@@ -233,7 +233,7 @@ def test_create(mocker):
 
     c.create(url, payload=payload, **kwargs)
 
-    mocked.assert_called_once_with('post', url, 201, **{
+    mocked.assert_called_once_with('post', url, **{
         'arg1': 'val1',
         'json': {
             'k1': 'v1',
@@ -255,7 +255,7 @@ def test_update(mocker):
 
     c.update(url, payload=payload, **kwargs)
 
-    mocked.assert_called_once_with('put', url, 200, **{
+    mocked.assert_called_once_with('put', url, **{
         'arg1': 'val1',
         'json': {
             'k1': 'v1',
@@ -275,7 +275,7 @@ def test_delete(mocker):
 
     c.delete(url, **kwargs)
 
-    mocked.assert_called_once_with('delete', url, 204, **kwargs)
+    mocked.assert_called_once_with('delete', url, **kwargs)
 
 
 def test_execute(mocked_responses):
@@ -288,7 +288,7 @@ def test_execute(mocked_responses):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    results = c.execute('get', 'https://localhost/resources', 200)
+    results = c.execute('get', 'https://localhost/resources')
 
     assert mocked_responses.calls[0].request.method == 'GET'
     headers = mocked_responses.calls[0].request.headers
@@ -312,7 +312,7 @@ def test_execute_default_headers(mocked_responses):
         default_headers={'X-Custom-Header': 'custom-header-value'},
     )
 
-    c.execute('get', 'https://localhost/resources', 200)
+    c.execute('get', 'https://localhost/resources')
 
     headers = mocked_responses.calls[0].request.headers
 
@@ -336,7 +336,7 @@ def test_execute_with_kwargs(mocked_responses):
         },
     }
 
-    c.execute('post', 'https://localhost/resources', 201, **kwargs)
+    c.execute('post', 'https://localhost/resources', **kwargs)
 
     assert mocked_responses.calls[0].request.method == 'POST'
 
@@ -362,8 +362,8 @@ def test_execute_connect_error(mocked_responses):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    with pytest.raises(APIError) as cv:
-        c.execute('post', 'https://localhost/resources', 201)
+    with pytest.raises(ClientError) as cv:
+        c.execute('post', 'https://localhost/resources')
 
     assert cv.value.status_code == 400
     assert cv.value.error_code == 'code'
@@ -381,8 +381,8 @@ def test_execute_uparseable_connect_error(mocked_responses):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    with pytest.raises(HttpError):
-        c.execute('post', 'https://localhost/resources', 201)
+    with pytest.raises(ClientError):
+        c.execute('post', 'https://localhost/resources')
 
 
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
@@ -397,8 +397,8 @@ def test_execute_error_with_reason(mocked_responses, encoding):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    with pytest.raises(HttpError):
-        c.execute('post', 'https://localhost/resources', 201)
+    with pytest.raises(ClientError):
+        c.execute('post', 'https://localhost/resources')
 
 
 def test_execute_delete(mocked_responses):
@@ -412,7 +412,7 @@ def test_execute_delete(mocked_responses):
 
     c = ConnectClient('API_KEY', specs_location=None)
 
-    results = c.execute('delete', 'https://localhost/resources', 204)
+    results = c.execute('delete', 'https://localhost/resources')
 
     assert results is None
 
