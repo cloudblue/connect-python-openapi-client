@@ -22,13 +22,17 @@ class AbstractIterable:
             try:
                 results, cr = self._execute_request()
             except StopIteration:
-                return
+                pass
 
-            if not (results and cr):
+            if not results:
                 return
 
             for item in results:
                 yield self.get_item(item)
+
+            if not cr:
+                # endpoint doesn't support pagination
+                return
             self._config['params']['offset'] += self._config['params']['limit']
 
     def _execute_request(self):
