@@ -82,18 +82,11 @@ This allows you to write the previous expression in a more concise way:
 
 .. code-block:: python
 
-    assets = client.subscriptions.assets
-
-.. caution::
-
-    As long as the name of the namespace or the collection is a valid python 
-    identifier, is not a language reserved word, and does not collide with other 
-    symbols defined on the object, you can use the concise form.
-
+    assets = client('subscriptions').assets
 
 .. note::
 
-    For namespaces and/or collections that use a dash in their names, it is yet 
+    For collections that use a dash in their names, it is yet 
     possible to use the concise form by replacing the dash character with an underscore.
 
 
@@ -124,8 +117,16 @@ This returns the newly created object json-decoded.
 Access to a resource
 ^^^^^^^^^^^^^^^^^^^^
 
-The indexing operator allows to work with a particular resource using 
-its primary identifier as the index:
+To access a resource within a collection you can use the
+:meth:`~cnct.client.models.Collection.resource` method on the corresponding 
+:class:`~cnct.client.models.Collection` instance:
+
+.. code-block:: python
+
+    product = client.products.resource('PRD-000-000-000')
+
+
+The indexing operator allows to write the previous expression the following way:
 
 .. code-block:: python
 
@@ -135,11 +136,10 @@ The previous expression returns a :class:`~cnct.client.models.Resource` object.
 
 .. caution::
 
-    The ``Resource`` object returned by the indexing operator does not make 
+    The ``Resource`` object does not make 
     any HTTP calls to retrieve the resource identified by the index, to avoid 
     unnecessary traffic if what you want is to update it, delete it, perform 
     an action on it or access a nested collection of resources.
-
     This means that, if the resource does not exist, any operation on it or
     on its nested collection will fail.
 
@@ -189,13 +189,15 @@ Access to an action
 
 To access an action that can be performed on a resource you can use
 the :meth:`~cnct.client.models.Resource.action` method of the 
-:class:`~cnct.client.models.Resource` object or directly the name of the action.
+:class:`~cnct.client.models.Resource` object or directly using the call operator
+on the :class:`~cnct.client.models.Resource` class passing the name of the action:
 
 .. code-block:: python
 
-    endsale_action = client.products['PRD-000-000-000'].endsale
+    endsale_action = client.products['PRD-000-000-000']('endsale')
 
 This returns an :class:`~cnct.client.models.Action` object.
+
 
 
 Execute an action on a resource
@@ -219,7 +221,7 @@ For example, supose you want to execute the **endsale** action:
         'end_of_sale_notes': 'stopped manufacturing',
     }
 
-    result = client.products['PRD-000-000-000'].endsale.post(payload=payload)
+    result = client.products['PRD-000-000-000']('endsale').post(payload=payload)
 
 
 Access nested collections
@@ -301,8 +303,6 @@ or
 .. code-block:: python
 
     no_of_published = client.products.all().count()
-
-
 
 
 

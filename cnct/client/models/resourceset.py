@@ -428,5 +428,5 @@ class ResourceSet:
         :return: self
         :rtype: ResourceSet
         """
-        # self._client._help_formatter.print_help(self._specs)
+        self._client.print_help(self)
         return self

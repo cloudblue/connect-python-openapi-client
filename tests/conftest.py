@@ -2,6 +2,8 @@ import pytest
 
 import responses
 
+from cnct.client.openapi import OpenAPISpecs
+
 from tests.fixtures.client_models import (  # noqa
     action_factory,
     col_factory,
@@ -9,18 +11,14 @@ from tests.fixtures.client_models import (  # noqa
     ns_factory,
     rs_factory,
 )
-from tests.fixtures.specs_models import (  # noqa
-    actinfo_factory,
-    apiinfo_factory,
-    colinfo_factory,
-    resinfo_factory,
-    opdata_factory,
-    opinfo_factory,
-    nsinfo_factory,
-)
 
 
 @pytest.fixture
 def mocked_responses():
     with responses.RequestsMock() as rsps:
         yield rsps
+
+
+@pytest.fixture(scope='session')
+def openapi_specs():
+    return OpenAPISpecs('tests/data/specs.yml')

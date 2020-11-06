@@ -1,1 +1,0 @@
-from cnct.help.formatter import DefaultFormatter  # noqa

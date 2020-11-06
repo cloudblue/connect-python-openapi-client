@@ -1,9 +1,8 @@
 import pytest
 
-from cnct.client.exceptions import NotFoundError
+from cnct.client.exceptions import ClientError
 from cnct.client.models import Action, Collection, Resource, ResourceSet
 from cnct.client.utils import ContentRange
-from cnct.help import DefaultFormatter
 from cnct.rql import R
 
 
@@ -30,91 +29,46 @@ def test_ns_collection_invalid_value(ns_factory):
 
 def test_ns_collection(ns_factory):
     ns = ns_factory()
-    collection = ns.collection('resource')
+    collection = ns.collection('resources')
 
     assert isinstance(collection, Collection)
     assert collection._client == ns._client
-    assert collection.path == f'{ns.path}/resource'
-    assert collection._specs is None
-
-
-def test_ns_collection_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
-    collection = ns.collection('resource')
-
-    assert isinstance(collection, Collection)
-    assert collection._client == ns._client
-    assert collection.path == f'{ns.path}/resource'
-    assert collection._specs == specs.collections['resource']
-
-
-def test_ns_collection_with_specs_unresolved(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
-
-    with pytest.raises(NotFoundError) as cv:
-        ns.collection('other')
-
-    assert str(cv.value) == 'The collection other does not exist.'
+    assert collection.path == f'{ns.path}/resources'
 
 
 def test_ns_getattr(ns_factory):
     ns = ns_factory()
-    with pytest.raises(AttributeError):
-        ns.resource
+    col = ns.resources
+
+    assert isinstance(col, Collection)
+    assert col._client == ns._client
+    assert col.path == f'{ns.path}/resources'
 
 
-def test_ns_getattr_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
+def test_ns_getattr_with_dash(ns_factory):
+    ns = ns_factory()
+    col = ns.my_resources
 
-    collection = ns.resource
-
-    assert isinstance(collection, Collection)
-    assert collection._client == ns._client
-    assert collection.path == f'{ns.path}/resource'
-    assert collection._specs == specs.collections['resource']
+    assert isinstance(col, Collection)
+    assert col._client == ns._client
+    assert col.path == f'{ns.path}/my-resources'
 
 
-def test_ns_getattr_with_specs_unresolved(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
-
-    with pytest.raises(AttributeError) as cv:
-        ns.other
-
-    assert str(cv.value) == 'Unable to resolve other.'
-
-
-def test_ns_dir_with_specs(ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
-
-    dir_ = dir(ns)
-    assert 'resource' in dir_
-    assert 'collection' in dir_
-
-
-def test_ns_dir_without_specs(ns_factory):
+def test_ns_not_iterable(ns_factory):
     ns = ns_factory()
 
-    dir_ = dir(ns)
+    with pytest.raises(TypeError) as cv:
+        list(ns)
 
-    assert 'collection' in dir_
-    assert 'resource' not in dir_
+    assert str(cv.value) == 'A Namespace object is not iterable.'
 
 
-def test_ns_help(mocker, ns_factory, nsinfo_factory, colinfo_factory):
-    specs = nsinfo_factory(collections=[colinfo_factory(name='resource')])
-    ns = ns_factory(specs=specs)
+def test_ns_help(mocker, ns_factory):
+    ns = ns_factory()
+    ns1 = ns.help()
 
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
-
-    ns2 = ns.help()
-
-    assert print_help.called_once_with(specs)
-    assert ns2 == ns
+    ns._client.print_help.assert_called_once_with(ns)
+    assert ns == ns1
 
 
 def test_collection_resource(col_factory):
@@ -123,7 +77,29 @@ def test_collection_resource(col_factory):
 
     assert isinstance(resource, Resource)
     assert resource.path == f'{collection.path}/item_id'
-    assert resource._specs is None
+
+
+def test_collection_resource_invalid_type(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError) as cv:
+        collection.resource(None)
+
+    assert str(cv.value) == '`resource_id` must be a string or int.'
+
+    with pytest.raises(TypeError) as cv:
+        collection.resource(3.77)
+
+    assert str(cv.value) == '`resource_id` must be a string or int.'
+
+
+def test_collection_resource_invalid_value(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(ValueError) as cv:
+        collection.resource('')
+
+    assert str(cv.value) == '`resource_id` must not be blank.'
 
 
 def test_collection_getitem(col_factory):
@@ -132,7 +108,6 @@ def test_collection_getitem(col_factory):
 
     assert isinstance(resource, Resource)
     assert resource.path == f'{collection.path}/item_id'
-    assert resource._specs is None
 
 
 def test_collection_not_iterable(col_factory):
@@ -141,7 +116,7 @@ def test_collection_not_iterable(col_factory):
     with pytest.raises(TypeError) as cv:
         list(collection)
 
-    assert str(cv.value) == 'A collection object is not iterable.'
+    assert str(cv.value) == 'A Collection object is not iterable.'
 
 
 def test_collection_create(col_factory):
@@ -166,28 +141,24 @@ def test_collection_filter(col_factory):
     assert rs._client == collection._client
     assert rs.path == collection.path
     assert bool(rs.query) is False
-    assert rs._specs is None
 
     rs = collection.filter('eq(field,value)')
 
     assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'eq(field,value)'
-    assert rs._specs is None
 
     rs = collection.filter(R().field.eq('value'))
 
     assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'eq(field,value)'
-    assert rs._specs is None
 
     rs = collection.filter(status__in=('status1', 'status2'))
 
     assert rs._client == collection._client
     assert rs.path == collection.path
     assert str(rs.query) == 'in(status,(status1,status2))'
-    assert rs._specs is None
 
 
 def test_collection_filter_invalid_arg(col_factory):
@@ -206,17 +177,32 @@ def test_collection_all(col_factory):
     assert rs._client == collection._client
     assert rs.path == collection.path
     assert bool(rs.query) is False
-    assert rs._specs is None
 
 
-def test_collection_help(mocker, col_factory):
-    collection = col_factory(path='resource')
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
+def test_collection_help(col_factory):
+    col = col_factory()
+    col1 = col.help()
 
-    col2 = collection.help()
+    col._client.print_help.assert_called_once_with(col)
+    assert col1 == col
 
-    assert print_help.called_once_with(None)
-    assert col2 == collection
+
+def test_resource_getattr(res_factory):
+    res = res_factory()
+    col = res.resources
+
+    assert isinstance(col, Collection)
+    assert col._client == res._client
+    assert col.path == f'{res.path}/resources'
+
+
+def test_resource_getattr_with_dash(res_factory):
+    res = res_factory()
+    col = res.my_resources
+
+    assert isinstance(col, Collection)
+    assert col._client == res._client
+    assert col.path == f'{res.path}/my-resources'
 
 
 def test_resource_collection_invalid_type(res_factory):
@@ -247,28 +233,6 @@ def test_resource_collection(res_factory):
     assert isinstance(collection, Collection)
     assert collection._client == resource._client
     assert collection.path == f'{resource.path}/resource'
-    assert collection._specs is None
-
-
-def test_resource_collection_with_specs(res_factory, colinfo_factory, resinfo_factory):
-    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
-    resource = res_factory(specs=specs)
-    collection = resource.collection('resource')
-
-    assert isinstance(collection, Collection)
-    assert collection._client == resource._client
-    assert collection.path == f'{resource.path}/resource'
-    assert collection._specs == specs.collections['resource']
-
-
-def test_resource_collection_with_specs_unresolved(res_factory, colinfo_factory, resinfo_factory):
-    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
-    resource = res_factory(specs=specs)
-
-    with pytest.raises(NotFoundError) as cv:
-        resource.collection('other')
-
-    assert str(cv.value) == 'The collection other does not exist.'
 
 
 def test_resource_action_invalid_type(res_factory):
@@ -299,89 +263,38 @@ def test_resource_action(res_factory):
     assert isinstance(action, Action)
     assert action._client == resource._client
     assert action.path == f'{resource.path}/action'
-    assert action._specs is None
 
 
-def test_resource_action_with_specs(res_factory, resinfo_factory, actinfo_factory):
-    specs = resinfo_factory(actions=[actinfo_factory(name='action')])
-    resource = res_factory(specs=specs)
-    action = resource.action('action')
+def test_resource_action_call(res_factory):
+    resource = res_factory()
+    action = resource('action')
 
     assert isinstance(action, Action)
     assert action._client == resource._client
     assert action.path == f'{resource.path}/action'
-    assert action._specs == specs.actions['action']
 
 
-def test_resource_action_with_specs_unresolved(res_factory, resinfo_factory, actinfo_factory):
-    specs = resinfo_factory(actions=[actinfo_factory(name='action')])
-    resource = res_factory(specs=specs)
-
-    with pytest.raises(NotFoundError) as cv:
-        resource.action('other')
-
-    assert str(cv.value) == 'The action other does not exist.'
-
-
-def test_resource_getattr_no_specs(res_factory):
+def test_resource_exists(res_factory):
     resource = res_factory()
+    resource._client.get.return_value = {'id': 'res_id'}
 
-    with pytest.raises(AttributeError) as cv:
-        resource.resource
+    assert resource.exists() is True
+    ce = ClientError(status_code=404)
+    resource._client.get.side_effect = ce
 
-    assert str(cv.value) == (
-        'No specs available. Use the `collection` '
-        'or `action` methods instead.'
-    )
-
-
-def test_resource_getattr_with_specs(res_factory, colinfo_factory, resinfo_factory, actinfo_factory):
-    specs = resinfo_factory(
-        collections=[colinfo_factory(name='resource')],
-        actions=[actinfo_factory(name='myaction')],
-    )
-    resource = res_factory(specs=specs)
-
-    collection = resource.resource
-
-    assert isinstance(collection, Collection)
-    assert collection._client == resource._client
-    assert collection.path == f'{resource.path}/resource'
-    assert collection._specs == specs.collections['resource']
-
-    action = resource.myaction
-
-    assert isinstance(action, Action)
-    assert action._client == resource._client
-    assert action.path == f'{resource.path}/myaction'
+    assert resource.exists() is False
 
 
-def test_resource_getattr_with_specs_unresolved(res_factory, resinfo_factory, colinfo_factory):
-    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
-    resource = res_factory(specs=specs)
-
-    with pytest.raises(AttributeError) as cv:
-        resource.other
-
-    assert str(cv.value) == 'Unable to resolve other.'
-
-
-def test_resource_dir_with_specs(res_factory, colinfo_factory, resinfo_factory):
-    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
-    resource = res_factory(specs=specs)
-
-    dir_ = dir(resource)
-    assert 'resource' in dir_
-    assert 'collection' in dir_
-
-
-def test_resource_dir_without_specs(res_factory):
+def test_resource_exists_exception(res_factory):
     resource = res_factory()
+    resource._client.get.return_value = {'id': 'res_id'}
 
-    dir_ = dir(resource)
+    assert resource.exists() is True
+    ce = ClientError(status_code=500)
+    resource._client.get.side_effect = ce
 
-    assert 'collection' in dir_
-    assert 'resource' not in dir_
+    with pytest.raises(ClientError):
+        resource.exists()
 
 
 def test_resource_get(res_factory):
@@ -443,16 +356,12 @@ def test_resource_values(mocker, res_factory):
         and result['sub_object.name'] == 'ok'
 
 
-def test_resource_help(mocker, res_factory, colinfo_factory, resinfo_factory):
-    specs = resinfo_factory(collections=[colinfo_factory(name='resource')])
-    resource = res_factory(specs=specs)
+def test_resource_help(res_factory):
+    res = res_factory()
+    res1 = res.help()
 
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
-
-    resource2 = resource.help()
-
-    assert print_help.called_once_with(specs)
-    assert resource2 == resource
+    res._client.print_help.assert_called_once_with(res)
+    assert res1 == res
 
 
 def test_action_get(action_factory):
@@ -474,7 +383,6 @@ def test_action_post(action_factory):
     assert action._client.execute.called_once_with(
         'post',
         action.path,
-        200,
         json={'name': 'test'},
     )
 
@@ -485,7 +393,17 @@ def test_action_post(action_factory):
     assert action._client.execute.called_once_with(
         'post',
         action.path,
-        200,
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+
+    action.post(
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+    assert action._client.execute.called_once_with(
+        'post',
+        action.path,
         json={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -498,7 +416,6 @@ def test_action_put(action_factory):
     assert action._client.execute.called_once_with(
         'put',
         action.path,
-        200,
         json={'name': 'test'},
     )
 
@@ -509,7 +426,17 @@ def test_action_put(action_factory):
     assert action._client.execute.called_once_with(
         'put',
         action.path,
-        200,
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+
+    action.put(
+        json={'name': 'test'},
+        headers={'Content-Type': 'application/json'},
+    )
+    assert action._client.execute.called_once_with(
+        'put',
+        action.path,
         json={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -527,13 +454,11 @@ def test_action_delete(action_factory):
     )
 
 
-def test_action_help(mocker, action_factory):
-    action = action_factory(path='action')
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
-
+def test_action_help(action_factory):
+    action = action_factory()
     act2 = action.help()
 
-    assert print_help.called_once_with(None)
+    action._client.print_help.assert_called_once_with(action)
     assert act2 == action
 
 
@@ -924,9 +849,8 @@ def test_rs_filter_invalid_arg(rs_factory):
         rs.filter(1)
 
 
-def test_rs_help(mocker, rs_factory):
-    rs = rs_factory(specs='this is a spec')
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
+def test_rs_help(rs_factory):
+    rs = rs_factory()
     rs2 = rs.help()
-    assert print_help.called_once_with('this is a spec')
+    rs._client.print_help.assery_called_once_with(rs)
     assert rs2 == rs

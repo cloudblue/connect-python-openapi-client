@@ -7,9 +7,8 @@ from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from cnct.client.exceptions import ClientError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
-# from cnct.help import DefaultFormatter
-from cnct.openapi import OpenAPISpecs
-# from cnct.specs.parser import parse
+from cnct.client.help_formatter import DefaultFormatter
+from cnct.client.openapi import OpenAPISpecs
 
 
 class ConnectClient:
@@ -22,7 +21,7 @@ class ConnectClient:
         endpoint=None,
         use_specs=True,
         specs_location=None,
-        validate_calls=True,
+        validate_using_specs=True,
         default_headers=None,
         default_limit=100,
     ):
@@ -45,13 +44,13 @@ class ConnectClient:
         self.api_key = api_key
         self.default_headers = default_headers or {}
         self._use_specs = use_specs
-        self._validate_calls = validate_calls
+        self._validate_using_specs = validate_using_specs
         self.specs_location = specs_location or CONNECT_SPECS_URL
         self.specs = None
         if self._use_specs:
             self.specs = OpenAPISpecs(self.specs_location)
         self.response = None
-        # self._help_formatter = help_formatter
+        self._help_formatter = DefaultFormatter(self.specs)
 
     def __getattr__(self, name):
         """
@@ -131,7 +130,7 @@ class ConnectClient:
     def execute(self, method, path, **kwargs):
         if (
             self._use_specs
-            and self._validate_calls
+            and self._validate_using_specs
             and not self.specs.exists(method, path)
         ):
             # TODO more info, specs version, method etc
@@ -164,8 +163,12 @@ class ConnectClient:
             status_code = self.response.status_code if self.response is not None else None
             raise ClientError(status_code=status_code, **api_error) from re
 
+    def print_help(self, obj):
+        print()
+        print(self._help_formatter.format(obj))
+
     def help(self):
-        self._help_formatter.print_help(self.specs)
+        self.print_help(None)
         return self
 
     def _execute_http_call(self, method, url, kwargs):

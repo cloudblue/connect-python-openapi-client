@@ -1,3 +1,4 @@
+from cnct.client.exceptions import ClientError
 from cnct.client.models.resourceset import ResourceSet
 from cnct.client.utils import resolve_attribute
 from cnct.rql import R
@@ -69,7 +70,7 @@ class NS:
         :return: self
         :rtype: NS
         """
-        # self._client._help_formatter.print_help(self._specs)
+        self._client.print_help(self)
         return self
 
 
@@ -220,7 +221,7 @@ class Collection:
         :return: self
         :rtype: Collection
         """
-        # self._client._help_formatter.print_help(self._specs)
+        self._client.print_help(self)
         return self
 
 
@@ -306,6 +307,15 @@ class Resource:
             f'{self._path}/{name}',
         )
 
+    def exists(self):
+        try:
+            self.get()
+            return True
+        except ClientError as ce:
+            if ce.status_code and ce.status_code == 404:
+                return False
+            raise
+
     def get(self, **kwargs):
         """
         Execute a http GET to retrieve this resource.
@@ -375,7 +385,7 @@ class Resource:
         :return: self
         :rtype: Resource
         """
-        # self._client._help_formatter.print_help(self._specs)
+        self._client.print_help(self)
         return self
 
 
@@ -430,7 +440,6 @@ class Action:
         return self._client.execute(
             'post',
             self._path,
-            200,
             **kwargs,
         )
 
@@ -451,7 +460,6 @@ class Action:
         return self._client.execute(
             'put',
             self._path,
-            200,
             **kwargs,
         )
 
@@ -474,5 +482,5 @@ class Action:
         :return: self
         :rtype: Action
         """
-        # self._client._help_formatter.print_help(self._specs)
+        self._client.print_help(self)
         return self
