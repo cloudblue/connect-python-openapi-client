@@ -1,15 +1,15 @@
 from json.decoder import JSONDecodeError
-from keyword import iskeyword
 
 import requests
 from requests.exceptions import RequestException
 
 from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import ClientError, NotFoundError
+from cnct.client.exceptions import ClientError
 from cnct.client.models import Collection, NS
 from cnct.client.utils import get_headers
-from cnct.help import DefaultFormatter
-from cnct.specs.parser import parse
+# from cnct.help import DefaultFormatter
+from cnct.openapi import OpenAPISpecs
+# from cnct.specs.parser import parse
 
 
 class ConnectClient:
@@ -19,11 +19,12 @@ class ConnectClient:
     def __init__(
         self,
         api_key,
-        endpoint=CONNECT_ENDPOINT_URL,
-        specs_location=CONNECT_SPECS_URL,
-        default_headers={},
+        endpoint=None,
+        use_specs=True,
+        specs_location=None,
+        validate_calls=True,
+        default_headers=None,
         default_limit=100,
-        help_formatter=DefaultFormatter(),
     ):
         """
         Create a new instance of the ConnectClient.
@@ -40,57 +41,33 @@ class ConnectClient:
         if default_headers and 'Authorization' in default_headers:
             raise ValueError('`default_headers` cannot contains `Authorization`')
 
-        self.endpoint = endpoint
+        self.endpoint = endpoint or CONNECT_ENDPOINT_URL
         self.api_key = api_key
-        self.default_headers = default_headers
-        self.specs_location = specs_location
-        self.specs = parse(self.specs_location) if self.specs_location else None
+        self.default_headers = default_headers or {}
+        self._use_specs = use_specs
+        self._validate_calls = validate_calls
+        self.specs_location = specs_location or CONNECT_SPECS_URL
+        self.specs = None
+        if self._use_specs:
+            self.specs = OpenAPISpecs(self.specs_location)
         self.response = None
-        self._help_formatter = help_formatter
+        # self._help_formatter = help_formatter
 
     def __getattr__(self, name):
         """
-        Returns a NS or a Collection object called ``name``.
+        Returns a collection object called ``name``.
 
-        :param name: The name of the NS or Collection to retrieve.
+        :param name: The name of the collection to retrieve.
         :type name: str
-        :raises AttributeError: If OpenAPI specs are not avaliable.
-        :raises AttributeError: If the name does not exist.
-        :return: a Collection or a NS called ``name``.
-        :rtype: Collection, NS
+        :return: a collection called ``name``.
+        :rtype: Collection
         """
-        if not self.specs:
-            raise AttributeError(
-                'No specs available. Use `ns` '
-                'or `collection` methods instead.'
-            )
         if '_' in name:
             name = name.replace('_', '-')
-        if name in self.specs.namespaces:
-            return self.ns(name)
-        if name in self.specs.collections:
-            return self.collection(name)
-        raise AttributeError('Unable to resolve {}.'.format(name))
+        return self.collection(name)
 
-    def __dir__(self):
-        """
-        Return a list of attributes defined for this ConnectClient instance.
-        The returned list includes the names of the root namespaces and collections.
-
-        :return: List of attributes.
-        :rtype: list
-        """
-        if not self.specs:
-            return super().__dir__()
-        ns = list(self.specs.namespaces.keys())
-        cl = list(self.specs.collections.keys())
-        additional_names = []
-        for name in cl + ns:
-            if '-' in name:
-                name = name.replace('-', '_')
-            if name.isidentifier() and not iskeyword(name):
-                additional_names.append(name)
-        return sorted(super().__dir__() + additional_names)
+    def __call__(self, name):
+        return self.ns(name)
 
     def ns(self, name):
         """
@@ -98,7 +75,6 @@ class ConnectClient:
 
         :param name: The name of the namespace to access.
         :type name: str
-        :raises NotFoundError: If a namespace with name ``name`` does not exist.
         :return: The namespace called ``name``.
         :rtype: NS
         """
@@ -108,11 +84,7 @@ class ConnectClient:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self.specs:
-            return NS(self, f'{self.endpoint}/{name}',)
-        if name in self.specs.namespaces:
-            return NS(self, f'{self.endpoint}/{name}', self.specs.namespaces[name])
-        raise NotFoundError(f'The namespace {name} does not exist.')
+        return NS(self, name)
 
     def collection(self, name):
         """
@@ -120,7 +92,6 @@ class ConnectClient:
 
         :param name: The name of the collection to access.
         :type name: str
-        :raises NotFoundError: If a collection with name ``name`` does not exist.
         :return: The collection called ``name``.
         :rtype: Collection
         """
@@ -130,18 +101,10 @@ class ConnectClient:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self.specs:
-            return Collection(
-                self,
-                f'{self.endpoint}/{name}',
-            )
-        if name in self.specs.collections:
-            return Collection(
-                self,
-                f'{self.endpoint}/{name}',
-                self.specs.collections[name],
-            )
-        raise NotFoundError(f'The collection {name} does not exist.')
+        return Collection(
+            self,
+            name,
+        )
 
     def get(self, url, **kwargs):
         return self.execute('get', url, **kwargs)
@@ -165,7 +128,17 @@ class ConnectClient:
     def delete(self, url, **kwargs):
         return self.execute('delete', url, **kwargs)
 
-    def execute(self, method, url, **kwargs):
+    def execute(self, method, path, **kwargs):
+        if (
+            self._use_specs
+            and self._validate_calls
+            and not self.specs.exists(method, path)
+        ):
+            # TODO more info, specs version, method etc
+            raise ClientError(f'The path `{path}` does not exist.')
+
+        url = f'{self.endpoint}/{path}'
+
         kwargs = kwargs or {}
         if 'headers' in kwargs:
             kwargs['headers'].update(get_headers(self.api_key))

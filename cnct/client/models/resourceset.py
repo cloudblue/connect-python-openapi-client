@@ -66,13 +66,11 @@ class ResourceSet:
         self,
         client,
         path,
-        specs=None,
         query=None
     ):
 
         self._client = client
         self._path = path
-        self._specs = specs
         self._query = query or R()
         self._results = None
         self._result_iterator = None
@@ -411,7 +409,7 @@ class ResourceSet:
             self._results = list(self._iterator())
 
     def _copy(self):
-        rs = ResourceSet(self._client, self._path, self._specs, self._query)
+        rs = ResourceSet(self._client, self._path, self._query)
         rs._limit = self._limit
         rs._offset = self._offset
         rs._slice = self._slice
@@ -430,5 +428,5 @@ class ResourceSet:
         :return: self
         :rtype: ResourceSet
         """
-        self._client._help_formatter.print_help(self._specs)
+        # self._client._help_formatter.print_help(self._specs)
         return self

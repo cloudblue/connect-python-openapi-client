@@ -1,6 +1,3 @@
-from keyword import iskeyword
-
-from cnct.client.exceptions import NotFoundError
 from cnct.client.models.resourceset import ResourceSet
 from cnct.client.utils import resolve_attribute
 from cnct.rql import R
@@ -10,7 +7,7 @@ class NS:
     """
     A namespace is a group of related collections.
     """
-    def __init__(self, client, path, specs=None):
+    def __init__(self, client, path):
         """
         Create a new NS instance.
 
@@ -18,12 +15,9 @@ class NS:
         :type client: ConnectClient
         :param path: path name of the namespace
         :type path: str
-        :param specs: OpenAPI specs, defaults to None
-        :type specs: NSInfo, optional
         """
         self._client = client
         self._path = path
-        self._specs = specs
 
     @property
     def path(self):
@@ -35,41 +29,15 @@ class NS:
 
         :param name: the name of the Collection object.
         :type name: str
-        :raises AttributeError: if the name does not exist.
         :return: The Collection named ``name``.
         :rtype: Collection
         """
-        if not self._specs:
-            raise AttributeError(
-                'No specs available. Use the `collection` '
-                'method instead.'
-            )
         if '_' in name:
             name = name.replace('_', '-')
-        if name in self._specs.collections:
-            return self.collection(name)
-        raise AttributeError(f'Unable to resolve {name}.')
+        return self.collection(name)
 
-    def __dir__(self):
-        """
-        Return a list of attributes defined for this NS instance.
-        The returned list includes the names of the collections
-        that belong to this namespace.
-
-        :return: List of attributes.
-        :rtype: list
-        """
-        default = sorted(super().__dir__() + list(self.__dict__.keys()))
-        if not self._specs:
-            return default
-        cl = self._specs.collections.keys()
-        additional_names = []
-        for name in cl:
-            if '-' in name:
-                name = name.replace('-', '_')
-            if name.isidentifier() and not iskeyword(name):
-                additional_names.append(name)
-        return sorted(super().__dir__() + additional_names)
+    def __iter__(self):
+        raise TypeError('A Namespace object is not iterable.')
 
     def collection(self, name):
         """
@@ -89,18 +57,10 @@ class NS:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self._specs:
-            return Collection(
-                self._client,
-                f'{self._path}/{name}',
-            )
-        if name in self._specs.collections:
-            return Collection(
-                self._client,
-                f'{self._path}/{name}',
-                self._specs.collections.get(name),
-            )
-        raise NotFoundError(f'The collection {name} does not exist.')
+        return Collection(
+            self._client,
+            f'{self._path}/{name}',
+        )
 
     def help(self):
         """
@@ -109,7 +69,7 @@ class NS:
         :return: self
         :rtype: NS
         """
-        self._client._help_formatter.print_help(self._specs)
+        # self._client._help_formatter.print_help(self._specs)
         return self
 
 
@@ -117,27 +77,24 @@ class Collection:
     """
     A collection is a group of operations on a resource.
     """
-    def __init__(self, client, path, specs=None):
+    def __init__(self, client, path):
         """
         Create a new Collection instance.
 
         :param client: the client instance
         :type client: ConnectClient
-        :param path: path name of the namespace
+        :param path: path name of the collection
         :type path: str
-        :param specs: OpenAPI specs, defaults to None
-        :type specs: CollectionInfo, optional
         """
         self._client = client
         self._path = path
-        self._specs = specs
 
     @property
     def path(self):
         return self._path
 
     def __iter__(self):
-        raise TypeError('A collection object is not iterable.')
+        raise TypeError('A Collection object is not iterable.')
 
     def __getitem__(self, resource_id):
         """
@@ -161,7 +118,6 @@ class Collection:
         return ResourceSet(
             self._client,
             self._path,
-            specs=self._specs.operations.get('search') if self._specs else None,
         )
 
     def filter(self, *args, **kwargs):
@@ -219,7 +175,6 @@ class Collection:
         return ResourceSet(
             self._client,
             self._path,
-            specs=self._specs.operations.get('search') if self._specs else None,
             query=query,
         )
 
@@ -256,7 +211,6 @@ class Collection:
         return Resource(
             self._client,
             f'{self._path}/{resource_id}',
-            self._specs.resource_specs if self._specs else None,
         )
 
     def help(self):
@@ -266,13 +220,13 @@ class Collection:
         :return: self
         :rtype: Collection
         """
-        self._client._help_formatter.print_help(self._specs)
+        # self._client._help_formatter.print_help(self._specs)
         return self
 
 
 class Resource:
     """Represent a generic resource."""
-    def __init__(self, client, path, specs=None):
+    def __init__(self, client, path):
         """
         Create a new Resource instance.
 
@@ -285,7 +239,6 @@ class Resource:
         """
         self._client = client
         self._path = path
-        self._specs = specs
 
     @property
     def path(self):
@@ -293,48 +246,19 @@ class Resource:
 
     def __getattr__(self, name):
         """
-        Returns an Action or a nested Collection object called ``name``.
+        Returns a nested Collection object called ``name``.
 
-        :param name: The name of the Action or Collection to retrieve.
+        :param name: The name of the Collection to retrieve.
         :type name: str
-        :raises AttributeError: If OpenAPI specs are not avaliable.
-        :raises AttributeError: If the name does not exist.
-        :return: a Collection or an Action called ``name``.
-        :rtype: Action, Collection
+        :return: a Collection called ``name``.
+        :rtype: Collection
         """
-        if not self._specs:
-            raise AttributeError(
-                'No specs available. Use the `collection` '
-                'or `action` methods instead.'
-            )
         if '_' in name:
             name = name.replace('_', '-')
-        if name in self._specs.collections:
-            return self.collection(name)
-        if name in self._specs.actions:
-            return self.action(name)
-        raise AttributeError('Unable to resolve {}.'.format(name))
+        return self.collection(name)
 
-    def __dir__(self):
-        """
-        Return a list of attributes defined for this Resource instance.
-        The returned list includes the names of the nested collections
-        and actions that belong to this resource.
-
-        :return: List of attributes.
-        :rtype: list
-        """
-        if not self._specs:
-            return super().__dir__()
-        ac = list(self._specs.actions.keys())
-        cl = list(self._specs.collections.keys())
-        additional_names = []
-        for name in cl + ac:
-            if '-' in name:
-                name = name.replace('-', '_')
-            if name.isidentifier() and not iskeyword(name):
-                additional_names.append(name)
-        return sorted(super().__dir__() + additional_names)
+    def __call__(self, name):
+        return self.action(name)
 
     def collection(self, name):
         """
@@ -354,18 +278,10 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self._specs:
-            return Collection(
-                self._client,
-                f'{self._path}/{name}',
-            )
-        if name in self._specs.collections:
-            return Collection(
-                self._client,
-                f'{self._path}/{name}',
-                self._specs.collections.get(name),
-            )
-        raise NotFoundError(f'The collection {name} does not exist.')
+        return Collection(
+            self._client,
+            f'{self._path}/{name}',
+        )
 
     def action(self, name):
         """
@@ -385,18 +301,10 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        if not self._specs:
-            return Action(
-                self._client,
-                f'{self._path}/{name}',
-            )
-        if name in self._specs.actions:
-            return Action(
-                self._client,
-                f'{self._path}/{name}',
-                self._specs.actions.get(name),
-            )
-        raise NotFoundError(f'The action {name} does not exist.')
+        return Action(
+            self._client,
+            f'{self._path}/{name}',
+        )
 
     def get(self, **kwargs):
         """
@@ -467,7 +375,7 @@ class Resource:
         :return: self
         :rtype: Resource
         """
-        self._client._help_formatter.print_help(self._specs)
+        # self._client._help_formatter.print_help(self._specs)
         return self
 
 
@@ -475,7 +383,7 @@ class Action:
     """
     This class represent an action that can be executed on a resource.
     """
-    def __init__(self, client, path, specs=None):
+    def __init__(self, client, path):
         """
         Create a new Action instance.
 
@@ -488,7 +396,6 @@ class Action:
         """
         self._client = client
         self._path = path
-        self._specs = specs
 
     @property
     def path(self):
@@ -567,5 +474,5 @@ class Action:
         :return: self
         :rtype: Action
         """
-        self._client._help_formatter.print_help(self._specs)
+        # self._client._help_formatter.print_help(self._specs)
         return self
