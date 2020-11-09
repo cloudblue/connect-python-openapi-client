@@ -11,9 +11,8 @@ def ns_factory(mocker):
     def _ns_factory(
         client=client,
         path='namespace',
-        specs=None,
     ):
-        ns = NS(client, path, specs)
+        ns = NS(client, path)
         return ns
     return _ns_factory
 
@@ -26,9 +25,8 @@ def col_factory(mocker):
     def _col_factory(
         client=client,
         path='namespace',
-        specs=None,
     ):
-        col = Collection(client, path, specs)
+        col = Collection(client, path)
         return col
     return _col_factory
 
@@ -41,9 +39,8 @@ def res_factory(mocker):
     def _res_factory(
         client=client,
         path='{item_id}',
-        specs=None,
     ):
-        resource = Resource(client, path, specs)
+        resource = Resource(client, path)
         return resource
     return _res_factory
 
@@ -56,9 +53,8 @@ def action_factory(mocker):
     def _action_factory(
         client=client,
         path='{item_id}',
-        specs=None,
     ):
-        action = Action(client, path, specs)
+        action = Action(client, path)
         return action
     return _action_factory
 
@@ -72,8 +68,7 @@ def rs_factory(mocker):
         client=client,
         path='resources',
         query=None,
-        specs=None,
     ):
-        rs = ResourceSet(client, path, query, specs)
+        rs = ResourceSet(client, path, query)
         return rs
     return _rs_factory

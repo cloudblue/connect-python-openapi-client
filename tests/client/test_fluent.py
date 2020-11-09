@@ -2,16 +2,15 @@ import pytest
 
 import responses
 
-from cnct.client.exceptions import ClientError, NotFoundError
+from cnct.client.exceptions import ClientError
 from cnct.client.fluent import ConnectClient
 from cnct.client.models import Collection, NS
-from cnct.help import DefaultFormatter
 
 
 def test_default_headers():
     c = ConnectClient(
         'Api Key',
-        specs_location=None,
+        use_specs=False,
         default_headers={'X-Custom-Header': 'value'},
     )
 
@@ -22,187 +21,110 @@ def test_default_headers_invalid():
     with pytest.raises(ValueError):
         ConnectClient(
             'Api Key',
-            specs_location=None,
+            use_specs=False,
             default_headers={'Authorization': 'value'},
         )
 
 
-def test_getattr(mocker):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=None,
-    )
+# def test_getattr(mocker):
+#     c = ConnectClient('Api Key', use_specs=False)
 
-    c = ConnectClient('Api Key')
+#     with pytest.raises(AttributeError) as cv:
+#         c.resources
 
-    with pytest.raises(AttributeError) as cv:
-        c.resources
-
-    assert str(cv.value) == (
-        'No specs available. Use `ns` '
-        'or `collection` methods instead.'
-    )
+#     assert str(cv.value) == (
+#         'No specs available. Use `ns` '
+#         'or `collection` methods instead.'
+#     )
 
 
-def test_getattr_with_specs_dash(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
-    specs = apiinfo_factory(
-        collections=[colinfo_factory(name='my-resources')],
-        namespaces=[nsinfo_factory(name='name-space')],
-    )
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=specs,
-    )
+# def test_getattr_with_specs_dash(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
+#     specs = apiinfo_factory(
+#         collections=[colinfo_factory(name='my-resources')],
+#         namespaces=[nsinfo_factory(name='name-space')],
+#     )
+#     mocker.patch(
+#         'cnct.client.fluent.parse',
+#         return_value=specs,
+#     )
 
-    c = ConnectClient('Api Key')
+#     c = ConnectClient('Api Key')
 
-    assert isinstance(c.my_resources, Collection)
-    assert isinstance(c.name_space, NS)
+#     assert isinstance(c.my_resources, Collection)
+#     assert isinstance(c.name_space, NS)
 
-    specs = apiinfo_factory(
-        collections=[colinfo_factory('resources')],
-        namespaces=[nsinfo_factory('namespace')],
-    )
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=specs,
-    )
+#     specs = apiinfo_factory(
+#         collections=[colinfo_factory('resources')],
+#         namespaces=[nsinfo_factory('namespace')],
+#     )
+#     mocker.patch(
+#         'cnct.client.fluent.parse',
+#         return_value=specs,
+#     )
 
-    c = ConnectClient('Api Key')
+#     c = ConnectClient('Api Key')
 
-    assert isinstance(c.resources, Collection)
-    assert isinstance(c.namespace, NS)
+#     assert isinstance(c.resources, Collection)
+#     assert isinstance(c.namespace, NS)
 
 
-def test_getattr_with_specs_unresolved(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
-    specs = apiinfo_factory(
-        collections=[colinfo_factory(name='resources')],
-        namespaces=[nsinfo_factory(name='namespace')],
-    )
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=specs,
-    )
+# def test_getattr_with_specs_unresolved(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
+#     specs = apiinfo_factory(
+#         collections=[colinfo_factory(name='resources')],
+#         namespaces=[nsinfo_factory(name='namespace')],
+#     )
+#     mocker.patch(
+#         'cnct.client.fluent.parse',
+#         return_value=specs,
+#     )
 
-    c = ConnectClient('Api Key')
+#     c = ConnectClient('Api Key')
 
-    with pytest.raises(AttributeError) as cv:
-        c.others
+#     with pytest.raises(AttributeError) as cv:
+#         c.others
 
-    assert str(cv.value) == 'Unable to resolve others.'
+#     assert str(cv.value) == 'Unable to resolve others.'
 
 
 def test_ns(mocker):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=None,
-    )
+    # mocker.patch(
+    #     'cnct.client.fluent.parse',
+    #     return_value=None,
+    # )
 
-    c = ConnectClient('Api Key')
+    c = ConnectClient('Api Key', use_specs=False)
 
     assert isinstance(c.ns('namespace'), NS)
 
 
 def test_ns_invalid_type():
-    c = ConnectClient('Api Key', specs_location=None)
+    c = ConnectClient('Api Key', use_specs=False)
     with pytest.raises(TypeError):
         c.ns(c)
 
 
 def test_ns_invalid_value():
-    c = ConnectClient('Api Key', specs_location=None)
+    c = ConnectClient('Api Key', use_specs=False)
     with pytest.raises(ValueError):
         c.ns('')
 
 
-def test_ns_unresolved(mocker, apiinfo_factory, nsinfo_factory):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=apiinfo_factory(namespaces=[nsinfo_factory(name='namespace')]),
-    )
-
-    c = ConnectClient('Api Key')
-
-    with pytest.raises(NotFoundError) as cv:
-        c.ns('invalid')
-
-    assert str(cv.value) == 'The namespace invalid does not exist.'
-
-
 def test_collection(mocker):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=None,
-    )
-
-    c = ConnectClient('Api Key')
+    c = ConnectClient('Api Key', use_specs=False)
 
     assert isinstance(c.collection('resources'), Collection)
 
 
 def test_collection_invalid_type():
-    c = ConnectClient('Api Key', specs_location=None)
+    c = ConnectClient('Api Key', use_specs=False)
     with pytest.raises(TypeError):
         c.collection(c)
 
 
 def test_collection_invalid_value():
-    c = ConnectClient('Api Key', specs_location=None)
+    c = ConnectClient('Api Key', use_specs=False)
     with pytest.raises(ValueError):
         c.collection('')
-
-
-def test_collection_unresolved(mocker, apiinfo_factory, colinfo_factory):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=apiinfo_factory(collections=[colinfo_factory('resources')]),
-    )
-
-    c = ConnectClient('Api Key')
-
-    with pytest.raises(NotFoundError) as cv:
-        c.collection('invalid')
-
-    assert str(cv.value) == 'The collection invalid does not exist.'
-
-
-def test_dir_with_specs(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=apiinfo_factory(
-            collections=[
-                colinfo_factory(name='resources'),
-                colinfo_factory(name='res-with-dash')
-            ],
-            namespaces=[
-                nsinfo_factory(name='namespace'),
-                nsinfo_factory(name='ns-with-dash'),
-            ],
-        ),
-    )
-
-    c = ConnectClient('Api Key')
-
-    dir_ = dir(c)
-    assert 'resources' in dir_
-    assert 'namespace' in dir_
-    assert 'res_with_dash' in dir_
-    assert 'ns_with_dash' in dir_
-
-
-def test_dir_without_specs(mocker):
-    mocker.patch(
-        'cnct.client.fluent.parse',
-        return_value=None,
-    )
-
-    c = ConnectClient('Api Key')
-
-    dir_ = dir(c)
-
-    assert 'collection' in dir_
-    assert 'ns' in dir_
-    assert 'resource' not in dir_
 
 
 def test_get(mocker):
@@ -212,7 +134,7 @@ def test_get(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', use_specs=False)
 
     c.get(url, **kwargs)
 
@@ -229,7 +151,7 @@ def test_create(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', use_specs=False)
 
     c.create(url, payload=payload, **kwargs)
 
@@ -251,7 +173,7 @@ def test_update(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', use_specs=False)
 
     c.update(url, payload=payload, **kwargs)
 
@@ -271,7 +193,7 @@ def test_delete(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', use_specs=False)
 
     c.delete(url, **kwargs)
 
@@ -286,9 +208,9 @@ def test_execute(mocked_responses):
         json=expected,
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
-    results = c.execute('get', 'https://localhost/resources')
+    results = c.execute('get', 'resources')
 
     assert mocked_responses.calls[0].request.method == 'GET'
     headers = mocked_responses.calls[0].request.headers
@@ -308,11 +230,12 @@ def test_execute_default_headers(mocked_responses):
 
     c = ConnectClient(
         'API_KEY',
-        specs_location=None,
+        endpoint='https://localhost',
+        use_specs=False,
         default_headers={'X-Custom-Header': 'custom-header-value'},
     )
 
-    c.execute('get', 'https://localhost/resources')
+    c.execute('get', 'resources')
 
     headers = mocked_responses.calls[0].request.headers
 
@@ -329,14 +252,14 @@ def test_execute_with_kwargs(mocked_responses):
         status=201,
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
     kwargs = {
         'headers': {
             'X-Custom-Header': 'value',
         },
     }
 
-    c.execute('post', 'https://localhost/resources', **kwargs)
+    c.execute('post', 'resources', **kwargs)
 
     assert mocked_responses.calls[0].request.method == 'POST'
 
@@ -360,10 +283,10 @@ def test_execute_connect_error(mocked_responses):
         status=400,
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
     with pytest.raises(ClientError) as cv:
-        c.execute('post', 'https://localhost/resources')
+        c.execute('post', 'resources')
 
     assert cv.value.status_code == 400
     assert cv.value.error_code == 'code'
@@ -379,10 +302,10 @@ def test_execute_uparseable_connect_error(mocked_responses):
         status=400,
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
     with pytest.raises(ClientError):
-        c.execute('post', 'https://localhost/resources')
+        c.execute('post', 'resources')
 
 
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
@@ -395,10 +318,10 @@ def test_execute_error_with_reason(mocked_responses, encoding):
         body='Interñal Server Error'.encode(encoding),
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
     with pytest.raises(ClientError):
-        c.execute('post', 'https://localhost/resources')
+        c.execute('post', 'resources')
 
 
 def test_execute_delete(mocked_responses):
@@ -410,17 +333,17 @@ def test_execute_delete(mocked_responses):
         status=204,
     )
 
-    c = ConnectClient('API_KEY', specs_location=None)
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
-    results = c.execute('delete', 'https://localhost/resources')
+    results = c.execute('delete', 'resources')
 
     assert results is None
 
 
-def test_help(mocker, col_factory):
-    print_help = mocker.patch.object(DefaultFormatter, 'print_help')
-    c = ConnectClient('API_KEY', specs_location=None)
-    c1 = c.help()
+# def test_help(mocker, col_factory):
+#     print_help = mocker.patch.object(DefaultFormatter, 'print_help')
+#     c = ConnectClient('API_KEY', use_specs=False)
+#     c1 = c.help()
 
-    assert print_help.called_once_with(None)
-    assert c == c1
+#     assert print_help.called_once_with(None)
+#     assert c == c1

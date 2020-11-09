@@ -1,10 +1,6 @@
 from http import HTTPStatus
 
 
-class NotFoundError(AttributeError):
-    pass
-
-
 class ClientError(Exception):
     def __init__(self, message=None, status_code=None, error_code=None, errors=None):
         self.message = message
