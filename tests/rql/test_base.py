@@ -22,16 +22,19 @@ def test_create_single_kwarg():
 
 
 def test_create_multiple_kwargs():
-    q = RQLQuery(id='ID', status__in=('a', 'b'))
+    q = RQLQuery(id='ID', status__in=('a', 'b'), ok=True)
     assert q.op == RQLQuery.AND
-    assert str(q) == 'and(eq(id,ID),in(status,(a,b)))'
-    assert len(q.children) == 2
+    assert str(q) == 'and(eq(id,ID),in(status,(a,b)),eq(ok,true))'
+    assert len(q.children) == 3
     assert q.children[0].op == RQLQuery.EXPR
     assert q.children[0].children == []
     assert str(q.children[0]) == 'eq(id,ID)'
     assert q.children[1].op == RQLQuery.EXPR
     assert q.children[1].children == []
     assert str(q.children[1]) == 'in(status,(a,b))'
+    assert q.children[2].op == RQLQuery.EXPR
+    assert q.children[2].children == []
+    assert str(q.children[2]) == 'eq(ok,true)'
 
 
 def test_len():
