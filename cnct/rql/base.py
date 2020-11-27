@@ -1,7 +1,4 @@
-from datetime import date, datetime
-from decimal import Decimal
-
-from cnct.rql.utils import parse_kwargs
+from cnct.rql.utils import parse_kwargs, to_rql_value
 
 
 COMP = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
@@ -225,31 +222,15 @@ class RQLQuery:
 
     def _bin(self, op, value):
         self._field = '.'.join(self._path)
-        actual_value = None
-        if isinstance(value, str):
-            actual_value = value
-        elif isinstance(value, bool):
-            actual_value = 'true' if value else 'false'
-        elif isinstance(value, (int, float, Decimal)):
-            actual_value = str(value)
-        elif isinstance(value, (date, datetime)):
-            actual_value = value.isoformat()
-        else:
-            raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
-
-        self.expr = f'{op}({self._field},{actual_value})'
+        value = to_rql_value(op, value)
+        self.expr = f'{op}({self._field},{value})'
         return self
 
     def _list(self, op, value):
         self._field = '.'.join(self._path)
-        actual_value = None
-        if isinstance(value, (list, tuple)):
-            actual_value = ','.join(value)
-        if actual_value:
-            self.expr = f'{op}({self._field},({actual_value}))'
-            return self
-
-        raise TypeError(f"the `{op}` operator doesn't support the {type(value)} type.")
+        value = to_rql_value(op, value)
+        self.expr = f'{op}({self._field},({value}))'
+        return self
 
     def _bool(self, expr, value):
         self._field = '.'.join(self._path)
