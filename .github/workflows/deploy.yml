@@ -24,10 +24,19 @@ jobs:
     - name: Testing
       run: |
         poetry run pytest
+    - name: Extract tag name
+      uses: actions/github-script@v3
+      id: tag
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        result-encoding: string
+        script: |
+          return context.payload.ref.replace(/refs\/tags\//, '')
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        poetry run python setup.py sdist bdist_wheel
-        poetry run twine upload dist/*
+        poetry version ${{ steps.tag.outputs.result }}
+        poetry build
+        poetry publish -u $TWINE_USERNAME -p $TWINE_PASSWORD
