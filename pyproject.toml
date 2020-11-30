@@ -7,6 +7,22 @@ license = "Apache-2.0"
 packages = [
     { include = "cnct" }
 ]
+readme = "./README.md"
+documentation = "https://connect-openapi-client.readthedocs.io/en/latest/"
+homepage = "https://connect.cloudblue.com"
+repository = "https://github.com/cloudblue/connect-python-openapi-client"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Utilities",
+    "Topic :: Software Development :: Libraries",
+]
+keywords = "fulfillment api client openapi utility connect cloudblue"
 
 [tool.poetry.dependencies]
 python = "^3.6"
