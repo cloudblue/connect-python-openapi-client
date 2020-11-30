@@ -22,7 +22,15 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Software Development :: Libraries",
 ]
-keywords = "fulfillment api client openapi utility connect cloudblue"
+keywords = [
+    "fulfillment",
+    "api",
+    "client",
+    "openapi",
+    "utility"
+    "connect",
+    "cloudblue",
+]
 
 [tool.poetry.dependencies]
 python = "^3.6"
