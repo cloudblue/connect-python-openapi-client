@@ -40,6 +40,9 @@ class NS:
     def __iter__(self):
         raise TypeError('A Namespace object is not iterable.')
 
+    def __call__(self, name):
+        return self.ns(name)
+
     def collection(self, name):
         """
         Returns the collection called ``name``.
@@ -59,6 +62,28 @@ class NS:
             raise ValueError('`name` must not be blank.')
 
         return Collection(
+            self._client,
+            f'{self._path}/{name}',
+        )
+
+    def ns(self, name):
+        """
+        Returns the namespace called ``name``.
+
+        :param name: The name of the namespace.
+        :type name: str
+        :raises TypeError: if the ``name`` is not a string.
+        :raises ValueError: if the ``name`` is blank.
+        :return: The namespace called ``name``.
+        :rtype: NS
+        """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
+        return NS(
             self._client,
             f'{self._path}/{name}',
         )

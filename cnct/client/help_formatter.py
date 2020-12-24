@@ -39,18 +39,25 @@ class DefaultFormatter:
         return render('\n'.join(lines))
 
     def format_ns(self, ns):
+        namespaces = self._specs.get_nested_namespaces(ns.path)
         collections = self._specs.get_namespaced_collections(ns.path)
-        if not collections:
+
+        if not (collections or namespaces):
             return render(f'~~{ns.path}~~ **does not exists.**')
 
         lines = [
             f'# {ns.path.title()} namespace',
             f'**path: /{ns.path}**',
-            '## Available collections',
         ]
+        if namespaces:
+            lines.append('## Available namespaces')
+            for namespace in namespaces:
+                lines.append(f'* {namespace}')
 
-        for collection in collections:
-            lines.append(f'* {collection}')
+        if collections:
+            lines.append('## Available collections')
+            for collection in collections:
+                lines.append(f'* {collection}')
 
         return render('\n'.join(lines))
 
