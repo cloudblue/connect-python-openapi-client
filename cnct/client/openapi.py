@@ -1,4 +1,5 @@
 from io import StringIO
+from functools import partial
 
 import requests
 import yaml
@@ -60,8 +61,9 @@ class OpenAPISpecs:
         nested = filter(lambda x: x[1:].startswith(path), self._specs['paths'].keys())
         collections = set()
         for p in nested:
-            splitted = p[1:].split('/', 2)
-            collections.add(splitted[1])
+            splitted = p[len(path) + 1:].split('/', 2)
+            if self._is_collection(p) and len(splitted) == 2:
+                collections.add(splitted[1])
         return list(sorted(collections))
 
     def get_collection(self, path):
@@ -93,6 +95,28 @@ class OpenAPISpecs:
             (name, descriptions.get(name))
             for name in sorted(actions)
         ]
+
+    def get_nested_namespaces(self, path):
+        def _is_nested_namespace(base_path, path):
+            if path[1:].startswith(base_path):
+                comp = path[1:].split('/')
+                return (
+                    len(comp) > 1
+                    and not comp[-1].startswith('{')
+                )
+            return False
+
+        nested = filter(
+            partial(_is_nested_namespace, path),
+            self._specs['paths'].keys(),
+        )
+        current_level = len(path[1:].split('/'))
+        nested_namespaces = []
+        for ns in nested:
+            name = ns[1:].split('/')[current_level]
+            if not self._is_collection(f'/{path}/{name}'):
+                nested_namespaces.append(name)
+        return nested_namespaces
 
     def get_nested_collections(self, path):
         p = self._get_path(path)
@@ -162,3 +186,15 @@ class OpenAPISpecs:
     def _is_action(self, operation_id):
         op_id_cmps = operation_id.rsplit('_', 2)
         return op_id_cmps[-2] not in ('list', 'retrieve')
+
+    def _is_collection(self, path):
+        path_length = len(path[1:].split('/'))
+        for p in self._specs['paths'].keys():
+            comp = p[1:].split('/')
+            if not p.startswith(path):
+                continue
+            if p == path:
+                return True
+            if len(comp) > path_length and comp[path_length].startswith('{'):
+                return True
+        return False

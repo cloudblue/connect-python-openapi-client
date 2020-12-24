@@ -1,9 +1,48 @@
 import pytest
 
 from cnct.client.exceptions import ClientError
-from cnct.client.models import Action, Collection, Resource, ResourceSet
+from cnct.client.models import Action, Collection, NS, Resource, ResourceSet
 from cnct.client.utils import ContentRange
 from cnct.rql import R
+
+
+def test_ns_ns_invalid_type(ns_factory):
+    ns = ns_factory()
+    with pytest.raises(TypeError) as cv:
+        ns.ns(None)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+    with pytest.raises(TypeError) as cv:
+        ns.ns(3)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+
+def test_ns_ns_invalid_value(ns_factory):
+    ns = ns_factory()
+    with pytest.raises(ValueError) as cv:
+        ns.ns('')
+
+    assert str(cv.value) == '`name` must not be blank.'
+
+
+def test_ns_ns(ns_factory):
+    ns = ns_factory()
+    ns2 = ns.ns('ns2')
+
+    assert isinstance(ns2, NS)
+    assert ns2._client == ns._client
+    assert ns2.path == f'{ns.path}/ns2'
+
+
+def test_ns_ns_call(ns_factory):
+    ns = ns_factory()
+    ns2 = ns('ns2')
+
+    assert isinstance(ns2, NS)
+    assert ns2._client == ns._client
+    assert ns2.path == f'{ns.path}/ns2'
 
 
 def test_ns_collection_invalid_type(ns_factory):
