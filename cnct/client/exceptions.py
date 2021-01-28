@@ -2,11 +2,12 @@ from http import HTTPStatus
 
 
 class ClientError(Exception):
-    def __init__(self, message=None, status_code=None, error_code=None, errors=None):
+    def __init__(self, message=None, status_code=None, error_code=None, errors=None, **kwargs):
         self.message = message
         self.status_code = status_code
         self.error_code = error_code
         self.errors = errors
+        self.additional_info = kwargs
 
     def __repr__(self):
         return f'<ClientError {self.status_code}: {self.error_code}>'
