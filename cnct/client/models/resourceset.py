@@ -406,7 +406,10 @@ class ResourceSet:
 
     def _fetch_all(self):
         if self._results is None:
-            self._results = list(self._iterator())
+            self._results = self._execute_request(
+                self._get_request_url(),
+                self._get_request_kwargs(),
+            )
 
     def _copy(self):
         rs = ResourceSet(self._client, self._path, self._query)
