@@ -1,3 +1,5 @@
+import threading
+
 from json.decoder import JSONDecodeError
 
 import requests
@@ -11,7 +13,7 @@ from cnct.client.help_formatter import DefaultFormatter
 from cnct.client.openapi import OpenAPISpecs
 
 
-class ConnectClient:
+class ConnectClient(threading.local):
     """
     Connect ReST API client.
     """
@@ -43,6 +45,7 @@ class ConnectClient:
         self.endpoint = endpoint or CONNECT_ENDPOINT_URL
         self.api_key = api_key
         self.default_headers = default_headers or {}
+        self.default_limit = default_limit
         self._use_specs = use_specs
         self._validate_using_specs = validate_using_specs
         self.specs_location = specs_location or CONNECT_SPECS_URL

@@ -26,6 +26,18 @@ def test_default_headers_invalid():
         )
 
 
+def test_default_limit():
+    c = ConnectClient(
+        'Api Key',
+        use_specs=False,
+        default_limit=10,
+    )
+
+    rs = c.products.all()
+
+    assert rs._limit == 10
+
+
 # def test_getattr(mocker):
 #     c = ConnectClient('Api Key', use_specs=False)
 
