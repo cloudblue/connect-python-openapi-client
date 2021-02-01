@@ -63,6 +63,7 @@ def action_factory(mocker):
 def rs_factory(mocker):
     client = mocker.MagicMock()
     client._endpoint = 'https://example.com/api/v1'
+    client.default_limit = None
 
     def _rs_factory(
         client=client,

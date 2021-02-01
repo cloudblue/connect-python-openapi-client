@@ -74,7 +74,7 @@ class ResourceSet:
         self._query = query or R()
         self._results = None
         self._result_iterator = None
-        self._limit = 100
+        self._limit = self._client.default_limit or 100
         self._offset = 0
         self._slice = False
         self._content_range = None
