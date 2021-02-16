@@ -4,14 +4,14 @@ ansicolors==1.1.8
 atomicwrites==1.4.0; sys_platform == "win32"
 attrs==20.3.0
 babel==2.9.0
-bleach==3.2.1
+bleach==3.3.0
 certifi==2020.11.8
 cffi==1.14.4; sys_platform == "linux"
 chardet==3.0.4
 colorama==0.4.4
 connect-markdown-renderer==1.0.1
 coverage==5.3
-cryptography==3.2.1; sys_platform == "linux"
+cryptography>=3.3.2; sys_platform == "linux"
 docutils==0.16
 entrypoints==0.3
 flake8==3.8.4
