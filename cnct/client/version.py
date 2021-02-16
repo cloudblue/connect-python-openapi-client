@@ -7,7 +7,7 @@ import pkg_resources
 
 
 try:
-    __version__ = pkg_resources.require('connect-fluent-client')[0].version
+    __version__ = pkg_resources.require('connect-openapi-client')[0].version
 except:  # noqa: E722
     __version__ = '0.0.1'
 
