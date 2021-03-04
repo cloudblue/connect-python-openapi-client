@@ -38,72 +38,7 @@ def test_default_limit():
     assert rs._limit == 10
 
 
-# def test_getattr(mocker):
-#     c = ConnectClient('Api Key', use_specs=False)
-
-#     with pytest.raises(AttributeError) as cv:
-#         c.resources
-
-#     assert str(cv.value) == (
-#         'No specs available. Use `ns` '
-#         'or `collection` methods instead.'
-#     )
-
-
-# def test_getattr_with_specs_dash(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
-#     specs = apiinfo_factory(
-#         collections=[colinfo_factory(name='my-resources')],
-#         namespaces=[nsinfo_factory(name='name-space')],
-#     )
-#     mocker.patch(
-#         'cnct.client.fluent.parse',
-#         return_value=specs,
-#     )
-
-#     c = ConnectClient('Api Key')
-
-#     assert isinstance(c.my_resources, Collection)
-#     assert isinstance(c.name_space, NS)
-
-#     specs = apiinfo_factory(
-#         collections=[colinfo_factory('resources')],
-#         namespaces=[nsinfo_factory('namespace')],
-#     )
-#     mocker.patch(
-#         'cnct.client.fluent.parse',
-#         return_value=specs,
-#     )
-
-#     c = ConnectClient('Api Key')
-
-#     assert isinstance(c.resources, Collection)
-#     assert isinstance(c.namespace, NS)
-
-
-# def test_getattr_with_specs_unresolved(mocker, apiinfo_factory, nsinfo_factory, colinfo_factory):
-#     specs = apiinfo_factory(
-#         collections=[colinfo_factory(name='resources')],
-#         namespaces=[nsinfo_factory(name='namespace')],
-#     )
-#     mocker.patch(
-#         'cnct.client.fluent.parse',
-#         return_value=specs,
-#     )
-
-#     c = ConnectClient('Api Key')
-
-#     with pytest.raises(AttributeError) as cv:
-#         c.others
-
-#     assert str(cv.value) == 'Unable to resolve others.'
-
-
 def test_ns(mocker):
-    # mocker.patch(
-    #     'cnct.client.fluent.parse',
-    #     return_value=None,
-    # )
-
     c = ConnectClient('Api Key', use_specs=False)
 
     assert isinstance(c.ns('namespace'), NS)
@@ -233,6 +168,75 @@ def test_execute(mocked_responses):
     assert results == expected
 
 
+def test_execute_retries(mocked_responses):
+    expected = [{'id': i} for i in range(10)]
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=502,
+    )
+
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=502,
+    )
+
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=200,
+        json=expected,
+    )
+
+    c = ConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+        max_retries=2,
+    )
+
+    results = c.execute('get', 'resources')
+
+    assert mocked_responses.calls[0].request.method == 'GET'
+    headers = mocked_responses.calls[0].request.headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+
+    assert results == expected
+
+
+def test_execute_max_retries_exceeded(mocked_responses):
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=502,
+    )
+
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=502,
+    )
+
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=502,
+    )
+
+    c = ConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+        max_retries=2,
+    )
+
+    with pytest.raises(ClientError):
+        c.execute('get', 'resources')
+
+
 def test_execute_default_headers(mocked_responses):
     mocked_responses.add(
         responses.GET,
@@ -350,12 +354,3 @@ def test_execute_delete(mocked_responses):
     results = c.execute('delete', 'resources')
 
     assert results is None
-
-
-# def test_help(mocker, col_factory):
-#     print_help = mocker.patch.object(DefaultFormatter, 'print_help')
-#     c = ConnectClient('API_KEY', use_specs=False)
-#     c1 = c.help()
-
-#     assert print_help.called_once_with(None)
-#     assert c == c1
