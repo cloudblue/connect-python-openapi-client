@@ -39,7 +39,7 @@ To use *connect-openapi-client* first of all you have to create an instance of t
 
 .. code-block:: python
 
-    from cnct import ConnectClient
+    from connect.client import ConnectClient
 
     client = ConnectClient('ApiKey SU-000-000-000:xxxxxxxxxxxxxxxx')
 
@@ -48,18 +48,18 @@ Access to namespaces and collections
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``ConnectClient`` instance allows access to collections of resources using the 
-:meth:`~cnct.client.fluent.ConnectClient.collection` method of the client:
+:meth:`~connect.client.fluent.ConnectClient.collection` method of the client:
 
 .. code-block:: python
 
     products = client.collection('products')
 
-The previous call to the :meth:`~cnct.client.fluent.ConnectClient.collection` method returns a 
-:class:`~cnct.client.models.Collection` object that allows working with the resources that contain.
+The previous call to the :meth:`~connect.client.fluent.ConnectClient.collection` method returns a 
+:class:`~connect.client.models.Collection` object that allows working with the resources that contain.
 
 Some collections of the CloudBlue Connect ReST API are grouped within a namespace.
 
-To access a namespace the client exposes the :meth:`~cnct.client.fluent.ConnectClient.ns` method:
+To access a namespace the client exposes the :meth:`~connect.client.fluent.ConnectClient.ns` method:
 
 
 .. code-block:: python
@@ -75,10 +75,7 @@ you can chain methods:
     assets = client.ns('subscriptions').collection('assets')
 
 
-By default, the ``ConnectClient`` object, when instantiated, downloads and parse
-the `CloudBlue Connect OpenAPI specifications <https://connect.cloudblue.com/community/api/openapi/>`_.
-
-This allows you to write the previous expression in a more concise way:
+This previous previous expression can be written in a more concise way:
 
 .. code-block:: python
 
@@ -98,8 +95,8 @@ Create a new resource
 ^^^^^^^^^^^^^^^^^^^^^
 
 To create a new resource inside a collection you can invoke the 
-:meth:`~cnct.client.models.Collection.create` method on the corresponding 
-:class:`~cnct.client.models.Collection` instance:
+:meth:`~connect.client.models.Collection.create` method on the corresponding 
+:class:`~connect.client.models.Collection` instance:
 
 .. code-block:: python
 
@@ -118,8 +115,8 @@ Access to a resource
 ^^^^^^^^^^^^^^^^^^^^
 
 To access a resource within a collection you can use the
-:meth:`~cnct.client.models.Collection.resource` method on the corresponding 
-:class:`~cnct.client.models.Collection` instance:
+:meth:`~connect.client.models.Collection.resource` method on the corresponding 
+:class:`~connect.client.models.Collection` instance:
 
 .. code-block:: python
 
@@ -132,7 +129,7 @@ The indexing operator allows to write the previous expression the following way:
 
     product = client.products['PRD-000-000-000']
 
-The previous expression returns a :class:`~cnct.client.models.Resource` object.
+The previous expression returns a :class:`~connect.client.models.Resource` object.
 
 .. caution::
 
@@ -148,8 +145,8 @@ Retrieve a resource
 ^^^^^^^^^^^^^^^^^^^
 
 To retrieve a resource from within a collection you have to invoke 
-the :meth:`~cnct.client.models.Resource.get` method of the 
-:class:`~cnct.client.models.Resource` object as shown below:
+the :meth:`~connect.client.models.Resource.get` method of the 
+:class:`~connect.client.models.Resource` object as shown below:
 
 .. code-block:: python
 
@@ -163,7 +160,7 @@ Update a resource
 ^^^^^^^^^^^^^^^^^
 
 To update a resource of the collection using its primary identifier,
-you can invoke the :meth:`~cnct.client.models.Resource.update` method as shown below:
+you can invoke the :meth:`~connect.client.models.Resource.update` method as shown below:
 
 .. code-block:: python
 
@@ -178,7 +175,7 @@ you can invoke the :meth:`~cnct.client.models.Resource.update` method as shown b
 Delete a resource
 ^^^^^^^^^^^^^^^^^
 
-To delete a resource the :meth:`~cnct.client.models.Resource.delete` method is exposed:
+To delete a resource the :meth:`~connect.client.models.Resource.delete` method is exposed:
 
 .. code-block:: python
 
@@ -188,15 +185,21 @@ Access to an action
 ^^^^^^^^^^^^^^^^^^^
 
 To access an action that can be performed on a resource you can use
-the :meth:`~cnct.client.models.Resource.action` method of the 
-:class:`~cnct.client.models.Resource` object or directly using the call operator
-on the :class:`~cnct.client.models.Resource` class passing the name of the action:
+the :meth:`~connect.client.models.Resource.action` method of the 
+:class:`~connect.client.models.Resource` object:
+
+.. code-block:: python
+
+    endsale_action = client.products['PRD-000-000-000'].action('endsale')
+
+or directly using the call operator
+on the :class:`~connect.client.models.Resource` class passing the name of the action:
 
 .. code-block:: python
 
     endsale_action = client.products['PRD-000-000-000']('endsale')
 
-This returns an :class:`~cnct.client.models.Action` object.
+This returns an :class:`~connect.client.models.Action` object.
 
 
 
@@ -205,9 +208,9 @@ Execute an action on a resource
 
 Depending on its nature, an action can be exposed using the HTTP method that 
 best gives the sense of the action to perform.
-The :class:`~cnct.client.models.Action` object exposes the 
-:meth:`~cnct.client.models.Action.get`, :meth:`~cnct.client.models.Action.post`,
-:meth:`~cnct.client.models.Action.put`, and :meth:`~cnct.client.models.Action.delete`
+The :class:`~connect.client.models.Action` object exposes the 
+:meth:`~connect.client.models.Action.get`, :meth:`~connect.client.models.Action.post`,
+:meth:`~connect.client.models.Action.put`, and :meth:`~connect.client.models.Action.delete`
 methods.
 
 For example, supose you want to execute the **endsale** action:
@@ -224,18 +227,34 @@ For example, supose you want to execute the **endsale** action:
     result = client.products['PRD-000-000-000']('endsale').post(payload=payload)
 
 
+Access nested namespaces
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Nested namespaces can be accessed chaining calls of the `ns` method:
+
+.. code-block:: python
+
+    nested_namespace = client.ns('root_ns').ns('child_ns')
+
+or shortly:
+
+.. code-block:: python
+
+    nested_namespace = client('root_ns')('child_ns')
+
+
 Access nested collections
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you want to access a nested collection, you can do that both using the 
-:meth:`~cnct.client.models.Resource.collection` method or the
-name of the nested collection on the :class:`~cnct.client.models.Resource` object:
+:meth:`~connect.client.models.Resource.collection` method or the
+name of the nested collection on the :class:`~connect.client.models.Resource` object:
 
 .. code-block:: python
 
     product_item = client.products['PRD-000-000-000'].items
 
-As for root collections, you can use the :meth:`~cnct.client.models.Resource.create` 
+As for root collections, you can use the :meth:`~connect.client.models.Resource.create` 
 method to create new resources within the nested collection or you can use the 
 indexing operator to access a resource of the nested collection by ID.
 
@@ -260,9 +279,9 @@ The ``ResourceSet`` object helps both to express RQL queries and to manipulate t
 Create a ``ResourceSet`` object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A :class:`cnct.client.models.ResourceSet` object can be created through 
-the corresponding o:class:`cnct.client.models.Collection` object
-using the :meth:`cnct.client.models.Collection.all` method to access 
+A :class:`connect.client.models.ResourceSet` object can be created through 
+the corresponding :class:`connect.client.models.Collection` object
+using the :meth:`connect.client.models.Collection.all` method to access 
 all the resources of the collection:
 
 .. code-block:: python
@@ -270,7 +289,7 @@ all the resources of the collection:
     products = client.products.all()
 
 
-Or applying filter using the :meth:`cnct.client.models.Collection.filter` method:
+Or applying filter using the :meth:`connect.client.models.Collection.filter` method:
 
 
 .. code-block:: python
@@ -292,7 +311,7 @@ Count results
 ^^^^^^^^^^^^^
 
 To get the total number of resources represented by a ``ResourceSet`` you can use
-the :meth:`cnct.client.models.Collection.count` method. 
+the :meth:`connect.client.models.Collection.count` method. 
 
 .. code-block:: python
 
@@ -310,7 +329,7 @@ First result
 ^^^^^^^^^^^^
 
 To get the first resource represented by a ``ResourceSet`` you can use
-the :meth:`cnct.client.models.Collection.first` method. 
+the :meth:`connect.client.models.Collection.first` method. 
 
 .. code-block:: python
 
@@ -326,7 +345,7 @@ or
 Filtering resources
 ^^^^^^^^^^^^^^^^^^^
 
-The :class:`cnct.client.models.ResourceSet` object offers three way to define
+The :class:`connect.client.models.ResourceSet` object offers three way to define
 your RQL query filters:
 
 
@@ -373,10 +392,10 @@ The ``__`` notation allow also to specify nested fields for lookups like:
 Using the ``R`` object
 """"""""""""""""""""""
 
-The :class:`~cnct.rql.base.R` object allows to create complex RQL filter expression.
+The :class:`~connect.client.rql.base.R` object allows to create complex RQL filter expression.
 
-The :class:`~cnct.rql.base.R` constructor allows to specify lookups as keyword arguments
-the same way you do with the :meth:`~cnct.client.models.ResourceSet.filter` method.
+The :class:`~connect.client.rql.base.R` constructor allows to specify lookups as keyword arguments
+the same way you do with the :meth:`~connect.client.models.ResourceSet.filter` method.
 
 But it allows also to specify nested fields using the ``.`` notation:
 

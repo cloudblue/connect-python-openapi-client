@@ -1,7 +1,7 @@
 import copy
 
-from cnct.client.utils import get_values, parse_content_range, resolve_attribute
-from cnct.rql import R
+from connect.client.utils import get_values, parse_content_range, resolve_attribute
+from connect.client.rql import R
 
 
 class AbstractIterable:
@@ -19,10 +19,8 @@ class AbstractIterable:
         cr = None
         results = None
         while cr is None or cr.last < cr.count - 1:
-            try:
-                results, cr = self._execute_request()
-            except StopIteration:
-                pass
+
+            results, cr = self._execute_request()
 
             if not results:
                 return
@@ -66,7 +64,7 @@ class ResourceSet:
         self,
         client,
         path,
-        query=None
+        query=None,
     ):
 
         self._client = client
@@ -118,7 +116,7 @@ class ResourceSet:
         self._fetch_all()
         return bool(self._results)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key):  # noqa: CCR001
         """
         If called with and integer index, returns the item
         at index ``key``.

@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.help_formatter import DefaultFormatter
+from connect.client.help_formatter import DefaultFormatter
 
 
 def test_no_specs():
@@ -16,13 +16,23 @@ def test_format_client(openapi_specs):
     assert openapi_specs.version in formatted
 
 
-def test_format_ns(openapi_specs, ns_factory):
+@pytest.mark.parametrize(
+    ('title', 'path'),
+    (
+        ('Subscriptions', 'subscriptions'),
+        ('Dictionary', 'dictionary'),
+    ),
+)
+def test_format_ns(openapi_specs, ns_factory, title, path):
     formatter = DefaultFormatter(openapi_specs)
-    ns = ns_factory(path='subscriptions')
+    ns = ns_factory(path=path)
     formatted = formatter.format(ns)
-    assert 'Subscriptions namespace' in formatted
-    assert 'path: /subscriptions' in formatted
+    assert f'{title} namespace' in formatted
+    assert f'path: /{path}' in formatted
 
+
+def test_format_ns_not_exist(openapi_specs, ns_factory):
+    formatter = DefaultFormatter(openapi_specs)
     ns = ns_factory(path='does-not-exists')
     formatted = formatter.format(ns)
     assert 'does not exist' in formatted
@@ -34,7 +44,7 @@ def test_format_ns(openapi_specs, ns_factory):
         ('Products', 'products'),
         ('Assets', 'subscriptions/assets'),
         ('Items', 'products/PRD-000/items'),
-    )
+    ),
 )
 def test_format_collection(openapi_specs, col_factory, title, path):
     formatter = DefaultFormatter(openapi_specs)
@@ -80,7 +90,7 @@ def test_format_action(openapi_specs, action_factory):
     assert 'does not exist' in formatted
 
 
-def test_format_ts(openapi_specs, rs_factory):
+def test_format_rs(openapi_specs, rs_factory):
     formatter = DefaultFormatter(openapi_specs)
     rs = rs_factory(path='products')
     formatted = formatter.format(rs)

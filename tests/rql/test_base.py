@@ -3,7 +3,7 @@ from decimal import Decimal
 
 import pytest
 
-from cnct.rql.base import RQLQuery
+from connect.client.rql.base import RQLQuery
 
 
 def test_create():
@@ -270,8 +270,11 @@ def test_dotted_path_comp(op):
 def test_dotted_path_list(method, op):
     R = RQLQuery
 
-    assert str(getattr(R().asset.id, method)(('first', 'second'))) == f'{op}(asset.id,(first,second))'
-    assert str(getattr(R().asset.id, method)(['first', 'second'])) == f'{op}(asset.id,(first,second))'
+    rexpr = getattr(R().asset.id, method)(('first', 'second'))
+    assert str(rexpr) == f'{op}(asset.id,(first,second))'
+
+    rexpr = getattr(R().asset.id, method)(['first', 'second'])
+    assert str(rexpr) == f'{op}(asset.id,(first,second))'
 
     with pytest.raises(TypeError):
         getattr(R().asset.id, method)('Test')
@@ -304,6 +307,7 @@ def test_str():
     assert str(RQLQuery(id='ID')) == 'eq(id,ID)'
     assert str(~RQLQuery(id='ID')) == 'not(eq(id,ID))'
     assert str(~RQLQuery(id='ID', field='value')) == 'not(and(eq(id,ID),eq(field,value)))'
+    assert str(RQLQuery()) == ''
 
 
 def test_hash():

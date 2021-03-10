@@ -1,7 +1,7 @@
 import platform
 from collections import namedtuple
 
-from cnct.client.version import get_version
+from connect.client.version import get_version
 
 ContentRange = namedtuple('ContentRange', ('first', 'last', 'count'))
 

@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.openapi import OpenAPISpecs
+from connect.client.openapi import OpenAPISpecs
 
 
 def test_load_from_file():
@@ -55,12 +55,43 @@ def test_exists(openapi_specs, method, path, expected):
 
 def test_get_namespaces(openapi_specs):
     namespaces = openapi_specs.get_namespaces()
-    assert namespaces == ['subscriptions']
+    assert namespaces == [
+        'auth',
+        'conversations',
+        'dictionary',
+        'helpdesk',
+        'notifications',
+        'offers',
+        'pricing',
+        'reporting',
+        'subscriptions',
+        'tier',
+        'usage',
+    ]
 
 
 def test_get_collections(openapi_specs):
     cols = openapi_specs.get_collections()
-    assert cols == ['products']
+    assert cols == [
+        'accounts',
+        'agreements',
+        'assets',
+        'categories',
+        'contracts',
+        'countries',
+        'extensions',
+        'forms',
+        'hubs',
+        'industries',
+        'listing-requests',
+        'listings',
+        'marketplaces',
+        'modules',
+        'partners',
+        'products',
+        'requests',
+        'users',
+    ]
 
 
 def test_get_namespaced_collections(openapi_specs):
@@ -116,5 +147,11 @@ def test_get_nested_collections(openapi_specs):
         'media',
         'parameters',
         'templates',
-        'versions'
+        'usage',
+        'versions',
     ] == [x[0] for x in nested]
+
+
+def test_get_nested_namespaces(openapi_specs):
+    nested = openapi_specs.get_nested_namespaces('dictionary')
+    assert nested == ['extensions']

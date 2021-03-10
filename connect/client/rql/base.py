@@ -1,4 +1,4 @@
-from cnct.rql.utils import parse_kwargs, to_rql_value
+from connect.client.rql.utils import parse_kwargs, to_rql_value
 
 
 COMP = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
@@ -36,7 +36,11 @@ class RQLQuery:
 
         .. code-block:: python
 
-            rql = R().n('field').eq('value') & R().n('field2').in_(('v1', 'v2')) & R().n('field3').empty(True)
+            rql = (
+                R().n('field').eq('value')
+                & R().n('field2').in_(('v1', 'v2'))
+                & R().n('field3').empty(True)
+            )
 
         The previous query can be expressed in a more concise form like:
 
@@ -121,7 +125,7 @@ class RQLQuery:
         :rtype: int
         """
         return hash(
-            (self.op, self.expr, self.negated, *(hash(value) for value in self.children))
+            (self.op, self.expr, self.negated, *(hash(value) for value in self.children)),
         )
 
     def __repr__(self):
@@ -163,9 +167,6 @@ class RQLQuery:
         return query
 
     def __getattr__(self, name):
-        if self._field:
-            raise AttributeError('Already evaluated')
-
         return self.n(name)
 
     def __str__(self):
@@ -286,7 +287,10 @@ class RQLQuery:
         if other in self.children:
             return other
 
-        if (other.op == self.op or (len(other) == 1 and other.op != self.EXPR)) and not other.negated:
+        if (
+            (other.op == self.op or (len(other) == 1 and other.op != self.EXPR))
+            and not other.negated
+        ):
             self.children.extend(other.children)
             return self
 

@@ -1,12 +1,12 @@
 import platform
 
-from cnct.client.utils import (
+from connect.client.utils import (
     ContentRange,
     get_headers,
     parse_content_range,
     resolve_attribute,
 )
-from cnct.client.version import get_version
+from connect.client.version import get_version
 
 
 def test_get_headers():
@@ -46,9 +46,9 @@ def test_resolve_attribute():
     data = {
         'first': {
             'second': {
-                'third': {'a': 'b'}
-            }
-        }
+                'third': {'a': 'b'},
+            },
+        },
     }
 
     assert resolve_attribute('first.second.third', data) == {'a': 'b'}
@@ -58,9 +58,9 @@ def test_resolve_attribute_not_found():
     data = {
         'first': {
             'second': {
-                'third': {'a': 'b'}
-            }
-        }
+                'third': {'a': 'b'},
+            },
+        },
     }
 
     assert resolve_attribute('a.b.c', data) is None
