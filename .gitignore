@@ -17,3 +17,4 @@ coverage/
 /htmlcov/
 docs/_build
 temp/
+converage.xml

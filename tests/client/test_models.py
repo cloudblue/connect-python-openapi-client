@@ -1,9 +1,9 @@
 import pytest
 
-from cnct.client.exceptions import ClientError
-from cnct.client.models import Action, Collection, NS, Resource, ResourceSet
-from cnct.client.utils import ContentRange
-from cnct.rql import R
+from connect.client.exceptions import ClientError
+from connect.client.models import Action, Collection, NS, Resource, ResourceSet
+from connect.client.utils import ContentRange
+from connect.client.rql import R
 
 
 def test_ns_ns_invalid_type(ns_factory):
@@ -381,7 +381,7 @@ def test_resource_values(mocker, res_factory):
             'id': 'ID',
             'not_choosen': 'value',
             'sub_object': {
-                'name': 'ok'
+                'name': 'ok',
             },
         },
     )
@@ -391,8 +391,10 @@ def test_resource_values(mocker, res_factory):
     assert isinstance(result, dict)
     assert 'not_choosen' not in result
     assert 'id' in result and result['id'] == 'ID'
-    assert 'sub_object.name' in result \
+    assert (
+        'sub_object.name' in result
         and result['sub_object.name'] == 'ok'
+    )
 
 
 def test_resource_help(res_factory):
@@ -503,7 +505,7 @@ def test_action_help(action_factory):
 
 def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -516,7 +518,7 @@ def test_rs_iterate(mocker, rs_factory):
 
 def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=None,
     )
     expected = [{'id': i} for i in range(10)]
@@ -529,7 +531,7 @@ def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
 
 def test_rs_bool_truthy(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -540,7 +542,7 @@ def test_rs_bool_truthy(mocker, rs_factory):
 
 def test_rs_bool_falsy(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
     rs = rs_factory()
@@ -550,7 +552,7 @@ def test_rs_bool_falsy(mocker, rs_factory):
 
 def test_rs_getitem(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -561,7 +563,7 @@ def test_rs_getitem(mocker, rs_factory):
 
 def test_rs_getitem_slice(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -600,7 +602,7 @@ def test_rs_getitem_slice_step(mocker, rs_factory):
 def test_rs_count(mocker, rs_factory):
     content_range = ContentRange(0, 9, 100)
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=content_range,
     )
     rs = rs_factory()
@@ -613,7 +615,7 @@ def test_rs_count(mocker, rs_factory):
 def test_rs_first(mocker, rs_factory):
     content_range = ContentRange(0, 9, 10)
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=content_range,
     )
     expected = [{'id': i} for i in range(10)]
@@ -661,7 +663,7 @@ def test_rs_request(mocker, rs_factory):
     rs = rs_factory()
     content_range = ContentRange(0, 0, 0)
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=content_range,
     )
     rs._client.get = mocker.MagicMock(return_value=[])
@@ -688,7 +690,7 @@ def test_rs_request(mocker, rs_factory):
 
 def test_rs_values_list(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -697,7 +699,7 @@ def test_rs_values_list(mocker, rs_factory):
             'name': f'name {i}',
             'inner': {
                 'title': f'title {i}',
-            }
+            },
         }
         for i in range(10)
     ]
@@ -719,7 +721,7 @@ def test_rs_values_list(mocker, rs_factory):
 
 def test_rs_values_list_evaluated(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -728,7 +730,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
             'name': f'name {i}',
             'inner': {
                 'title': f'title {i}',
-            }
+            },
         }
         for i in range(10)
     ]
@@ -750,7 +752,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
 
 def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -770,7 +772,7 @@ def test_rs_pagination(mocker, rs_factory):
 
 def test_rs_values_list_pagination(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -785,7 +787,7 @@ def test_rs_values_list_pagination(mocker, rs_factory):
                 'name': f'name {i}',
                 'inner': {
                     'title': f'title {i}',
-                }
+                },
             }
             for i in range(100)
         ],
@@ -795,10 +797,10 @@ def test_rs_values_list_pagination(mocker, rs_factory):
                 'name': f'name {i}',
                 'inner': {
                     'title': f'title {i}',
-                }
+                },
             }
             for i in range(100, 200)
-        ]
+        ],
     ])
 
     expected = [
@@ -814,7 +816,7 @@ def test_rs_values_list_pagination(mocker, rs_factory):
 
 def test_rs_with_queries(mocker, rs_factory):
     mocker.patch(
-        'cnct.client.models.resourceset.parse_content_range',
+        'connect.client.models.resourceset.parse_content_range',
         return_value=ContentRange(0, 0, 0),
     )
     rs = rs_factory(query='eq(status,approved)')
@@ -893,3 +895,64 @@ def test_rs_help(rs_factory):
     rs2 = rs.help()
     rs._client.print_help.assery_called_once_with(rs)
     assert rs2 == rs
+
+
+def test_rs_bool_truthy_already_evaluated(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.resourceset.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    mocked = mocker.patch.object(ResourceSet, '_execute_request', wraps=rs._execute_request)
+    rs._client.get = mocker.MagicMock(return_value=expected)
+    assert bool(rs) is True
+    assert bool(rs) is True
+    mocked.assert_called_once()
+
+
+def test_rs_count_already_evaluated(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.resourceset.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=expected)
+    assert bool(rs) is True
+    assert rs.count() == 10
+
+
+def test_rs_slice_single_bound(mocker, rs_factory):
+    rs = rs_factory()
+    with pytest.raises(ValueError) as cv:
+        rs[1:]
+    assert str(cv.value) == 'Both start and stop indexes must be specified.'
+
+    with pytest.raises(ValueError) as cv:
+        rs[:1]
+    assert str(cv.value) == 'Both start and stop indexes must be specified.'
+
+
+def test_rs_slice_already_evaluated(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.resourceset.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=expected)
+    assert bool(rs) is True
+    assert rs[0:2] == expected[0:2]
+
+
+def test_rs_iterate_already_evaluated(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.resourceset.parse_content_range',
+        return_value=ContentRange(0, 9, 10),
+    )
+    expected = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(return_value=expected)
+    assert bool(rs) is True
+    assert [item for item in rs] == expected

@@ -1,17 +1,16 @@
 import threading
 import time
-
 from json.decoder import JSONDecodeError
 
 import requests
 from requests.exceptions import RequestException
 
-from cnct.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from cnct.client.exceptions import ClientError
-from cnct.client.models import Collection, NS
-from cnct.client.utils import get_headers
-from cnct.client.help_formatter import DefaultFormatter
-from cnct.client.openapi import OpenAPISpecs
+from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
+from connect.client.exceptions import ClientError
+from connect.client.models import Collection, NS
+from connect.client.utils import get_headers
+from connect.client.help_formatter import DefaultFormatter
+from connect.client.openapi import OpenAPISpecs
 
 
 class ConnectClient(threading.local):
@@ -36,7 +35,8 @@ class ConnectClient(threading.local):
         :type api_key: str
         :param endpoint: The API endpoint, defaults to CONNECT_ENDPOINT_URL
         :type endpoint: str, optional
-        :param specs_location: The Connect OpenAPI specification local path or URL, defaults to CONNECT_SPECS_URL
+        :param specs_location: The Connect OpenAPI specification local path or URL, defaults to
+                               CONNECT_SPECS_URL
         :type specs_location: str, optional
         :param default_headers: Http headers to apply to each request, defaults to {}
         :type default_headers: dict, optional
@@ -144,14 +144,7 @@ class ConnectClient(threading.local):
 
         url = f'{self.endpoint}/{path}'
 
-        kwargs = kwargs or {}
-        if 'headers' in kwargs:
-            kwargs['headers'].update(get_headers(self.api_key))
-        else:
-            kwargs['headers'] = get_headers(self.api_key)
-
-        if self.default_headers:
-            kwargs['headers'].update(self.default_headers)
+        kwargs = self._prepare_call_kwargs(kwargs)
 
         self.response = None
 
@@ -177,15 +170,29 @@ class ConnectClient(threading.local):
         self.print_help(None)
         return self
 
+    def _prepare_call_kwargs(self, kwargs):
+        kwargs = kwargs or {}
+        if 'headers' in kwargs:
+            kwargs['headers'].update(get_headers(self.api_key))
+        else:
+            kwargs['headers'] = get_headers(self.api_key)
+
+        if self.default_headers:
+            kwargs['headers'].update(self.default_headers)
+        return kwargs
+
     def _execute_http_call(self, method, url, kwargs):
         retry_count = 0
         while True:
             self.response = requests.request(method, url, **kwargs)
-            if self.response.status_code == 502 and retry_count < self.max_retries:
+            if (  # pragma: no branch
+                self.response.status_code == 502
+                and retry_count < self.max_retries
+            ):
                 retry_count += 1
                 time.sleep(1)
                 continue
-            break
+            break  # pragma: no cover
         if self.response.status_code >= 400:
             self.response.raise_for_status()
 

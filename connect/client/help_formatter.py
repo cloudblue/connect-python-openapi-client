@@ -1,7 +1,8 @@
 import inflect
 
 from cmr import render
-from cnct.client.models import Action, Collection, NS, Resource, ResourceSet
+
+from connect.client.models import Action, Collection, NS, Resource, ResourceSet
 
 
 _COL_HTTP_METHOD_TO_METHOD = {
@@ -19,19 +20,19 @@ class DefaultFormatter:
     def format_client(self):
         lines = [
             f'# Welcome to {self._specs.title} {self._specs.version}',
-            '## Introduction'
+            '## Introduction',
         ] + self._specs.description.splitlines()
 
         lines += [
             '',
-            '## Namespaces'
+            '## Namespaces',
         ]
         for ns in self._specs.get_namespaces():
             lines.append(f'* {ns}')
 
         lines += [
             '',
-            '## Collections'
+            '## Collections',
         ]
         for col in self._specs.get_collections():
             lines.append(f'* {col}')

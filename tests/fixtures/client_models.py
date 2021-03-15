@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.client.models import Action, NS, Collection, Resource, ResourceSet
+from connect.client.models import Action, Collection, NS, Resource, ResourceSet
 
 
 @pytest.fixture

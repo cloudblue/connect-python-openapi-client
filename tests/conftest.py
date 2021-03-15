@@ -2,7 +2,7 @@ import pytest
 
 import responses
 
-from cnct.client.openapi import OpenAPISpecs
+from connect.client.openapi import OpenAPISpecs
 
 from tests.fixtures.client_models import (  # noqa
     action_factory,

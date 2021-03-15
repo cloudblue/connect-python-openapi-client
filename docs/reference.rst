@@ -4,7 +4,7 @@ API Reference
 Client
 ------
 
-.. autoclass:: cnct.client.fluent.ConnectClient
+.. autoclass:: connect.client.fluent.ConnectClient
    :members:
    :special-members: __getattr__, __call__
 
@@ -13,22 +13,22 @@ Client
 Models
 ------
 
-.. autoclass:: cnct.client.models.NS
+.. autoclass:: connect.client.models.NS
    :members:
    :special-members: __getattr__
 
 
-.. autoclass:: cnct.client.models.Collection
+.. autoclass:: connect.client.models.Collection
    :members:
    :special-members: __getitem__
 
 
-.. autoclass:: cnct.client.models.Resource
+.. autoclass:: connect.client.models.Resource
    :members:
    :special-members: __getattr__, __call__
 
 
-.. autoclass:: cnct.client.models.ResourceSet
+.. autoclass:: connect.client.models.ResourceSet
    :members:
    :special-members: __bool__, __iter__, __getitem__
 
@@ -36,12 +36,12 @@ Models
 RQL utility
 -----------
 
-.. autoclass:: cnct.rql.base.R
+.. autoclass:: connect.client.rql.base.R
    :members:
    :special-members: __and__, __bool__, __eq__, __getattr__, __invert__, __len__, __or__
 
 
-.. autoclass:: cnct.rql.base.RQLQuery
+.. autoclass:: connect.client.rql.base.RQLQuery
    :members:
    :special-members: __and__, __bool__, __eq__, __getattr__, __invert__, __len__, __or__
 
@@ -49,5 +49,5 @@ RQL utility
 Exceptions
 ----------
 
-.. autoclass:: cnct.client.exceptions.ClientError
+.. autoclass:: connect.client.exceptions.ClientError
    :members:

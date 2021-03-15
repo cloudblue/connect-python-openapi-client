@@ -1,7 +1,7 @@
-from cnct.client.exceptions import ClientError
-from cnct.client.models.resourceset import ResourceSet
-from cnct.client.utils import resolve_attribute
-from cnct.rql import R
+from connect.client.exceptions import ClientError
+from connect.client.models.resourceset import ResourceSet
+from connect.client.utils import resolve_attribute
+from connect.client.rql import R
 
 
 class NS:

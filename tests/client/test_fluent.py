@@ -2,9 +2,12 @@ import pytest
 
 import responses
 
-from cnct.client.exceptions import ClientError
-from cnct.client.fluent import ConnectClient
-from cnct.client.models import Collection, NS
+from requests import RequestException
+
+from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
+from connect.client.exceptions import ClientError
+from connect.client.fluent import ConnectClient
+from connect.client.models import Collection, NS
 
 
 def test_default_headers():
@@ -88,19 +91,18 @@ def test_get(mocker):
     assert mocked.called_once_with('get', url, 200, **kwargs)
 
 
-def test_create(mocker):
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+def test_create(mocker, attr):
     mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
-    payload = {
-        'k1': 'v1',
-    }
     kwargs = {
         'arg1': 'val1',
     }
+    kwargs[attr] = {'k1': 'v1'}
 
     c = ConnectClient('API_KEY', use_specs=False)
 
-    c.create(url, payload=payload, **kwargs)
+    c.create(url, **kwargs)
 
     mocked.assert_called_once_with('post', url, **{
         'arg1': 'val1',
@@ -110,19 +112,18 @@ def test_create(mocker):
     })
 
 
-def test_update(mocker):
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+def test_update(mocker, attr):
     mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
-    payload = {
-        'k1': 'v1',
-    }
     kwargs = {
         'arg1': 'val1',
     }
+    kwargs[attr] = {'k1': 'v1'}
 
     c = ConnectClient('API_KEY', use_specs=False)
 
-    c.update(url, payload=payload, **kwargs)
+    c.update(url, **kwargs)
 
     mocked.assert_called_once_with('put', url, **{
         'arg1': 'val1',
@@ -166,6 +167,35 @@ def test_execute(mocked_responses):
     assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
 
     assert results == expected
+
+
+def test_execute_validate_with_specs(mocker):
+    mocked_specs = mocker.MagicMock()
+    mocked_specs.exists.return_value = False
+
+    mocked_specs = mocker.patch('connect.client.fluent.OpenAPISpecs', return_value=mocked_specs)
+
+    c = ConnectClient('API_KEY')
+    with pytest.raises(ClientError) as cv:
+        c.execute('GET', 'resources')
+
+    assert str(cv.value) == 'The path `resources` does not exist.'
+
+
+def test_execute_non_json_response(mocked_responses):
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        status=200,
+        body='This is a non json response.',
+    )
+    c = ConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+    )
+    result = c.execute('get', 'resources')
+    assert result == b'This is a non json response.'
 
 
 def test_execute_retries(mocked_responses):
@@ -309,6 +339,27 @@ def test_execute_connect_error(mocked_responses):
     assert cv.value.errors == ['first', 'second']
 
 
+def test_execute_unexpected_connect_error(mocked_responses):
+    connect_error = {
+        'unrecognized': 'code',
+        'attributes': ['first', 'second'],
+    }
+
+    mocked_responses.add(
+        responses.POST,
+        'https://localhost/resources',
+        json=connect_error,
+        status=400,
+    )
+
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError) as cv:
+        c.execute('post', 'resources')
+
+    assert str(cv.value) == '400 Bad Request'
+
+
 def test_execute_uparseable_connect_error(mocked_responses):
 
     mocked_responses.add(
@@ -354,3 +405,54 @@ def test_execute_delete(mocked_responses):
     results = c.execute('delete', 'resources')
 
     assert results is None
+
+
+def test_create_client_with_defaults(mocker):
+    mocked_specs = mocker.patch('connect.client.fluent.OpenAPISpecs')
+
+    c = ConnectClient('API_KEY')
+    mocked_specs.assert_called_once_with(CONNECT_SPECS_URL)
+    assert c.endpoint == CONNECT_ENDPOINT_URL
+
+
+def test_get_attr_with_underscore(mocker):
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    coll = c.my_collection
+    assert coll.path == 'my-collection'
+
+
+def test_call(mocker):
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    ns = c('ns')
+    assert isinstance(ns, NS)
+    assert ns.path == 'ns'
+
+
+def test_print_help(mocker):
+    format_mock = mocker.MagicMock()
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c._help_formatter.format = format_mock
+
+    c.print_help(None)
+    format_mock.assert_called_once_with(None)
+
+
+def test_help(mocker):
+    format_mock = mocker.MagicMock()
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c._help_formatter.format = format_mock
+    c.help()
+    format_mock.assert_called_once_with(None)
+
+
+def test_non_server_error(mocker):
+    mocker.patch('connect.client.fluent.requests.request', side_effect=RequestException('generic'))
+
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError) as cv:
+        c.execute('get', 'path')
+
+    assert str(cv.value) == 'Unexpected error'

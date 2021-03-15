@@ -1,6 +1,6 @@
 import pytest
 
-from cnct.rql.utils import parse_kwargs
+from connect.client.rql.utils import parse_kwargs
 
 
 def test_simple():
@@ -40,7 +40,7 @@ def test_nested_fields():
         ('null', False, 'ne'),
         ('empty', True, 'eq'),
         ('empty', False, 'ne'),
-    )
+    ),
 )
 def test_null(expr, value, expected_op):
     expressions = parse_kwargs({f'field__{expr}': value})
