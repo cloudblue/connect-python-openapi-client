@@ -1,0 +1,29 @@
+{
+  "generated": "2021-03-16T08:25:48.313476+00:00",
+  "pages": [
+    {
+      "name": "Welcome",
+      "category": "Welcome",
+      "file": "README.md",
+      "idx": "0",
+      "outputFileName": "000_README.md",
+      "url": "https://raw.githubusercontent.com/cloudblue/connect-python-openapi-client/docs/markdown/docs/_build/markdown/000_README.md"
+    },
+    {
+      "name": "User guide",
+      "category": "User guide",
+      "file": "guide.md",
+      "idx": "1",
+      "outputFileName": "001_guide.md",
+      "url": "https://raw.githubusercontent.com/cloudblue/connect-python-openapi-client/docs/markdown/docs/_build/markdown/001_guide.md"
+    },
+    {
+      "name": "API reference",
+      "category": "API reference",
+      "file": "reference.md",
+      "idx": "2",
+      "outputFileName": "002_reference.md",
+      "url": "https://raw.githubusercontent.com/cloudblue/connect-python-openapi-client/docs/markdown/docs/_build/markdown/002_reference.md"
+    }
+  ]
+}
