@@ -505,7 +505,7 @@ def test_action_help(action_factory):
 
 def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -518,7 +518,7 @@ def test_rs_iterate(mocker, rs_factory):
 
 def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=None,
     )
     expected = [{'id': i} for i in range(10)]
@@ -663,7 +663,7 @@ def test_rs_request(mocker, rs_factory):
     rs = rs_factory()
     content_range = ContentRange(0, 0, 0)
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=content_range,
     )
     rs._client.get = mocker.MagicMock(return_value=[])
@@ -690,7 +690,7 @@ def test_rs_request(mocker, rs_factory):
 
 def test_rs_values_list(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -752,7 +752,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
 
 def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -772,7 +772,7 @@ def test_rs_pagination(mocker, rs_factory):
 
 def test_rs_values_list_pagination(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
