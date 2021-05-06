@@ -3,6 +3,5 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
-import pkgutil
-
-__path__ = pkgutil.extend_path(__path__, __name__)
+class NotYetEvaluatedError(Exception):
+    pass

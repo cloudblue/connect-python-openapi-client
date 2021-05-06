@@ -1,0 +1,359 @@
+import pytest
+
+from connect.client import AsyncConnectClient, ClientError
+from connect.client.models import AsyncCollection, AsyncNS
+
+
+@pytest.mark.asyncio
+async def test_async_get(async_mocker):
+    url = 'https://localhost'
+    kwargs = {
+        'arg1': 'val1',
+    }
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    mocked = async_mocker.AsyncMock()
+    c.execute = mocked
+    await c.get(url, **kwargs)
+    mocked.assert_awaited_once_with('get', url, **kwargs)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+async def test_create(async_mocker, attr):
+    mocked = async_mocker.AsyncMock()
+    url = 'https://localhost'
+    kwargs = {
+        'arg1': 'val1',
+    }
+    kwargs[attr] = {'k1': 'v1'}
+
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c.execute = mocked
+
+    await c.create(url, **kwargs)
+
+    mocked.assert_awaited_once_with('post', url, **{
+        'arg1': 'val1',
+        'json': {
+            'k1': 'v1',
+        },
+    })
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+async def test_update(async_mocker, attr):
+    mocked = async_mocker.AsyncMock()
+    url = 'https://localhost'
+    kwargs = {
+        'arg1': 'val1',
+    }
+    kwargs[attr] = {'k1': 'v1'}
+
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c.execute = mocked
+
+    await c.update(url, **kwargs)
+
+    mocked.assert_awaited_once_with('put', url, **{
+        'arg1': 'val1',
+        'json': {
+            'k1': 'v1',
+        },
+    })
+
+
+@pytest.mark.asyncio
+async def test_delete(async_mocker):
+    mocked = async_mocker.AsyncMock()
+    url = 'https://localhost'
+
+    kwargs = {
+        'arg1': 'val1',
+    }
+
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c.execute = mocked
+
+    await c.delete(url, **kwargs)
+
+    mocked.assert_awaited_once_with('delete', url, **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_execute(httpx_mock):
+    expected = [{'id': i} for i in range(10)]
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        json=expected,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    results = await c.execute('get', 'resources')
+
+    assert httpx_mock.get_requests()[0].method == 'GET'
+    headers = httpx_mock.get_requests()[0].headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+
+    assert results == expected
+
+
+@pytest.mark.asyncio
+async def test_execute_validate_with_specs(async_mocker):
+    mocked_specs = async_mocker.MagicMock()
+    mocked_specs.exists.return_value = False
+
+    async_mocker.patch('connect.client.fluent.OpenAPISpecs', return_value=mocked_specs)
+
+    c = AsyncConnectClient('API_KEY')
+    with pytest.raises(ClientError) as cv:
+        await c.execute('GET', 'resources')
+
+    assert str(cv.value) == 'The path `resources` does not exist.'
+
+
+@pytest.mark.asyncio
+async def test_execute_non_json_response(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=200,
+        data='This is a non json response.',
+    )
+    c = AsyncConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+    )
+    result = await c.execute('get', 'resources')
+    assert result == b'This is a non json response.'
+
+
+@pytest.mark.asyncio
+async def test_execute_retries(httpx_mock):
+    expected = [{'id': i} for i in range(10)]
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=502,
+    )
+
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=502,
+    )
+
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=200,
+        json=expected,
+    )
+
+    c = AsyncConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+        max_retries=2,
+    )
+
+    results = await c.execute('get', 'resources')
+
+    assert httpx_mock.get_requests()[0].method == 'GET'
+    headers = httpx_mock.get_requests()[0].headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+
+    assert results == expected
+
+
+@pytest.mark.asyncio
+async def test_execute_max_retries_exceeded(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=502,
+    )
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=502,
+    )
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        status_code=502,
+    )
+
+    c = AsyncConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+        max_retries=2,
+    )
+
+    with pytest.raises(ClientError):
+        await c.execute('get', 'resources')
+
+
+@pytest.mark.asyncio
+async def test_execute_default_headers(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources',
+        json=[],
+    )
+
+    c = AsyncConnectClient(
+        'API_KEY',
+        endpoint='https://localhost',
+        use_specs=False,
+        default_headers={'X-Custom-Header': 'custom-header-value'},
+    )
+
+    await c.execute('get', 'resources')
+
+    headers = httpx_mock.get_requests()[0].headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+    assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'custom-header-value'
+
+
+@pytest.mark.asyncio
+async def test_execute_with_kwargs(httpx_mock):
+    httpx_mock.add_response(
+        method='POST',
+        url='https://localhost/resources',
+        json=[],
+        status_code=201,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    kwargs = {
+        'headers': {
+            'X-Custom-Header': 'value',
+        },
+    }
+
+    await c.execute('post', 'resources', **kwargs)
+
+    assert httpx_mock.get_requests()[0].method == 'POST'
+
+    headers = httpx_mock.get_requests()[0].headers
+
+    assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
+    assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
+    assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'value'
+
+
+@pytest.mark.asyncio
+async def test_execute_connect_error(httpx_mock):
+    connect_error = {
+        'error_code': 'code',
+        'errors': ['first', 'second'],
+    }
+
+    httpx_mock.add_response(
+        method='POST',
+        url='https://localhost/resources',
+        json=connect_error,
+        status_code=400,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError) as cv:
+        await c.execute('post', 'resources')
+
+    assert cv.value.status_code == 400
+    assert cv.value.error_code == 'code'
+    assert cv.value.errors == ['first', 'second']
+
+
+@pytest.mark.asyncio
+async def test_execute_unexpected_connect_error(httpx_mock):
+    connect_error = {
+        'unrecognized': 'code',
+        'attributes': ['first', 'second'],
+    }
+
+    httpx_mock.add_response(
+        method='POST',
+        url='https://localhost/resources',
+        json=connect_error,
+        status_code=400,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError) as cv:
+        await c.execute('post', 'resources')
+
+    assert str(cv.value) == '400 Bad Request'
+
+
+@pytest.mark.asyncio
+async def test_execute_uparseable_connect_error(httpx_mock):
+
+    httpx_mock.add_response(
+        method='POST',
+        url='https://localhost/resources',
+        data='error text',
+        status_code=400,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError):
+        await c.execute('post', 'resources')
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
+async def test_execute_error_with_reason(httpx_mock, encoding):
+
+    httpx_mock.add_response(
+        method='POST',
+        url='https://localhost/resources',
+        status_code=500,
+        data='Interñal Server Error'.encode(encoding),
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError):
+        await c.execute('post', 'resources')
+
+
+@pytest.mark.asyncio
+async def test_execute_delete(httpx_mock):
+
+    httpx_mock.add_response(
+        method='DELETE',
+        url='https://localhost/resources',
+        data='error text',
+        status_code=204,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    results = await c.execute('delete', 'resources')
+
+    assert results is None
+
+
+def test_collection():
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    assert isinstance(c.collection('resources'), AsyncCollection)
+
+
+def test_ns():
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    assert isinstance(c.ns('namespace'), AsyncNS)

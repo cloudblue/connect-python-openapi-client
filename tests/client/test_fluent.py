@@ -88,7 +88,7 @@ def test_get(mocker):
 
     c.get(url, **kwargs)
 
-    assert mocked.called_once_with('get', url, 200, **kwargs)
+    mocked.assert_called_once_with('get', url, **kwargs)
 
 
 @pytest.mark.parametrize('attr', ('payload', 'json'))
@@ -448,7 +448,7 @@ def test_help(mocker):
 
 
 def test_non_server_error(mocker):
-    mocker.patch('connect.client.fluent.requests.request', side_effect=RequestException('generic'))
+    mocker.patch('connect.client.mixins.requests.request', side_effect=RequestException('generic'))
 
     c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
 
