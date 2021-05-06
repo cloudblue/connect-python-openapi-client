@@ -161,7 +161,7 @@ class _CollectionBase:
         :return: the Resource instance identified by ``resource_id``.
         :rtype: Resource
         """
-        return self._get_resource_class()(resource_id)
+        return self.resource(resource_id)
 
     def all(self):
         """
@@ -283,7 +283,7 @@ class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
         return AsyncResource
 
     def _get_resourceset_class(self):
-        return AsyncResourceSet   
+        return  # AsyncResourceSet
 
 
 class _ResourceBase:

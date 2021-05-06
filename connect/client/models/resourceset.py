@@ -11,27 +11,26 @@ class AbstractIterable:
         self._query = query
         self._config = config
         self._kwargs = kwargs
+        self._results, self._cr = self._execute_request()
 
     def get_item(self, item):
         raise NotImplementedError('get_item must be implemented in subclasses.')
 
-    def __iter__(self):
-        cr = None
-        results = None
-        while cr is None or cr.last < cr.count - 1:
-
-            results, cr = self._execute_request()
-
-            if not results:
-                return
-
-            for item in results:
-                yield self.get_item(item)
-
-            if not cr:
-                # endpoint doesn't support pagination
-                return
+    def __next__(self):
+        if self._results is None:
+            raise StopIteration
+        try:
+            item = next(self._results)
+        except StopIteration:
+            if self._cr is None or self._cr.last >= self._cr.count - 1:
+                raise
             self._config['params']['offset'] += self._config['params']['limit']
+            self._results, self._cr = self._execute_request()
+            if not self._results:
+                raise
+            item = next(self._results)
+
+        return self.get_item(item)
 
     def _execute_request(self):
         results = self._client.get(
@@ -41,7 +40,7 @@ class AbstractIterable:
         content_range = parse_content_range(
             self._client.response.headers.get('Content-Range'),
         )
-        return results, content_range
+        return iter(results), content_range
 
 
 class ResourceIterable(AbstractIterable):
@@ -379,7 +378,7 @@ class ResourceSet:
             ValuesListIterable(*args, fields=self._fields)
             if self._fields else ResourceIterable(*args)
         )
-        return iter(iterable)
+        return iterable
 
     def _get_request_kwargs(self):
         config = copy.deepcopy(self._config)
