@@ -6,7 +6,7 @@ from connect.client.models.mixins import (
     CollectionMixin,
     ResourceMixin,
 )
-from connect.client.models.resourceset import ResourceSet
+from connect.client.models.resourceset import AsyncResourceSet, ResourceSet
 from connect.client.rql import R
 
 
@@ -283,7 +283,7 @@ class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
         return AsyncResource
 
     def _get_resourceset_class(self):
-        return  # AsyncResourceSet
+        return AsyncResourceSet
 
 
 class _ResourceBase:

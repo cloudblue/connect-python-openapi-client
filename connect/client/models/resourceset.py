@@ -1,11 +1,18 @@
+import asyncio
 import copy
 
-from connect.client.models.iterators import ResourceIterator, ValuesListIterator
+from connect.client.models.iterators import (
+    AsyncResourceIterator,
+    AsyncValuesListIterator,
+    ResourceIterator,
+    ValuesListIterator,
+    aiter,
+)
 from connect.client.utils import parse_content_range, resolve_attribute
 from connect.client.rql import R
 
 
-class ResourceSet:
+class _ResourceSetBase:
     """
     Represent a set of resources.
     """
@@ -42,28 +49,6 @@ class ResourceSet:
     @property
     def content_range(self):
         return self._content_range
-
-    def __iter__(self):
-        """
-        Returns an iterator to iterate over the set of resources.
-
-        :return: A resources iterator.
-        :rtype: ResourceSet
-        """
-        if self._results is None:
-            return self._iterator()
-        return iter(self._results)
-
-    def __bool__(self):
-        """
-        Return True if the ResourceSet contains at least a resource
-        otherwise return False.
-
-        :return: True if contains a resource otherwise False.
-        :rtype: bool
-        """
-        self._fetch_all()
-        return bool(self._results)
 
     def __getitem__(self, key):  # noqa: CCR001
         """
@@ -218,31 +203,6 @@ class ResourceSet:
 
         return copy
 
-    def count(self):
-        """
-        Returns the total number of resources within this ResourceSet object.
-
-        :return: The total number of resources present.
-        :rtype: int
-        """
-        if not self._content_range:
-            url = self._get_request_url()
-            kwargs = self._get_request_kwargs()
-            kwargs['params']['limit'] = 0
-            self._execute_request(url, kwargs)
-        return self._content_range.count
-
-    def first(self):
-        """
-        Returns the first resource that belongs to this ResourceSet object
-        or None if the ResourceSet doesn't contains resources.
-
-        :return: The first resource.
-        :rtype: dict, None
-        """
-        self._fetch_all()
-        return self._results[0] if self._results else None
-
     def all(self):
         """
         Returns a copy of the current ResourceSet.
@@ -317,19 +277,6 @@ class ResourceSet:
 
         return url
 
-    def _iterator(self):
-        args = (
-            self._client,
-            self._path,
-            self._build_qs(),
-            self._get_request_kwargs(),
-        )
-        iterator = (
-            ValuesListIterator(*args, fields=self._fields)
-            if self._fields else ResourceIterator(*args)
-        )
-        return iterator
-
     def _get_request_kwargs(self):
         config = copy.deepcopy(self._config)
         config.setdefault('params', {})
@@ -343,20 +290,6 @@ class ResourceSet:
             config['params']['search'] = self._search
 
         return config
-
-    def _execute_request(self, url, kwargs):
-        results = self._client.get(url, **kwargs)
-        self._content_range = parse_content_range(
-            self._client.response.headers.get('Content-Range'),
-        )
-        return results
-
-    def _fetch_all(self):
-        if self._results is None:
-            self._results = self._execute_request(
-                self._get_request_url(),
-                self._get_request_kwargs(),
-            )
 
     def _copy(self):
         rs = ResourceSet(self._client, self._path, self._query)
@@ -380,3 +313,158 @@ class ResourceSet:
         """
         self._client.print_help(self)
         return self
+
+
+class ResourceSet(_ResourceSetBase):
+
+    def __iter__(self):
+        """
+        Returns an iterator to iterate over the set of resources.
+
+        :return: A resources iterator.
+        :rtype: ResourceSet
+        """
+        if self._results is None:
+            return self._iterator()
+        return iter(self._results)
+
+    def __bool__(self):
+        """
+        Return True if the ResourceSet contains at least a resource
+        otherwise return False.
+
+        :return: True if contains a resource otherwise False.
+        :rtype: bool
+        """
+        self._fetch_all()
+        return bool(self._results)
+
+    def count(self):
+        """
+        Returns the total number of resources within this ResourceSet object.
+
+        :return: The total number of resources present.
+        :rtype: int
+        """
+        if not self._content_range:
+            url = self._get_request_url()
+            kwargs = self._get_request_kwargs()
+            kwargs['params']['limit'] = 0
+            self._execute_request(url, kwargs)
+        return self._content_range.count
+
+    def first(self):
+        """
+        Returns the first resource that belongs to this ResourceSet object
+        or None if the ResourceSet doesn't contains resources.
+
+        :return: The first resource.
+        :rtype: dict, None
+        """
+        self._fetch_all()
+        return self._results[0] if self._results else None
+
+    def _iterator(self):
+        args = (
+            self._client,
+            self._path,
+            self._build_qs(),
+            self._get_request_kwargs(),
+        )
+        iterator = (
+            ValuesListIterator(*args, fields=self._fields)
+            if self._fields else ResourceIterator(*args)
+        )
+        return iterator
+
+    def _execute_request(self, url, kwargs):
+        results = self._client.get(url, **kwargs)
+        self._content_range = parse_content_range(
+            self._client.response.headers.get('Content-Range'),
+        )
+        return results
+
+    def _fetch_all(self):
+        if self._results is None:
+            self._results = self._execute_request(
+                self._get_request_url(),
+                self._get_request_kwargs(),
+            )
+
+
+class AsyncResourceSet(_ResourceSetBase):
+
+    def __aiter__(self):
+        """
+        Returns an iterator to iterate over the set of resources.
+
+        :return: A resources iterator.
+        :rtype: ResourceSet
+        """
+        if self._results is None:
+            return self._iterator()
+        return aiter(self._results)
+
+    def __bool__(self):
+        """
+        Return True if the ResourceSet contains at least a resource
+        otherwise return False.
+
+        :return: True if contains a resource otherwise False.
+        :rtype: bool
+        """
+        asyncio.wait_for(self._fetch_all())
+        return bool(self._results)
+
+    async def count(self):
+        """
+        Returns the total number of resources within this ResourceSet object.
+
+        :return: The total number of resources present.
+        :rtype: int
+        """
+        if not self._content_range:
+            url = self._get_request_url()
+            kwargs = self._get_request_kwargs()
+            kwargs['params']['limit'] = 0
+            await self._execute_request(url, kwargs)
+        return self._content_range.count
+
+    async def first(self):
+        """
+        Returns the first resource that belongs to this ResourceSet object
+        or None if the ResourceSet doesn't contains resources.
+
+        :return: The first resource.
+        :rtype: dict, None
+        """
+        await self._fetch_all()
+        return self._results[0] if self._results else None
+
+    def _iterator(self):
+        args = (
+            self._client,
+            self._path,
+            self._build_qs(),
+            self._get_request_kwargs(),
+        )
+
+        iterator = (
+            AsyncValuesListIterator(*args, fields=self._fields)
+            if self._fields else AsyncResourceIterator(*args)
+        )
+        return iterator
+
+    async def _execute_request(self, url, kwargs):
+        results = await self._client.get(url, **kwargs)
+        self._content_range = parse_content_range(
+            self._client.response.headers.get('Content-Range'),
+        )
+        return results
+
+    async def _fetch_all(self):
+        if self._results is None:
+            self._results = await self._execute_request(
+                self._get_request_url(),
+                self._get_request_kwargs(),
+            )
