@@ -65,8 +65,7 @@ flake8-broken-line = "~0.3"
 sphinx-markdown-builder = "^0.5.4"
 pytest-asyncio = "^0.15.1"
 pytest-httpx = "^0.12.0"
-asynctest = { version = "^0.13.0", markers = "python_version < '3.8'" }
-
+mock = { version = "^4.0.3", markers = "python_version < '3.8'" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=42"]

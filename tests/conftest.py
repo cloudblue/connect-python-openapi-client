@@ -31,5 +31,5 @@ def async_mocker(mocker):
     if sys.version_info >= (3, 8):
         return mocker
 
-    import asynctest
-    return asynctest
+    import mock
+    return mock
