@@ -123,7 +123,7 @@ class AsyncClientMixin:
             await self._execute_http_call(method, url, kwargs)
             if self.response.status_code == 204:
                 return None
-            if self.response.headers['Content-Type'] == 'application/json':
+            if self.response.headers.get('Content-Type') == 'application/json':
                 return self.response.json()
             else:
                 return self.response.content
