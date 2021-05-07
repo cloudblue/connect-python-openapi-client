@@ -63,7 +63,6 @@ flake8-future-import = "~0.4"
 flake8-import-order = "~0.18"
 flake8-broken-line = "~0.3"
 sphinx-markdown-builder = "^0.5.4"
-ipython = "^7.23.1"
 pytest-asyncio = "^0.15.1"
 pytest-httpx = "^0.12.0"
 asynctest = { version = "^0.13.0", markers = "python_version < '3.8'" }
