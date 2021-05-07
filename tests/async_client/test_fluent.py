@@ -1,6 +1,7 @@
 import pytest
 
 from connect.client import AsyncConnectClient, ClientError
+from connect.client.models import AsyncCollection, AsyncNS
 
 
 @pytest.mark.asyncio
@@ -31,7 +32,7 @@ async def test_create(async_mocker, attr):
 
     await c.create(url, **kwargs)
 
-    mocked.assert_called_once_with('post', url, **{
+    mocked.assert_awaited_once_with('post', url, **{
         'arg1': 'val1',
         'json': {
             'k1': 'v1',
@@ -54,7 +55,7 @@ async def test_update(async_mocker, attr):
 
     await c.update(url, **kwargs)
 
-    mocked.assert_called_once_with('put', url, **{
+    mocked.assert_awaited_once_with('put', url, **{
         'arg1': 'val1',
         'json': {
             'k1': 'v1',
@@ -76,7 +77,7 @@ async def test_delete(async_mocker):
 
     await c.delete(url, **kwargs)
 
-    mocked.assert_called_once_with('delete', url, **kwargs)
+    mocked.assert_awaited_once_with('delete', url, **kwargs)
 
 
 @pytest.mark.asyncio
@@ -346,3 +347,13 @@ async def test_execute_delete(httpx_mock):
     results = await c.execute('delete', 'resources')
 
     assert results is None
+
+
+def test_collection():
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    assert isinstance(c.collection('resources'), AsyncCollection)
+
+
+def test_ns():
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    assert isinstance(c.ns('namespace'), AsyncNS)

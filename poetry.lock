@@ -15,6 +15,20 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "asgiref"
+version = "3.3.4"
+description = "ASGI specs, helper code, and adapters"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
+
+[package.extras]
+tests = ["pytest", "pytest-asyncio", "mypy (>=0.800)"]
+
+[[package]]
 name = "async-generator"
 version = "1.10"
 description = "Async generators and context managers for Python 3.5+"
@@ -1038,7 +1052,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "90d67ae205af62d34989cebad99fed4636cbc503f2ecc1b4d419bf457ed76d64"
+content-hash = "4d95767b88c8d0b7f4757a7c2bf1a23993bf8ce47e28c76364458f27af7de696"
 
 [metadata.files]
 alabaster = [
@@ -1048,6 +1062,10 @@ alabaster = [
 ansicolors = [
     {file = "ansicolors-1.1.8-py2.py3-none-any.whl", hash = "sha256:00d2dde5a675579325902536738dd27e4fac1fd68f773fe36c21044eb559e187"},
     {file = "ansicolors-1.1.8.zip", hash = "sha256:99f94f5e3348a0bcd43c82e5fc4414013ccc19d70bd939ad71e0133ce9c372e0"},
+]
+asgiref = [
+    {file = "asgiref-3.3.4-py3-none-any.whl", hash = "sha256:92906c611ce6c967347bbfea733f13d6313901d54dcca88195eaeb52b2a8e8ee"},
+    {file = "asgiref-3.3.4.tar.gz", hash = "sha256:d1216dfbdfb63826470995d31caed36225dcaf34f182e0fa257a4dd9e86f1b78"},
 ]
 async-generator = [
     {file = "async_generator-1.10-py3-none-any.whl", hash = "sha256:01c7bf666359b4967d2cda0000cc2e4af16a0ae098cbffcb8472fb9e8ad6585b"},

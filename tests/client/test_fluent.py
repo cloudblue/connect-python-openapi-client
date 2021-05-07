@@ -88,7 +88,7 @@ def test_get(mocker):
 
     c.get(url, **kwargs)
 
-    assert mocked.called_once_with('get', url, 200, **kwargs)
+    mocked.assert_called_once_with('get', url, **kwargs)
 
 
 @pytest.mark.parametrize('attr', ('payload', 'json'))

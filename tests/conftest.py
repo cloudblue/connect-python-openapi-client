@@ -8,6 +8,12 @@ from connect.client.openapi import OpenAPISpecs
 
 from tests.fixtures.client_models import (  # noqa
     action_factory,
+    async_action_factory,
+    async_client_mock,
+    async_col_factory,
+    async_ns_factory,
+    async_res_factory,
+    async_rs_factory,
     col_factory,
     res_factory,
     ns_factory,

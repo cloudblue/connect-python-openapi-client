@@ -1,5 +1,6 @@
-import asyncio
 import copy
+
+from asgiref.sync import async_to_sync
 
 from connect.client.models.iterators import (
     AsyncResourceIterator,
@@ -49,50 +50,6 @@ class _ResourceSetBase:
     @property
     def content_range(self):
         return self._content_range
-
-    def __getitem__(self, key):  # noqa: CCR001
-        """
-        If called with and integer index, returns the item
-        at index ``key``.
-
-        If key is a slice, set the pagination limit and offset
-        accordingly.
-
-        :param key: index or slice.
-        :type key: int, slice
-        :raises TypeError: If ``key`` is neither an integer nor a slice.
-        :return: The resource at index ``key`` or self if ``key`` is a slice.
-        :rtype: dict, ResultSet
-        """
-        if not isinstance(key, (int, slice)):
-            raise TypeError('ResourceSet indices must be integers or slices.')
-
-        if isinstance(key, slice) and (key.start is None or key.stop is None):
-            raise ValueError('Both start and stop indexes must be specified.')
-
-        if (not isinstance(key, slice) and (key < 0)) or (
-            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
-        ):
-            raise ValueError('Negative indexing is not supported.')
-
-        if isinstance(key, slice) and not (key.step is None or key.step == 0):
-            raise ValueError('Indexing with step is not supported.')
-
-        if self._results:
-            return self._results[key]
-
-        if isinstance(key, int):
-            copy = self._copy()
-            copy._limit = 1
-            copy._offset = key
-            copy._fetch_all()
-            return copy._results[0] if copy._results else None
-
-        copy = self._copy()
-        copy._offset = key.start
-        copy._limit = key.stop - key.start
-        copy._slice = True
-        return copy
 
     def configure(self, **kwargs):
         """
@@ -292,7 +249,7 @@ class _ResourceSetBase:
         return config
 
     def _copy(self):
-        rs = ResourceSet(self._client, self._path, self._query)
+        rs = self.__class__(self._client, self._path, self._query)
         rs._limit = self._limit
         rs._offset = self._offset
         rs._slice = self._slice
@@ -338,6 +295,50 @@ class ResourceSet(_ResourceSetBase):
         """
         self._fetch_all()
         return bool(self._results)
+
+    def __getitem__(self, key):  # noqa: CCR001
+        """
+        If called with and integer index, returns the item
+        at index ``key``.
+
+        If key is a slice, set the pagination limit and offset
+        accordingly.
+
+        :param key: index or slice.
+        :type key: int, slice
+        :raises TypeError: If ``key`` is neither an integer nor a slice.
+        :return: The resource at index ``key`` or self if ``key`` is a slice.
+        :rtype: dict, ResultSet
+        """
+        if not isinstance(key, (int, slice)):
+            raise TypeError('ResourceSet indices must be integers or slices.')
+
+        if isinstance(key, slice) and (key.start is None or key.stop is None):
+            raise ValueError('Both start and stop indexes must be specified.')
+
+        if (not isinstance(key, slice) and (key < 0)) or (
+            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
+        ):
+            raise ValueError('Negative indexing is not supported.')
+
+        if isinstance(key, slice) and not (key.step is None or key.step == 0):
+            raise ValueError('Indexing with step is not supported.')
+
+        if self._results:
+            return self._results[key]
+
+        if isinstance(key, int):
+            copy = self._copy()
+            copy._limit = 1
+            copy._offset = key
+            copy._fetch_all()
+            return copy._results[0] if copy._results else None
+
+        copy = self._copy()
+        copy._offset = key.start
+        copy._limit = key.stop - key.start
+        copy._slice = True
+        return copy
 
     def count(self):
         """
@@ -413,8 +414,52 @@ class AsyncResourceSet(_ResourceSetBase):
         :return: True if contains a resource otherwise False.
         :rtype: bool
         """
-        asyncio.wait_for(self._fetch_all())
+        async_to_sync(self._fetch_all)()
         return bool(self._results)
+
+    def __getitem__(self, key):  # noqa: CCR001
+        """
+        If called with and integer index, returns the item
+        at index ``key``.
+
+        If key is a slice, set the pagination limit and offset
+        accordingly.
+
+        :param key: index or slice.
+        :type key: int, slice
+        :raises TypeError: If ``key`` is neither an integer nor a slice.
+        :return: The resource at index ``key`` or self if ``key`` is a slice.
+        :rtype: dict, ResultSet
+        """
+        if not isinstance(key, (int, slice)):
+            raise TypeError('ResourceSet indices must be integers or slices.')
+
+        if isinstance(key, slice) and (key.start is None or key.stop is None):
+            raise ValueError('Both start and stop indexes must be specified.')
+
+        if (not isinstance(key, slice) and (key < 0)) or (
+            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
+        ):
+            raise ValueError('Negative indexing is not supported.')
+
+        if isinstance(key, slice) and not (key.step is None or key.step == 0):
+            raise ValueError('Indexing with step is not supported.')
+
+        if self._results:
+            return self._results[key]
+
+        if isinstance(key, int):
+            copy = self._copy()
+            copy._limit = 1
+            copy._offset = key
+            async_to_sync(copy._fetch_all)()
+            return copy._results[0] if copy._results else None
+
+        copy = self._copy()
+        copy._offset = key.start
+        copy._limit = key.stop - key.start
+        copy._slice = True
+        return copy
 
     async def count(self):
         """
