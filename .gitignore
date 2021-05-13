@@ -17,4 +17,5 @@ coverage/
 /htmlcov/
 docs/_build
 temp/
-converage.xml
+coverage.xml
+*.DS_Store

@@ -6,6 +6,7 @@ Client
 
 .. autoclass:: connect.client.fluent.ConnectClient
    :members:
+   :inherited-members:
    :special-members: __getattr__, __call__
 
 
@@ -15,21 +16,29 @@ Models
 
 .. autoclass:: connect.client.models.NS
    :members:
+   :inherited-members:
    :special-members: __getattr__
 
 
 .. autoclass:: connect.client.models.Collection
    :members:
+   :inherited-members:
    :special-members: __getitem__
 
 
 .. autoclass:: connect.client.models.Resource
    :members:
+   :inherited-members:
    :special-members: __getattr__, __call__
 
+.. autoclass:: connect.client.models.Action
+   :members:
+   :inherited-members:
+   :special-members: __getattr__, __call__
 
 .. autoclass:: connect.client.models.ResourceSet
    :members:
+   :inherited-members:
    :special-members: __bool__, __iter__, __getitem__
 
 

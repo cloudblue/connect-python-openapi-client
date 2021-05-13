@@ -1,19 +1,21 @@
+#
+# This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
+#
+# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+#
 import threading
-import time
 from json.decoder import JSONDecodeError
 
-import requests
-from requests.exceptions import RequestException
-
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from connect.client.exceptions import ClientError
-from connect.client.models import Collection, NS
+from connect.client.mixins import AsyncClientMixin, SyncClientMixin
+from connect.client.models import AsyncCollection, AsyncNS, Collection, NS
 from connect.client.utils import get_headers
 from connect.client.help_formatter import DefaultFormatter
 from connect.client.openapi import OpenAPISpecs
 
 
-class ConnectClient(threading.local):
+class _ConnectClientBase(threading.local):
+
     """
     Connect ReST API client.
     """
@@ -89,7 +91,7 @@ class ConnectClient(threading.local):
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return NS(self, name)
+        return self._get_namespace_class()(self, name)
 
     def collection(self, name):
         """
@@ -106,61 +108,10 @@ class ConnectClient(threading.local):
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return Collection(
+        return self._get_collection_class()(
             self,
             name,
         )
-
-    def get(self, url, **kwargs):
-        return self.execute('get', url, **kwargs)
-
-    def create(self, url, payload=None, **kwargs):
-        kwargs = kwargs or {}
-
-        if payload:
-            kwargs['json'] = payload
-
-        return self.execute('post', url, **kwargs)
-
-    def update(self, url, payload=None, **kwargs):
-        kwargs = kwargs or {}
-
-        if payload:
-            kwargs['json'] = payload
-
-        return self.execute('put', url, **kwargs)
-
-    def delete(self, url, **kwargs):
-        return self.execute('delete', url, **kwargs)
-
-    def execute(self, method, path, **kwargs):
-        if (
-            self._use_specs
-            and self._validate_using_specs
-            and not self.specs.exists(method, path)
-        ):
-            # TODO more info, specs version, method etc
-            raise ClientError(f'The path `{path}` does not exist.')
-
-        url = f'{self.endpoint}/{path}'
-
-        kwargs = self._prepare_call_kwargs(kwargs)
-
-        self.response = None
-
-        try:
-            self._execute_http_call(method, url, kwargs)
-            if self.response.status_code == 204:
-                return None
-            if self.response.headers['Content-Type'] == 'application/json':
-                return self.response.json()
-            else:
-                return self.response.content
-
-        except RequestException as re:
-            api_error = self._get_api_error_details() or {}
-            status_code = self.response.status_code if self.response is not None else None
-            raise ClientError(status_code=status_code, **api_error) from re
 
     def print_help(self, obj):
         print()
@@ -169,6 +120,12 @@ class ConnectClient(threading.local):
     def help(self):
         self.print_help(None)
         return self
+
+    def _get_collection_class(self):
+        raise NotImplementedError()
+
+    def _get_namespace_class(self):
+        raise NotImplementedError()
 
     def _prepare_call_kwargs(self, kwargs):
         kwargs = kwargs or {}
@@ -181,21 +138,6 @@ class ConnectClient(threading.local):
             kwargs['headers'].update(self.default_headers)
         return kwargs
 
-    def _execute_http_call(self, method, url, kwargs):
-        retry_count = 0
-        while True:
-            self.response = requests.request(method, url, **kwargs)
-            if (  # pragma: no branch
-                self.response.status_code == 502
-                and retry_count < self.max_retries
-            ):
-                retry_count += 1
-                time.sleep(1)
-                continue
-            break  # pragma: no cover
-        if self.response.status_code >= 400:
-            self.response.raise_for_status()
-
     def _get_api_error_details(self):
         if self.response is not None:
             try:
@@ -204,3 +146,19 @@ class ConnectClient(threading.local):
                     return error
             except JSONDecodeError:
                 pass
+
+
+class ConnectClient(_ConnectClientBase, SyncClientMixin):
+    def _get_collection_class(self):
+        return Collection
+
+    def _get_namespace_class(self):
+        return NS
+
+
+class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
+    def _get_collection_class(self):
+        return AsyncCollection
+
+    def _get_namespace_class(self):
+        return AsyncNS

@@ -40,6 +40,8 @@ connect-markdown-renderer = "^1.0.0"
 PyYAML = "^5.3.1"
 requests = "^2.23"
 inflect = "^4.1"
+httpx = "^0.18.1"
+asgiref = "^3.3.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.1.2"
@@ -62,6 +64,9 @@ flake8-future-import = "~0.4"
 flake8-import-order = "~0.18"
 flake8-broken-line = "~0.3"
 sphinx-markdown-builder = "^0.5.4"
+pytest-asyncio = "^0.15.1"
+pytest-httpx = "^0.12.0"
+mock = { version = "^4.0.3", markers = "python_version < '3.8'" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools>=42"]

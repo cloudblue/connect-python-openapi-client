@@ -1,13 +1,25 @@
-from connect.client.exceptions import ClientError
-from connect.client.models.resourceset import ResourceSet
-from connect.client.utils import resolve_attribute
+#
+# This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
+#
+# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+#
+from connect.client.models.mixins import (
+    ActionMixin,
+    AsyncActionMixin,
+    AsyncCollectionMixin,
+    AsyncResourceMixin,
+    CollectionMixin,
+    ResourceMixin,
+)
+from connect.client.models.resourceset import AsyncResourceSet, ResourceSet
 from connect.client.rql import R
 
 
-class NS:
+class _NSBase:
     """
     A namespace is a group of related collections.
     """
+
     def __init__(self, client, path):
         """
         Create a new NS instance.
@@ -61,7 +73,7 @@ class NS:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return Collection(
+        return self._get_collection_class()(
             self._client,
             f'{self._path}/{name}',
         )
@@ -83,7 +95,7 @@ class NS:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return NS(
+        return self._get_namespace_class()(
             self._client,
             f'{self._path}/{name}',
         )
@@ -98,8 +110,30 @@ class NS:
         self._client.print_help(self)
         return self
 
+    def _get_collection_class(self):
+        raise NotImplementedError()
 
-class Collection:
+    def _get_namespace_class(self):
+        raise NotImplementedError()
+
+
+class NS(_NSBase):
+    def _get_collection_class(self):
+        return Collection
+
+    def _get_namespace_class(self):
+        return NS
+
+
+class AsyncNS(_NSBase):
+    def _get_collection_class(self):
+        return AsyncCollection
+
+    def _get_namespace_class(self):
+        return AsyncNS
+
+
+class _CollectionBase:
     """
     A collection is a group of operations on a resource.
     """
@@ -141,7 +175,7 @@ class Collection:
         :return: a ResourceSet instance.
         :rtype: ResourceSet
         """
-        return ResourceSet(
+        return self._get_resourceset_class()(
             self._client,
             self._path,
         )
@@ -198,25 +232,10 @@ class Collection:
         if kwargs:
             query &= R(**kwargs)
 
-        return ResourceSet(
+        return self._get_resourceset_class()(
             self._client,
             self._path,
             query=query,
-        )
-
-    def create(self, payload=None, **kwargs):
-        """
-        Create a new resource within this collection.
-
-        :param payload: JSON payload of the resource to create, defaults to None.
-        :type payload: dict, optional
-        :return: The newly created resource.
-        :rtype: dict
-        """
-        return self._client.create(
-            self._path,
-            payload=payload,
-            **kwargs,
         )
 
     def resource(self, resource_id):
@@ -234,7 +253,7 @@ class Collection:
         if not resource_id:
             raise ValueError('`resource_id` must not be blank.')
 
-        return Resource(
+        return self._get_resource_class()(
             self._client,
             f'{self._path}/{resource_id}',
         )
@@ -249,8 +268,30 @@ class Collection:
         self._client.print_help(self)
         return self
 
+    def _get_resource_class(self):
+        return NotImplementedError()
 
-class Resource:
+    def _get_resourceset_class(self):
+        return NotImplementedError()
+
+
+class Collection(_CollectionBase, CollectionMixin):
+    def _get_resource_class(self):
+        return Resource
+
+    def _get_resourceset_class(self):
+        return ResourceSet
+
+
+class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
+    def _get_resource_class(self):
+        return AsyncResource
+
+    def _get_resourceset_class(self):
+        return AsyncResourceSet
+
+
+class _ResourceBase:
     """Represent a generic resource."""
     def __init__(self, client, path):
         """
@@ -304,7 +345,7 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return Collection(
+        return self._get_collection_class()(
             self._client,
             f'{self._path}/{name}',
         )
@@ -327,81 +368,10 @@ class Resource:
         if not name:
             raise ValueError('`name` must not be blank.')
 
-        return Action(
+        return self._get_action_class()(
             self._client,
             f'{self._path}/{name}',
         )
-
-    def exists(self):
-        try:
-            self.get()
-            return True
-        except ClientError as ce:
-            if ce.status_code and ce.status_code == 404:
-                return False
-            raise
-
-    def get(self, **kwargs):
-        """
-        Execute a http GET to retrieve this resource.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
-
-        :return: The resource data.
-        :rtype: dict
-        """
-        return self._client.get(self._path, **kwargs)
-
-    def update(self, payload=None, **kwargs):
-        """
-        Execute a http PUT to update this resource.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
-
-        :param payload: the JSON payload of the update request, defaults to None
-        :type payload: dict, optional
-        :return: The updated resource.
-        :rtype: dict
-        """
-        return self._client.update(
-            self._path,
-            payload=payload,
-            **kwargs,
-        )
-
-    def delete(self, **kwargs):
-        """
-        Execute a http DELETE to delete this resource.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
-        """
-        return self._client.delete(
-            self._path,
-            **kwargs,
-        )
-
-    def values(self, *fields):
-        """
-        Returns a flat dictionary containing only the fields passed as arguments.
-        Nested field can be specified using dot notation.
-
-        Ex.
-
-        .. code-block:: python
-
-        values = resource.values('field', 'nested.field')
-
-        :return: A dictionary containing field,value pairs.
-        :rtype: dict
-        """
-        results = {}
-        item = self.get()
-        for field in fields:
-            results[field] = resolve_attribute(field, item)
-        return results
 
     def help(self):
         """
@@ -413,8 +383,30 @@ class Resource:
         self._client.print_help(self)
         return self
 
+    def _get_collection_class(self):
+        raise NotImplementedError()
 
-class Action:
+    def _get_action_class(self):
+        raise NotImplementedError()
+
+
+class Resource(_ResourceBase, ResourceMixin):
+    def _get_collection_class(self):
+        return Collection
+
+    def _get_action_class(self):
+        return Action
+
+
+class AsyncResource(_ResourceBase, AsyncResourceMixin):
+    def _get_collection_class(self):
+        return AsyncCollection
+
+    def _get_action_class(self):
+        return AsyncAction
+
+
+class _ActionBase:
     """
     This class represent an action that can be executed on a resource.
     """
@@ -436,70 +428,6 @@ class Action:
     def path(self):
         return self._path
 
-    def get(self, **kwargs):
-        """
-        Execute this action through a http GET.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
-
-        :return: The action data.
-        :rtype: dict, None
-        """
-        return self._client.get(self._path, **kwargs)
-
-    def post(self, payload=None, **kwargs):
-        """
-        Execute this action through a http POST.
-        The http POST can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
-
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
-        """
-        if payload:
-            kwargs['json'] = payload
-        return self._client.execute(
-            'post',
-            self._path,
-            **kwargs,
-        )
-
-    def put(self, payload=None, **kwargs):
-        """
-        Execute this action through a http PUT.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
-
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
-        """
-        if payload:
-            kwargs['json'] = payload
-        return self._client.execute(
-            'put',
-            self._path,
-            **kwargs,
-        )
-
-    def delete(self, **kwargs):
-        """
-        Execute this action through a http DELETE.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
-        """
-        return self._client.delete(
-            self._path,
-            **kwargs,
-        )
-
     def help(self):
         """
         Output the action documentation to the console.
@@ -509,3 +437,11 @@ class Action:
         """
         self._client.print_help(self)
         return self
+
+
+class Action(_ActionBase, ActionMixin):
+    pass
+
+
+class AsyncAction(_ActionBase, AsyncActionMixin):
+    pass

@@ -162,10 +162,11 @@ def test_collection_create(col_factory):
     collection = col_factory(path='resource')
     collection.create({'name': 'test'})
 
-    assert collection._client.create.called_once_with(payload={'name': 'test'})
+    collection._client.create.assert_called_once_with('resource', payload={'name': 'test'})
 
     collection.create({'name': 'test'}, headers={'Content-Type': 'application/json'})
-    assert collection._client.create.called_once_with(
+    collection._client.create.assert_called_with(
+        'resource',
         payload={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -340,10 +341,11 @@ def test_resource_get(res_factory):
     resource = res_factory()
     resource.get()
 
-    assert resource._client.get.called_once()
+    resource._client.get.assert_called_once()
 
     resource.get(headers={'Content-Type': 'application/json'})
-    assert resource._client.create.called_once_with(
+    resource._client.get.assert_called_with(
+        resource.path,
         headers={'Content-Type': 'application/json'},
     )
 
@@ -352,10 +354,11 @@ def test_resource_update(res_factory):
     resource = res_factory()
     resource.update({'name': 'test'})
 
-    assert resource._client.update.called_once_with(payload={'name': 'test'})
+    resource._client.update.assert_called_once_with(resource.path, payload={'name': 'test'})
 
     resource.update({'name': 'test'}, headers={'Content-Type': 'application/json'})
-    assert resource._client.update.called_once_with(
+    resource._client.update.assert_called_with(
+        resource.path,
         payload={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
@@ -365,10 +368,11 @@ def test_resource_delete(res_factory):
     resource = res_factory()
     resource.delete()
 
-    assert resource._client.delete.called_once()
+    resource._client.delete.assert_called_once()
 
     resource.delete(headers={'Content-Type': 'application/json'})
-    assert resource._client.delete.called_once_with(
+    resource._client.delete.assert_called_with(
+        resource.path,
         headers={'Content-Type': 'application/json'},
     )
 
@@ -409,10 +413,11 @@ def test_action_get(action_factory):
     action = action_factory()
     action.get()
 
-    assert action._client.get.called_once()
+    action._client.get.assert_called_once()
 
     action.get(headers={'Content-Type': 'application/json'})
-    assert action._client.get.called_once_with(
+    action._client.get.assert_called_with(
+        action.path,
         headers={'Content-Type': 'application/json'},
     )
 
@@ -421,7 +426,7 @@ def test_action_post(action_factory):
     action = action_factory()
     action.post({'name': 'test'})
 
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_once_with(
         'post',
         action.path,
         json={'name': 'test'},
@@ -431,7 +436,7 @@ def test_action_post(action_factory):
         {'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_with(
         'post',
         action.path,
         json={'name': 'test'},
@@ -442,7 +447,7 @@ def test_action_post(action_factory):
         json={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_with(
         'post',
         action.path,
         json={'name': 'test'},
@@ -454,7 +459,7 @@ def test_action_put(action_factory):
     action = action_factory()
     action.put({'name': 'test'})
 
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_once_with(
         'put',
         action.path,
         json={'name': 'test'},
@@ -464,7 +469,7 @@ def test_action_put(action_factory):
         {'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_with(
         'put',
         action.path,
         json={'name': 'test'},
@@ -475,7 +480,7 @@ def test_action_put(action_factory):
         json={'name': 'test'},
         headers={'Content-Type': 'application/json'},
     )
-    assert action._client.execute.called_once_with(
+    action._client.execute.assert_called_with(
         'put',
         action.path,
         json={'name': 'test'},
@@ -487,10 +492,11 @@ def test_action_delete(action_factory):
     action = action_factory()
     action.delete()
 
-    assert action._client.delete.called_once()
+    action._client.delete.assert_called_once()
 
     action.delete(headers={'Content-Type': 'application/json'})
-    assert action._client.delete.called_once_with(
+    action._client.delete.assert_called_with(
+        action.path,
         headers={'Content-Type': 'application/json'},
     )
 
@@ -505,7 +511,7 @@ def test_action_help(action_factory):
 
 def test_rs_iterate(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     expected = [{'id': i} for i in range(10)]
@@ -518,7 +524,7 @@ def test_rs_iterate(mocker, rs_factory):
 
 def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=None,
     )
     expected = [{'id': i} for i in range(10)]
@@ -663,7 +669,7 @@ def test_rs_request(mocker, rs_factory):
     rs = rs_factory()
     content_range = ContentRange(0, 0, 0)
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=content_range,
     )
     rs._client.get = mocker.MagicMock(return_value=[])
@@ -690,7 +696,7 @@ def test_rs_request(mocker, rs_factory):
 
 def test_rs_values_list(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         return_value=ContentRange(0, 9, 10),
     )
     return_value = [
@@ -752,7 +758,7 @@ def test_rs_values_list_evaluated(mocker, rs_factory):
 
 def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -772,7 +778,7 @@ def test_rs_pagination(mocker, rs_factory):
 
 def test_rs_values_list_pagination(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
+        'connect.client.models.iterators.parse_content_range',
         side_effect=[
             ContentRange(0, 99, 200),
             ContentRange(100, 199, 200),
@@ -824,7 +830,10 @@ def test_rs_with_queries(mocker, rs_factory):
     rs._client.get = get_mock
     bool(rs)
 
-    assert rs._client.get.called_once_with(f'{rs.path}?{rs.query}')
+    rs._client.get.assert_called_once_with(
+        f'{rs.path}?{rs.query}',
+        **{'params': {'limit': 100, 'offset': 0}},
+    )
 
 
 def test_rs_configure(rs_factory):
