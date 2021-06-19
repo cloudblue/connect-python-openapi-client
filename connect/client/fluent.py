@@ -29,6 +29,7 @@ class _ConnectClientBase(threading.local):
         default_headers=None,
         default_limit=100,
         max_retries=0,
+        logger=None,
     ):
         """
         Create a new instance of the ConnectClient.
@@ -42,6 +43,8 @@ class _ConnectClientBase(threading.local):
         :type specs_location: str, optional
         :param default_headers: Http headers to apply to each request, defaults to {}
         :type default_headers: dict, optional
+        :param logger: HTTPP Request logger class, defaults to None
+        :type logger: RequestLogger, optional
         """
         if default_headers and 'Authorization' in default_headers:
             raise ValueError('`default_headers` cannot contains `Authorization`')
@@ -58,6 +61,7 @@ class _ConnectClientBase(threading.local):
         if self._use_specs:
             self.specs = OpenAPISpecs(self.specs_location)
         self.response = None
+        self.logger = logger
         self._help_formatter = DefaultFormatter(self.specs)
 
     def __getattr__(self, name):

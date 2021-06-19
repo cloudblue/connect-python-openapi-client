@@ -57,6 +57,7 @@ class SyncClientMixin:
 
         try:
             self._execute_http_call(method, url, kwargs)
+
             if self.response.status_code == 204:
                 return None
             if self.response.headers['Content-Type'] == 'application/json':
@@ -72,7 +73,14 @@ class SyncClientMixin:
     def _execute_http_call(self, method, url, kwargs):
         retry_count = 0
         while True:
+            if self.logger:
+                self.logger.log_request(method, url, kwargs)
+
             self.response = requests.request(method, url, **kwargs)
+
+            if self.logger:
+                self.logger.log_response(self.response)
+
             if (  # pragma: no branch
                 self.response.status_code == 502
                 and retry_count < self.max_retries
@@ -141,8 +149,15 @@ class AsyncClientMixin:
     async def _execute_http_call(self, method, url, kwargs):
         retry_count = 0
         while True:
+            if self.logger:
+                self.logger.log_request(method, url, kwargs)
+
             async with httpx.AsyncClient() as client:
                 self.response = await client.request(method, url, **kwargs)
+
+            if self.logger:
+                self.logger.log_response(self.response)
+
             if (  # pragma: no branch
                 self.response.status_code == 502
                 and retry_count < self.max_retries

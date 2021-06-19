@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "connect-openapi-client"
-version = "21.0.0"
+version = "22.0.8"
 description = "Connect Python OpenAPI Client"
 authors = ["CloudBlue"]
 license = "Apache-2.0"

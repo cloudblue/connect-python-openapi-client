@@ -1,6 +1,9 @@
+import io
+
 import pytest
 
 from connect.client import AsyncConnectClient, ClientError
+from connect.client.logger import RequestLogger
 from connect.client.models import AsyncCollection, AsyncNS
 
 
@@ -89,7 +92,11 @@ async def test_execute(httpx_mock):
         json=expected,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    ios = io.StringIO()
+    c = AsyncConnectClient('API_KEY',
+                           endpoint='https://localhost',
+                           use_specs=False,
+                           logger=RequestLogger(file=ios))
 
     results = await c.execute('get', 'resources')
 
