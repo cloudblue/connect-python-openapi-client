@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 import responses
@@ -7,6 +9,7 @@ from requests import RequestException
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from connect.client.exceptions import ClientError
 from connect.client.fluent import ConnectClient
+from connect.client.logger import RequestLogger
 from connect.client.models import Collection, NS
 
 
@@ -156,7 +159,11 @@ def test_execute(mocked_responses):
         json=expected,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    ios = io.StringIO()
+    c = ConnectClient('API_KEY',
+                      endpoint='https://localhost',
+                      use_specs=False,
+                      logger=RequestLogger(file=ios))
 
     results = c.execute('get', 'resources')
 
