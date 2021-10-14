@@ -30,6 +30,7 @@ class _ConnectClientBase(threading.local):
         default_limit=100,
         max_retries=0,
         logger=None,
+        timeout=(180.0, 180.0),
     ):
         """
         Create a new instance of the ConnectClient.
@@ -63,6 +64,7 @@ class _ConnectClientBase(threading.local):
         self.response = None
         self.logger = logger
         self._help_formatter = DefaultFormatter(self.specs)
+        self.timeout = timeout
 
     def __getattr__(self, name):
         """
@@ -137,7 +139,8 @@ class _ConnectClientBase(threading.local):
             kwargs['headers'].update(get_headers(self.api_key))
         else:
             kwargs['headers'] = get_headers(self.api_key)
-
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = self.timeout
         if self.default_headers:
             kwargs['headers'].update(self.default_headers)
         return kwargs

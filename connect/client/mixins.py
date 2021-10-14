@@ -82,7 +82,7 @@ class SyncClientMixin:
                 self.logger.log_response(self.response)
 
             if (  # pragma: no branch
-                self.response.status_code == 502
+                self.response.status_code >= 500
                 and retry_count < self.max_retries
             ):
                 retry_count += 1
@@ -159,7 +159,7 @@ class AsyncClientMixin:
                 self.logger.log_response(self.response)
 
             if (  # pragma: no branch
-                self.response.status_code == 502
+                self.response.status_code >= 500
                 and retry_count < self.max_retries
             ):
                 retry_count += 1

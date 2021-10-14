@@ -244,23 +244,27 @@ def test_execute_retries(mocked_responses):
     assert results == expected
 
 
-def test_execute_max_retries_exceeded(mocked_responses):
+@pytest.mark.parametrize(
+    'code',
+    [500, 501, 502],
+)
+def test_execute_max_retries_exceeded(code, mocked_responses):
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=502,
+        status=code,
     )
 
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=502,
+        status=code,
     )
 
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=502,
+        status=code,
     )
 
     c = ConnectClient(
@@ -321,6 +325,57 @@ def test_execute_with_kwargs(mocked_responses):
     assert 'Authorization' in headers and headers['Authorization'] == 'API_KEY'
     assert 'User-Agent' in headers and headers['User-Agent'].startswith('connect-fluent')
     assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'value'
+
+
+def test_execute_with_overwritten_timeout(mocked_responses, mocker):
+    http_call = mocker.patch(
+        'connect.client.mixins.SyncClientMixin._execute_http_call',
+        side_effect=RequestException(),
+    )
+
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    kwargs = {
+        'timeout': 500,
+    }
+
+    with pytest.raises(ClientError):
+        c.execute('post', 'resources', **kwargs)
+
+    http_call.assert_called_with(
+        'post',
+        'https://localhost/resources',
+        {
+            'timeout': 500,
+            'headers': {
+                'Authorization': 'API_KEY',
+                'User-Agent': mocker.ANY,
+            },
+        },
+    )
+
+
+def test_execute_with_default_timeout(mocked_responses, mocker):
+    http_call = mocker.patch(
+        'connect.client.mixins.SyncClientMixin._execute_http_call',
+        side_effect=RequestException(),
+    )
+
+    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+
+    with pytest.raises(ClientError):
+        c.execute('post', 'resources')
+
+    http_call.assert_called_with(
+        'post',
+        'https://localhost/resources',
+        {
+            'timeout': (180.0, 180.0),
+            'headers': {
+                'Authorization': 'API_KEY',
+                'User-Agent': mocker.ANY,
+            },
+        },
+    )
 
 
 def test_execute_connect_error(mocked_responses):
