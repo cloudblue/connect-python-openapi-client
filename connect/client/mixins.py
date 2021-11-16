@@ -60,7 +60,8 @@ class SyncClientMixin:
 
             if self.response.status_code == 204:
                 return None
-            if self.response.headers['Content-Type'].startswith('application/json'):
+            if 'Content-Type' in self.response.headers and \
+                self.response.headers['Content-Type'].startswith('application/json'):
                 return self.response.json()
             else:
                 return self.response.content
@@ -136,7 +137,8 @@ class AsyncClientMixin:
             await self._execute_http_call(method, url, kwargs)
             if self.response.status_code == 204:
                 return None
-            if self.response.headers['Content-Type'].startswith('application/json'):
+            if 'Content-Type' in self.response.headers and \
+                    self.response.headers['Content-Type'].startswith('application/json'):
                 return self.response.json()
             else:
                 return self.response.content
