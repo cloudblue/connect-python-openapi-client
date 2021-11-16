@@ -130,6 +130,8 @@ class AsyncClientMixin:
 
         kwargs = self._prepare_call_kwargs(kwargs)
 
+        url, kwargs = self._fix_url_params(url, kwargs)
+
         self.response = None
 
         try:
@@ -168,3 +170,11 @@ class AsyncClientMixin:
             break  # pragma: no cover
         if self.response.status_code >= 400:
             self.response.raise_for_status()
+
+    def _fix_url_params(self, url, kwargs):
+        if 'params' in kwargs:
+            params = kwargs.pop('params')
+            qs_fragment = '&'.join([f'{k}={v}' for k, v in params.items()])
+            join = '?' if '?' not in url else '&'
+            url = f'{url}{join}{qs_fragment}'
+        return url, kwargs

@@ -364,3 +364,43 @@ def test_collection():
 def test_ns():
     c = AsyncConnectClient('API_KEY', use_specs=False)
     assert isinstance(c.ns('namespace'), AsyncNS)
+
+
+@pytest.mark.asyncio
+async def test_execute_with_qs_and_params(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources?eq(a,b)&limit=100&offset=0',
+        json=[],
+        status_code=201,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    kwargs = {
+        'params': {
+            'limit': 100,
+            'offset': 0,
+        },
+    }
+
+    await c.execute('get', 'resources?eq(a,b)', **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_execute_with_params_only(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources?limit=100&offset=0',
+        json=[],
+        status_code=201,
+    )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    kwargs = {
+        'params': {
+            'limit': 100,
+            'offset': 0,
+        },
+    }
+
+    await c.execute('get', 'resources', **kwargs)
