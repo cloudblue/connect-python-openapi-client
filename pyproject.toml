@@ -35,10 +35,10 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = ">=3.6"
 connect-markdown-renderer = "^1.0.0"
-PyYAML = "^5.3.1"
-requests = "^2.23"
+PyYAML = ">=5.3.1"
+requests = ">=2.23"
 inflect = ">=4.1"
 httpx = "^0.18.1"
 asgiref = "^3.3.4"
