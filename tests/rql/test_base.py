@@ -259,6 +259,15 @@ def test_dotted_path_comp(op):
         getattr(R().asset.id, op)(test)
 
 
+@pytest.mark.parametrize('op', ('like', 'ilike'))
+def test_dotted_path_search(op):
+    R = RQLQuery
+    assert str(getattr(R().asset.id, op)('value')) == f'{op}(asset.id,value)'
+    assert str(getattr(R().asset.id, op)('*value')) == f'{op}(asset.id,*value)'
+    assert str(getattr(R().asset.id, op)('value*')) == f'{op}(asset.id,value*)'
+    assert str(getattr(R().asset.id, op)('*value*')) == f'{op}(asset.id,*value*)'
+
+
 @pytest.mark.parametrize(
     ('method', 'op'),
     (

@@ -35,7 +35,7 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.6,<4"
 connect-markdown-renderer = "^1.0.0"
 PyYAML = ">=5.3.1"
 requests = ">=2.23"
