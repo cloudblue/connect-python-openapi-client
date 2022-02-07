@@ -6,15 +6,6 @@
 from connect.client.rql.utils import parse_kwargs, to_rql_value
 
 
-COMP = ('eq', 'ne', 'lt', 'le', 'gt', 'ge')
-SEARCH = ('like', 'ilike')
-LIST = ('in_', 'out')
-NULL = 'null'
-EMPTY = 'empty'
-
-KEYWORDS = (*COMP, *SEARCH, *LIST, NULL, EMPTY)
-
-
 class RQLQuery:
     """
     Helper class to construct complex RQL queries.
@@ -225,6 +216,12 @@ class RQLQuery:
 
     def empty(self, value):
         return self._bool('empty', value)
+
+    def like(self, value):
+        return self._bin('like', value)
+
+    def ilike(self, value):
+        return self._bin('ilike', value)
 
     def _bin(self, op, value):
         self._field = '.'.join(self._path)

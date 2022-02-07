@@ -18,6 +18,14 @@ def test_comparison():
         assert expressions[0] == f'{op}(field,value)'
 
 
+def test_search():
+    for op in ('like', 'ilike'):
+        expressions = parse_kwargs({f'field__{op}': 'value'})
+        assert isinstance(expressions, list)
+        assert len(expressions) == 1
+        assert expressions[0] == f'{op}(field,value)'
+
+
 def test_list():
     for op in ('out', 'in'):
         expressions = parse_kwargs({f'field__{op}': ('value1', 'value2')})
