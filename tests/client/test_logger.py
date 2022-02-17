@@ -20,9 +20,27 @@ def test_log_request():
 
     ios.truncate(0)
     ios.seek(0, 0)
-    rl.log_request('get', PATH1, {'headers': {'Auth': 'None', 'Cookie': 'XXX'}})
+    rl.log_request(
+        'get',
+        PATH1,
+        {'headers': {'Auth': 'None', 'Cookie': 'XXX', 'Authorization': 'ApiKey SU-XXXX:YYYYY'}},
+    )
     assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH1 + ' \n' + """Auth: None
 Cookie: XXX
+Authorization: ApiKey SU-XXXX**********
+
+"""
+
+    ios.truncate(0)
+    ios.seek(0, 0)
+    rl.log_request(
+        'get',
+        PATH1,
+        {'headers': {'Auth': 'None', 'Cookie': 'XXX', 'Authorization': 'SecretToken'}},
+    )
+    assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH1 + ' \n' + """Auth: None
+Cookie: XXX
+Authorization: ********************
 
 """
 
@@ -52,7 +70,7 @@ Cookie: XXX
     assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH2 + '&limit=10&offset=0 \n\n'
 
 
-def test_log_resposne(mocker):
+def test_log_response(mocker):
     LOG_RESPONSE_HEADER = '--- HTTP Response ---\n'
 
     ios = io.StringIO()
