@@ -11,7 +11,7 @@ import requests
 
 from httpx import HTTPError
 
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, Timeout
 
 from connect.client.exceptions import ClientError
 
@@ -70,16 +70,21 @@ class SyncClientMixin:
             status_code = self.response.status_code if self.response is not None else None
             raise ClientError(status_code=status_code, **api_error) from re
 
-    def _execute_http_call(self, method, url, kwargs):
+    def _execute_http_call(self, method, url, kwargs):  # noqa: CCR001
         retry_count = 0
         while True:
             if self.logger:
                 self.logger.log_request(method, url, kwargs)
-
-            self.response = requests.request(method, url, **kwargs)
-
-            if self.logger:
-                self.logger.log_response(self.response)
+            try:
+                self.response = requests.request(method, url, **kwargs)
+                if self.logger:
+                    self.logger.log_response(self.response)
+            except Timeout:
+                if retry_count < self.max_retries:
+                    retry_count += 1
+                    time.sleep(1)
+                    continue
+                raise
 
             if (  # pragma: no branch
                 self.response.status_code >= 500
