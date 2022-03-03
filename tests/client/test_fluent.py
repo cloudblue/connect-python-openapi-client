@@ -4,7 +4,7 @@ import pytest
 
 import responses
 
-from requests import RequestException
+from requests import RequestException, Timeout
 
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from connect.client.exceptions import ClientError
@@ -205,18 +205,27 @@ def test_execute_non_json_response(mocked_responses):
     assert result == b'This is a non json response.'
 
 
-def test_execute_retries(mocked_responses):
+@pytest.mark.parametrize(
+    'mock_config',
+    (
+        {'status': 500},
+        {'status': 501},
+        {'status': 502},
+        {'body': Timeout()},
+    ),
+)
+def test_execute_retries(mocked_responses, mock_config):
     expected = [{'id': i} for i in range(10)]
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=502,
+        **mock_config,
     )
 
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=502,
+        **mock_config,
     )
 
     mocked_responses.add(
@@ -245,26 +254,31 @@ def test_execute_retries(mocked_responses):
 
 
 @pytest.mark.parametrize(
-    'code',
-    [500, 501, 502],
+    'mock_config',
+    (
+        {'status': 500},
+        {'status': 501},
+        {'status': 502},
+        {'body': Timeout()},
+    ),
 )
-def test_execute_max_retries_exceeded(code, mocked_responses):
+def test_execute_max_retries_exceeded(mocked_responses, mock_config):
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=code,
+        **mock_config,
     )
 
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=code,
+        **mock_config,
     )
 
     mocked_responses.add(
         responses.GET,
         'https://localhost/resources',
-        status=code,
+        **mock_config,
     )
 
     c = ConnectClient(
@@ -327,7 +341,7 @@ def test_execute_with_kwargs(mocked_responses):
     assert 'X-Custom-Header' in headers and headers['X-Custom-Header'] == 'value'
 
 
-def test_execute_with_overwritten_timeout(mocked_responses, mocker):
+def test_execute_with_overwritten_timeout(mocker):
     http_call = mocker.patch(
         'connect.client.mixins.SyncClientMixin._execute_http_call',
         side_effect=RequestException(),
@@ -354,7 +368,7 @@ def test_execute_with_overwritten_timeout(mocked_responses, mocker):
     )
 
 
-def test_execute_with_default_timeout(mocked_responses, mocker):
+def test_execute_with_default_timeout(mocker):
     http_call = mocker.patch(
         'connect.client.mixins.SyncClientMixin._execute_http_call',
         side_effect=RequestException(),
