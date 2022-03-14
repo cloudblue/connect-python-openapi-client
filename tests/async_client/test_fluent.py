@@ -114,9 +114,9 @@ async def test_execute_validate_with_specs(async_mocker):
     mocked_specs = async_mocker.MagicMock()
     mocked_specs.exists.return_value = False
 
-    async_mocker.patch('connect.client.fluent.OpenAPISpecs', return_value=mocked_specs)
-
-    c = AsyncConnectClient('API_KEY')
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c.specs = mocked_specs
+    c._use_specs = True
     with pytest.raises(ClientError) as cv:
         await c.execute('GET', 'resources')
 
