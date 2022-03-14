@@ -180,9 +180,9 @@ def test_execute_validate_with_specs(mocker):
     mocked_specs = mocker.MagicMock()
     mocked_specs.exists.return_value = False
 
-    mocked_specs = mocker.patch('connect.client.fluent.OpenAPISpecs', return_value=mocked_specs)
-
-    c = ConnectClient('API_KEY')
+    c = ConnectClient('API_KEY', use_specs=False)
+    c.specs = mocked_specs
+    c._use_specs = True
     with pytest.raises(ClientError) as cv:
         c.execute('GET', 'resources')
 
