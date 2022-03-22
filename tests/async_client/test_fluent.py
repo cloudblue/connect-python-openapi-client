@@ -129,7 +129,7 @@ async def test_execute_non_json_response(httpx_mock):
         method='GET',
         url='https://localhost/resources',
         status_code=200,
-        data='This is a non json response.',
+        text='This is a non json response.',
     )
     c = AsyncConnectClient(
         'API_KEY',
@@ -312,7 +312,7 @@ async def test_execute_uparseable_connect_error(httpx_mock):
     httpx_mock.add_response(
         method='POST',
         url='https://localhost/resources',
-        data='error text',
+        text='error text',
         status_code=400,
     )
 
@@ -330,7 +330,7 @@ async def test_execute_error_with_reason(httpx_mock, encoding):
         method='POST',
         url='https://localhost/resources',
         status_code=500,
-        data='Interñal Server Error'.encode(encoding),
+        content='Internal Server Error'.encode(encoding),
     )
 
     c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
@@ -345,7 +345,7 @@ async def test_execute_delete(httpx_mock):
     httpx_mock.add_response(
         method='DELETE',
         url='https://localhost/resources',
-        data='error text',
+        text='error text',
         status_code=204,
     )
 

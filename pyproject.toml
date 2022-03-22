@@ -35,12 +35,12 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6,<4"
+python = ">=3.6.2,<4"
 connect-markdown-renderer = "^1.0.0"
 PyYAML = ">=5.3.1"
 requests = ">=2.23"
 inflect = ">=4.1"
-httpx = "^0.18.1"
+httpx = ">=0.22"
 asgiref = "^3.3.4"
 
 [tool.poetry.dev-dependencies]
@@ -65,7 +65,7 @@ flake8-import-order = "~0.18"
 flake8-broken-line = "~0.3"
 sphinx-markdown-builder = "^0.5.4"
 pytest-asyncio = "^0.15.1"
-pytest-httpx = "^0.12.0"
+pytest-httpx = ">=0.20"
 mock = { version = "^4.0.3", markers = "python_version < '3.8'" }
 
 [build-system]
