@@ -91,8 +91,8 @@ Working with resources
 ----------------------
 
 
-Create a new resource
-^^^^^^^^^^^^^^^^^^^^^
+Create new resources
+^^^^^^^^^^^^^^^^^^^^
 
 To create a new resource inside a collection you can invoke the 
 :meth:`~connect.client.models.Collection.create` method on the corresponding 
@@ -110,6 +110,31 @@ To create a new resource inside a collection you can invoke the
     new_product = c.products.create(payload=payload)
 
 This returns the newly created object json-decoded.
+
+If the collection supports bulk creation of resources, you can use 
+:meth:`~connect.client.models.Collection.bulk_create` and pass a list of
+resources to be created:
+
+.. code-block:: python
+
+    payload = [
+        {
+            'name': 'An Awesome Product',
+            'category': {
+                'id': 'CAT-00000',
+            },
+        },
+        {
+            'name': 'Another Awesome Product',
+            'category': {
+                'id': 'CAT-00000',
+            },
+        },
+    ]
+
+    new_products = c.products.bulk_create(payload=payload)
+
+In this case, this returns a list of the newly created objects json-decoded.
 
 Access to a resource
 ^^^^^^^^^^^^^^^^^^^^
@@ -156,8 +181,8 @@ This call returns the json-decoded object or raise an exception
 if it does not exist.
 
 
-Update a resource
-^^^^^^^^^^^^^^^^^
+Update resources
+^^^^^^^^^^^^^^^^
 
 To update a resource of the collection using its primary identifier,
 you can invoke the :meth:`~connect.client.models.Resource.update` method as shown below:
@@ -169,17 +194,53 @@ you can invoke the :meth:`~connect.client.models.Resource.update` method as show
         'detailed_description': 'This is the detailed description',
     }
 
-    product = client.products['PRD-000-000-000'].update(payload=payload)
+    updated_product = client.products['PRD-000-000-000'].update(payload=payload)
+
+If the collection supports bulk update of resources you can use the
+:meth:`~connect.client.models.Collection.bulk_update` method, passing the list of resources
+to be updated:
+
+.. code-block:: python
+
+    payload = [
+        {
+            'id': 'PRD-000-000-000',
+            'short_description': 'This is the short description for 0',
+        },
+        {
+            'id': 'PRD-000-000-001',
+            'short_description': 'This is the short description for 1',
+        },
+    ]
+
+    updated_products = c.products.bulk_update(payload=payload)
 
 
-Delete a resource
-^^^^^^^^^^^^^^^^^
+Delete resources
+^^^^^^^^^^^^^^^^
 
 To delete a resource the :meth:`~connect.client.models.Resource.delete` method is exposed:
 
 .. code-block:: python
 
     client.products['PRD-000-000-000'].delete()
+
+Similarly to the update operation, if the collection supports bulk deletion of resources
+you can use the :meth:`~connect.client.models.Collection.bulk_delete` method, passing the list
+of resource identifiers to be deleted:
+
+.. code-block:: python
+
+    payload = [
+        {
+            'id': 'PRD-000-000-000',
+        },
+        {
+            'id': 'PRD-000-000-001',
+        },
+    ]
+
+    c.products.bulk_delete(payload=payload)
 
 Access to an action
 ^^^^^^^^^^^^^^^^^^^

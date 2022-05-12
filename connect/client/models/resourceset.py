@@ -510,7 +510,7 @@ class AsyncResourceSet(_ResourceSetBase):
         return results
 
     async def _fetch_all(self):
-        if self._results is None:
+        if self._results is None:  # pragma: no branch
             self._results = await self._execute_request(
                 self._get_request_url(),
                 self._get_request_kwargs(),

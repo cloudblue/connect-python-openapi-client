@@ -184,6 +184,95 @@ async def test_collection_create(async_client_mock, async_col_factory):
     )
 
 
+@pytest.mark.asyncio
+async def test_collection_create_invalid_type(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['create'])
+    collection = async_col_factory(client=client, path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        await collection.create([{'name': 'test A'}, {'name': 'test B'}])
+
+    assert str(excinfo.value) == '`payload` must be a dict.'
+
+
+@pytest.mark.asyncio
+async def test_collection_create_no_args(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['create'])
+    collection = async_col_factory(client=client, path='resource')
+
+    await collection.create()
+    collection._client.create.assert_awaited_once_with(collection.path, payload=None)
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_create(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['create'])
+    collection = async_col_factory(client=client, path='resource')
+
+    await collection.bulk_create([{'name': 'test A'}, {'name': 'test B'}])
+    collection._client.create.assert_awaited_once_with(
+        'resource',
+        payload=[{'name': 'test A'}, {'name': 'test B'}],
+    )
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_create_invalid_type(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['create'])
+    collection = async_col_factory(client=client, path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        await collection.bulk_create({'name': 'test A'})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_update(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['update'])
+    collection = async_col_factory(client=client, path='resource')
+
+    await collection.bulk_update([{'id': 1, 'name': 'test A'}, {'id': 2, 'name': 'test B'}])
+    collection._client.update.assert_awaited_once_with(
+        'resource',
+        payload=[{'id': 1, 'name': 'test A'}, {'id': 2, 'name': 'test B'}],
+    )
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_update_invalid_type(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['update'])
+    collection = async_col_factory(client=client, path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        await collection.bulk_update({'id': 1, 'name': 'test A'})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_delete(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['delete'])
+    collection = async_col_factory(client=client, path='resource')
+
+    await collection.bulk_delete([{'id': 1}, {'id': 2}])
+    collection._client.delete.assert_awaited_once_with(
+        'resource',
+        payload=[{'id': 1}, {'id': 2}],
+    )
+
+
+@pytest.mark.asyncio
+async def test_collection_bulk_delete_invalid_type(async_client_mock, async_col_factory):
+    client = async_client_mock(methods=['delete'])
+    collection = async_col_factory(client=client, path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        await collection.bulk_delete({'id': 1})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
 def test_collection_filter(async_col_factory):
     collection = async_col_factory(path='resource')
 
@@ -574,6 +663,28 @@ async def test_rs_iterate_no_paging_endpoint(mocker, async_client_mock, async_rs
 
     results = [resource async for resource in rs]
     assert results == expected
+
+
+@pytest.mark.asyncio
+async def test_rs_iterate_page_no_results(mocker, async_client_mock, async_rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(0, 9, 100),
+            ContentRange(10, 19, 100),
+        ],
+    )
+    first_page = [{'id': i} for i in range(10)]
+    rs = async_rs_factory(
+        client=async_client_mock(methods=['get']),
+    )
+    rs._client.get.side_effect = [
+        first_page,
+        [],
+    ]
+
+    results = [resource async for resource in rs]
+    assert results == first_page
 
 
 @pytest.mark.asyncio

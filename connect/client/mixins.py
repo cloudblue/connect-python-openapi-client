@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2022 Ingram Micro. All Rights Reserved.
 #
 import time
 
@@ -37,7 +37,12 @@ class SyncClientMixin:
 
         return self.execute('put', url, **kwargs)
 
-    def delete(self, url, **kwargs):
+    def delete(self, url, payload=None, **kwargs):
+        kwargs = kwargs or {}
+
+        if payload:
+            kwargs['json'] = payload
+
         return self.execute('delete', url, **kwargs)
 
     def execute(self, method, path, **kwargs):
@@ -119,7 +124,12 @@ class AsyncClientMixin:
 
         return await self.execute('put', url, **kwargs)
 
-    async def delete(self, url, **kwargs):
+    async def delete(self, url, payload=None, **kwargs):
+        kwargs = kwargs or {}
+
+        if payload:
+            kwargs['json'] = payload
+
         return await self.execute('delete', url, **kwargs)
 
     async def execute(self, method, path, **kwargs):

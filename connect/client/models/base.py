@@ -269,10 +269,10 @@ class _CollectionBase:
         return self
 
     def _get_resource_class(self):
-        return NotImplementedError()
+        return NotImplementedError()  # pragma: no cover
 
     def _get_resourceset_class(self):
-        return NotImplementedError()
+        return NotImplementedError()  # pragma: no cover
 
 
 class Collection(_CollectionBase, CollectionMixin):

@@ -67,20 +67,40 @@ async def test_update(async_mocker, attr):
 
 
 @pytest.mark.asyncio
-async def test_delete(async_mocker):
+async def test_delete_no_args(async_mocker):
+    mocked = async_mocker.AsyncMock()
+    url = 'https://localhost'
+
+    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c.execute = mocked
+
+    await c.delete(url)
+
+    mocked.assert_awaited_once_with('delete', url)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+async def test_delete(async_mocker, attr):
     mocked = async_mocker.AsyncMock()
     url = 'https://localhost'
 
     kwargs = {
         'arg1': 'val1',
     }
+    kwargs[attr] = {'k1': 'v1'}
 
     c = AsyncConnectClient('API_KEY', use_specs=False)
     c.execute = mocked
 
     await c.delete(url, **kwargs)
 
-    mocked.assert_awaited_once_with('delete', url, **kwargs)
+    mocked.assert_awaited_once_with('delete', url, **{
+        'arg1': 'val1',
+        'json': {
+            'k1': 'v1',
+        },
+    })
 
 
 @pytest.mark.asyncio

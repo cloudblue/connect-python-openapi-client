@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2022 Ingram Micro. All Rights Reserved.
 #
 from connect.client.exceptions import ClientError
 from connect.client.utils import resolve_attribute
@@ -17,7 +17,65 @@ class CollectionMixin:
         :return: The newly created resource.
         :rtype: dict
         """
+        if payload is not None and not isinstance(payload, dict):
+            raise TypeError('`payload` must be a dict.')
+
         return self._client.create(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    def bulk_create(self, payload, **kwargs):
+        """
+        Create new resources within this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to create.
+        :type payload: list
+        :return: The newly created resources.
+        :rtype: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        return self._client.create(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    def bulk_update(self, payload, **kwargs):
+        """
+        Update a list of resources in this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to update.
+        :type payload: list
+        :return: A list of the updated resources.
+        :rtype: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        return self._client.update(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    def bulk_delete(self, payload, **kwargs):
+        """
+        Delete a list of resources from this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to delete.
+        :type payload: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        self._client.delete(
             self._path,
             payload=payload,
             **kwargs,
@@ -34,7 +92,65 @@ class AsyncCollectionMixin:
         :return: The newly created resource.
         :rtype: dict
         """
+        if payload is not None and not isinstance(payload, dict):
+            raise TypeError('`payload` must be a dict.')
+
         return await self._client.create(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    async def bulk_create(self, payload, **kwargs):
+        """
+        Create new resources within this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to create.
+        :type payload: list
+        :return: The newly created resources.
+        :rtype: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        return await self._client.create(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    async def bulk_update(self, payload, **kwargs):
+        """
+        Update a list of resources in this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to update.
+        :type payload: list
+        :return: A list of the updated resources.
+        :rtype: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        return await self._client.update(
+            self._path,
+            payload=payload,
+            **kwargs,
+        )
+
+    async def bulk_delete(self, payload, **kwargs):
+        """
+        Delete a list of resources from this collection. This operation may not be supported
+        by the API.
+
+        :param payload: JSON payload of the list of resources to delete.
+        :type payload: list
+        """
+        if not isinstance(payload, (list, tuple)):
+            raise TypeError('`payload` must be a list or tuple.')
+
+        return await self._client.delete(
             self._path,
             payload=payload,
             **kwargs,

@@ -136,19 +136,37 @@ def test_update(mocker, attr):
     })
 
 
-def test_delete(mocker):
+def test_delete_no_args(mocker):
+    mocked = mocker.patch.object(ConnectClient, 'execute')
+    url = 'https://localhost'
+
+    c = ConnectClient('API_KEY', use_specs=False)
+
+    c.delete(url)
+
+    mocked.assert_called_once_with('delete', url)
+
+
+@pytest.mark.parametrize('attr', ('payload', 'json'))
+def test_delete(mocker, attr):
     mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
 
     kwargs = {
         'arg1': 'val1',
     }
+    kwargs[attr] = {'k1': 'v1'}
 
     c = ConnectClient('API_KEY', use_specs=False)
 
     c.delete(url, **kwargs)
 
-    mocked.assert_called_once_with('delete', url, **kwargs)
+    mocked.assert_called_once_with('delete', url, **{
+        'arg1': 'val1',
+        'json': {
+            'k1': 'v1',
+        },
+    })
 
 
 def test_execute(mocked_responses):
