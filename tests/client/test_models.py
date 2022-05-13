@@ -172,6 +172,75 @@ def test_collection_create(col_factory):
     )
 
 
+def test_collection_create_invalid_type(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        collection.create([{'name': 'test A'}, {'name': 'test B'}])
+
+    assert str(excinfo.value) == '`payload` must be a dict.'
+
+
+def test_collection_create_no_args(col_factory):
+    collection = col_factory(path='resource')
+    collection.create()
+    collection._client.create.assert_called_once_with('resource', payload=None)
+
+
+def test_collection_bulk_create(col_factory):
+    collection = col_factory(path='resource')
+
+    collection.bulk_create([{'name': 'test A'}, {'name': 'test B'}])
+    collection._client.create.assert_called_once_with(
+        'resource',
+        payload=[{'name': 'test A'}, {'name': 'test B'}],
+    )
+
+
+def test_collection_bulk_create_invalid_type(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        collection.bulk_create({'name': 'test A'})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
+def test_collection_bulk_update(col_factory):
+    collection = col_factory(path='resource')
+
+    collection.bulk_update([{'id': 1, 'name': 'test A'}, {'id': 2, 'name': 'test B'}])
+    collection._client.update.assert_called_once_with(
+        'resource',
+        payload=[{'id': 1, 'name': 'test A'}, {'id': 2, 'name': 'test B'}],
+    )
+
+
+def test_collection_bulk_update_invalid_type(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        collection.bulk_update({'id': 1, 'name': 'test'})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
+def test_collection_bulk_delete(col_factory):
+    collection = col_factory(path='resource')
+
+    collection.bulk_delete([{'id': 1}, {'id': 2}])
+    collection._client.delete.assert_called_once_with('resource', payload=[{'id': 1}, {'id': 2}])
+
+
+def test_collection_bulk_delete_invalid_type(col_factory):
+    collection = col_factory(path='resource')
+
+    with pytest.raises(TypeError) as excinfo:
+        collection.bulk_delete({'id': 1})
+
+    assert str(excinfo.value) == '`payload` must be a list or tuple.'
+
+
 def test_collection_filter(col_factory):
     collection = col_factory(path='resource')
 
@@ -533,6 +602,27 @@ def test_rs_iterate_no_paging_endpoint(mocker, rs_factory):
 
     results = [resource for resource in rs]
     assert results == expected
+
+
+def test_rs_iterate_page_no_results(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(0, 9, 100),
+            ContentRange(10, 19, 100),
+        ],
+    )
+    first_page = [{'id': i} for i in range(10)]
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            first_page,
+            [],
+        ],
+    )
+
+    results = [resource for resource in rs]
+    assert results == first_page
 
 
 def test_rs_bool_truthy(mocker, rs_factory):
