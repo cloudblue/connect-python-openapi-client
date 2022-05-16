@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "connect-openapi-client"
-version = "22.0.8"
+version = "0.0.0"
 description = "Connect Python OpenAPI Client"
 authors = ["CloudBlue"]
 license = "Apache-2.0"
@@ -17,10 +17,10 @@ classifiers = [
     "Environment :: Console",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Utilities",
     "Topic :: Software Development :: Libraries",
 ]
@@ -35,8 +35,8 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.6.2,<4"
-connect-markdown-renderer = "^1.0.0"
+python = ">=3.7,<4"
+connect-markdown-renderer = "^2"
 PyYAML = ">=5.3.1"
 requests = ">=2.23"
 inflect = ">=4.1"
