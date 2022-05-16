@@ -17,11 +17,8 @@ play with the CloudBlue Connect API using a python REPL like [jupyter](https://j
 
 ## Install
 
-`Connect Python OpenAPI Client` requires python 3.6 or later and has the following dependencies:
+`Connect Python OpenAPI Client` requires python 3.7 or later.
 
-* connect-markdown-renderer>=1,<2
-* pyyaml>=5,<6
-* requests>=2,<3
 
 `Connect Python OpenAPI Client` can be installed from [pypi.org](https://pypi.org/project/connect-openapi-client/) using pip:
 
