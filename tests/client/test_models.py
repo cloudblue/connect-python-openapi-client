@@ -701,11 +701,12 @@ def test_rs_count(mocker, rs_factory):
         'connect.client.models.resourceset.parse_content_range',
         return_value=content_range,
     )
+    rs_copy = rs_factory()
+    mocker.patch.object(ResourceSet, '_copy', return_value=rs_copy)
     rs = rs_factory()
     rs._client.get = mocker.MagicMock(return_value=[])
-
     assert rs.count() == 100
-    assert rs.content_range == content_range
+    assert rs_copy.content_range == content_range
 
 
 def test_rs_first(mocker, rs_factory):
@@ -716,18 +717,34 @@ def test_rs_first(mocker, rs_factory):
     )
     expected = [{'id': i} for i in range(10)]
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(return_value=expected)
+
+    rs_copy = rs_factory()
+
+    mocker.patch.object(ResourceSet, '_copy', return_value=rs_copy)
+
+    rs_copy._client.get = mocker.MagicMock(return_value=expected)
 
     first = rs.first()
 
     assert first == expected[0]
+    assert rs._results is None
+    assert rs_copy._results == expected
+    assert rs_copy._limit == 1
+    assert rs_copy._offset == 0
 
     rs = rs_factory()
+    rs_copy = rs_factory()
+
+    mocker.patch.object(ResourceSet, '_copy', return_value=rs_copy)
     rs._client.get = mocker.MagicMock(return_value=[])
 
     first = rs.first()
 
     assert first is None
+    assert rs._results is None
+    assert rs_copy._results == []
+    assert rs_copy._limit == 1
+    assert rs_copy._offset == 0
 
 
 def test_rs_all(rs_factory):
