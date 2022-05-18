@@ -351,10 +351,12 @@ class ResourceSet(_ResourceSetBase):
         :rtype: int
         """
         if not self._content_range:
-            url = self._get_request_url()
-            kwargs = self._get_request_kwargs()
+            copy = self._copy()
+            url = copy._get_request_url()
+            kwargs = copy._get_request_kwargs()
             kwargs['params']['limit'] = 0
-            self._execute_request(url, kwargs)
+            copy._execute_request(url, kwargs)
+            return copy._content_range.count
         return self._content_range.count
 
     def first(self):
@@ -365,8 +367,11 @@ class ResourceSet(_ResourceSetBase):
         :return: The first resource.
         :rtype: dict, None
         """
-        self._fetch_all()
-        return self._results[0] if self._results else None
+        copy = self._copy()
+        copy._limit = 1
+        copy._offset = 0
+        copy._fetch_all()
+        return copy._results[0] if copy._results else None
 
     def _iterator(self):
         args = (
@@ -484,8 +489,11 @@ class AsyncResourceSet(_ResourceSetBase):
         :return: The first resource.
         :rtype: dict, None
         """
-        await self._fetch_all()
-        return self._results[0] if self._results else None
+        copy = self._copy()
+        copy._limit = 1
+        copy._offset = 0
+        await copy._fetch_all()
+        return copy._results[0] if copy._results else None
 
     def _iterator(self):
         args = (
