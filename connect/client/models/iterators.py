@@ -58,7 +58,10 @@ class AbstractIterator(AbstractBaseIterator):
             if not results:
                 raise
             self._rs._content_range = cr
-            self._rs._results.extend(results)
+            if self._client.resourceset_append:
+                self._rs._results.extend(results)
+            else:
+                self._rs._results = results
             self._results_iterator = iter(results)
             item = next(self._results_iterator)
 
@@ -101,7 +104,10 @@ class AbstractAsyncIterator(AbstractBaseIterator):
             if not results:
                 raise StopAsyncIteration
             self._rs._content_range = cr
-            self._rs._results.extend(results)
+            if self._client.resourceset_append:
+                self._rs._results.extend(results)
+            else:
+                self._rs._results = results
             self._results_iterator = iter(results)
             item = next(self._results_iterator)
 
