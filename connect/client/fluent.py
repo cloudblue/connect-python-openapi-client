@@ -31,6 +31,7 @@ class _ConnectClientBase(threading.local):
         max_retries=0,
         logger=None,
         timeout=(180.0, 180.0),
+        resourceset_append=True,
     ):
         """
         Create a new instance of the ConnectClient.
@@ -39,13 +40,25 @@ class _ConnectClientBase(threading.local):
         :type api_key: str
         :param endpoint: The API endpoint, defaults to CONNECT_ENDPOINT_URL
         :type endpoint: str, optional
+        :param use_specs: Use the Connect OpenAPI specification for interactive help.
+        :type specs_location: bool, optional
         :param specs_location: The Connect OpenAPI specification local path or URL, defaults to
                                CONNECT_SPECS_URL
         :type specs_location: str, optional
+        :param validate_using_specs: Use the Connect OpenAPI specification to validate the call.
+        :type validate_using_specs: bool, optional
         :param default_headers: Http headers to apply to each request, defaults to {}
         :type default_headers: dict, optional
-        :param logger: HTTPP Request logger class, defaults to None
+        :param default_limit: Default value for pagination limit parameter.
+        :type default_limit: int, optional
+        :param max_retries: Max number of retries for a request before raising an error.
+        :type max_retries: int, optional
+        :param logger: HTTP Request logger class, defaults to None
         :type logger: RequestLogger, optional
+        :param timeout: Timeout parameter to pass to the underlying http client.
+        :type timeout: int or tuple of int, optional
+        :param resourceset_append: Append all the page to the current resourceset.
+        :type resourceset_append: bool, optional
         """
         if default_headers and 'Authorization' in default_headers:
             raise ValueError('`default_headers` cannot contains `Authorization`')
@@ -65,6 +78,7 @@ class _ConnectClientBase(threading.local):
         self.logger = logger
         self._help_formatter = DefaultFormatter(self.specs)
         self.timeout = timeout
+        self.resourceset_append = resourceset_append
 
     def __getattr__(self, name):
         """

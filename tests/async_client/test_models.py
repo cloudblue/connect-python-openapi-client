@@ -982,6 +982,32 @@ async def test_rs_pagination(mocker, async_client_mock, async_rs_factory):
     assert results == [{'id': i} for i in range(200)]
     assert rs._limit == 100
     assert rs._offset == 0
+    assert len(rs._results) == 200
+
+
+@pytest.mark.asyncio
+async def test_rs_pagination_no_append(mocker, async_client_mock, async_rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(0, 99, 200),
+            ContentRange(100, 199, 200),
+        ],
+    )
+
+    rs = async_rs_factory(
+        client=async_client_mock(methods=['get']),
+    )
+    rs._client.resourceset_append = False
+    rs._client.get.side_effect = [
+        [{'id': i} for i in range(100)],
+        [{'id': i} for i in range(100, 200)],
+    ]
+    results = [item async for item in rs]
+    assert results == [{'id': i} for i in range(200)]
+    assert rs._limit == 100
+    assert rs._offset == 0
+    assert len(rs._results) == 100
 
 
 @pytest.mark.asyncio
