@@ -40,7 +40,7 @@ connect-markdown-renderer = "^2"
 PyYAML = ">=5.3.1"
 requests = ">=2.23"
 inflect = ">=4.1"
-httpx = ">=0.22"
+httpx = ">=0.23"
 asgiref = "^3.3.4"
 
 [tool.poetry.dev-dependencies]
