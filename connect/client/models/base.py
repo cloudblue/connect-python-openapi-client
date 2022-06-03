@@ -168,6 +168,9 @@ class _CollectionBase:
         """
         return self.resource(resource_id)
 
+    def __call__(self, name):
+        return self.action(name)
+
     def all(self):
         """
         Return a ResourceSet instance.
@@ -258,6 +261,29 @@ class _CollectionBase:
             f'{self._path}/{resource_id}',
         )
 
+    def action(self, name):
+        """
+        Returns the action called ``name``.
+
+        :param name: The name of the action.
+        :type name: str
+        :raises TypeError: if the ``name`` is not a string.
+        :raises ValueError: if the ``name`` is blank.
+        :raises NotFoundError: if the ``name`` does not exist.
+        :return: The action called ``name``.
+        :rtype: Action
+        """
+        if not isinstance(name, str):
+            raise TypeError('`name` must be a string.')
+
+        if not name:
+            raise ValueError('`name` must not be blank.')
+
+        return self._get_action_class()(
+            self._client,
+            f'{self._path}/{name}',
+        )
+
     def help(self):
         """
         Output the collection documentation to the console.
@@ -274,6 +300,9 @@ class _CollectionBase:
     def _get_resourceset_class(self):
         return NotImplementedError()  # pragma: no cover
 
+    def _get_action_class(self):
+        raise NotImplementedError()  # pragma: no cover
+
 
 class Collection(_CollectionBase, CollectionMixin):
     def _get_resource_class(self):
@@ -282,6 +311,9 @@ class Collection(_CollectionBase, CollectionMixin):
     def _get_resourceset_class(self):
         return ResourceSet
 
+    def _get_action_class(self):
+        return Action
+
 
 class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
     def _get_resource_class(self):
@@ -289,6 +321,9 @@ class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
 
     def _get_resourceset_class(self):
         return AsyncResourceSet
+
+    def _get_action_class(self):
+        return AsyncAction
 
 
 class _ResourceBase:
