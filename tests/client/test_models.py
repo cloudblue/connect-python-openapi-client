@@ -296,6 +296,45 @@ def test_collection_help(col_factory):
     assert col1 == col
 
 
+def test_collection_action_invalid_type(col_factory):
+    collection = col_factory()
+    with pytest.raises(TypeError) as cv:
+        collection.action(None)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+    with pytest.raises(TypeError) as cv:
+        collection.action(3)
+
+    assert str(cv.value) == '`name` must be a string.'
+
+
+def test_collection_action_invalid_value(col_factory):
+    collection = col_factory()
+    with pytest.raises(ValueError) as cv:
+        collection.action('')
+
+    assert str(cv.value) == '`name` must not be blank.'
+
+
+def test_collection_action(col_factory):
+    collection = col_factory()
+    action = collection.action('action')
+
+    assert isinstance(action, Action)
+    assert action._client == collection._client
+    assert action.path == f'{collection.path}/action'
+
+
+def test_collection_action_call(col_factory):
+    collection = col_factory()
+    action = collection('action')
+
+    assert isinstance(action, Action)
+    assert action._client == collection._client
+    assert action.path == f'{collection.path}/action'
+
+
 def test_resource_getattr(res_factory):
     res = res_factory()
     col = res.resources
