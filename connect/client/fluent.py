@@ -23,7 +23,7 @@ class _ConnectClientBase(threading.local):
         self,
         api_key,
         endpoint=None,
-        use_specs=True,
+        use_specs=False,
         specs_location=None,
         validate_using_specs=True,
         default_headers=None,

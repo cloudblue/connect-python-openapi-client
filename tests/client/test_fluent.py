@@ -6,7 +6,6 @@ import responses
 
 from requests import RequestException, Timeout
 
-from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from connect.client.exceptions import ClientError
 from connect.client.fluent import ConnectClient
 from connect.client.logger import RequestLogger
@@ -16,7 +15,6 @@ from connect.client.models import Collection, NS
 def test_default_headers():
     c = ConnectClient(
         'Api Key',
-        use_specs=False,
         default_headers={'X-Custom-Header': 'value'},
     )
 
@@ -27,7 +25,6 @@ def test_default_headers_invalid():
     with pytest.raises(ValueError):
         ConnectClient(
             'Api Key',
-            use_specs=False,
             default_headers={'Authorization': 'value'},
         )
 
@@ -35,7 +32,6 @@ def test_default_headers_invalid():
 def test_default_limit():
     c = ConnectClient(
         'Api Key',
-        use_specs=False,
         default_limit=10,
     )
 
@@ -45,37 +41,37 @@ def test_default_limit():
 
 
 def test_ns(mocker):
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
 
     assert isinstance(c.ns('namespace'), NS)
 
 
 def test_ns_invalid_type():
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
     with pytest.raises(TypeError):
         c.ns(c)
 
 
 def test_ns_invalid_value():
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
     with pytest.raises(ValueError):
         c.ns('')
 
 
 def test_collection(mocker):
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
 
     assert isinstance(c.collection('resources'), Collection)
 
 
 def test_collection_invalid_type():
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
     with pytest.raises(TypeError):
         c.collection(c)
 
 
 def test_collection_invalid_value():
-    c = ConnectClient('Api Key', use_specs=False)
+    c = ConnectClient('Api Key')
     with pytest.raises(ValueError):
         c.collection('')
 
@@ -87,7 +83,7 @@ def test_get(mocker):
         'arg1': 'val1',
     }
 
-    c = ConnectClient('API_KEY', use_specs=False)
+    c = ConnectClient('API_KEY')
 
     c.get(url, **kwargs)
 
@@ -103,7 +99,7 @@ def test_create(mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = ConnectClient('API_KEY', use_specs=False)
+    c = ConnectClient('API_KEY')
 
     c.create(url, **kwargs)
 
@@ -124,7 +120,7 @@ def test_update(mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = ConnectClient('API_KEY', use_specs=False)
+    c = ConnectClient('API_KEY')
 
     c.update(url, **kwargs)
 
@@ -140,7 +136,7 @@ def test_delete_no_args(mocker):
     mocked = mocker.patch.object(ConnectClient, 'execute')
     url = 'https://localhost'
 
-    c = ConnectClient('API_KEY', use_specs=False)
+    c = ConnectClient('API_KEY')
 
     c.delete(url)
 
@@ -157,7 +153,7 @@ def test_delete(mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = ConnectClient('API_KEY', use_specs=False)
+    c = ConnectClient('API_KEY')
 
     c.delete(url, **kwargs)
 
@@ -180,7 +176,6 @@ def test_execute(mocked_responses):
     ios = io.StringIO()
     c = ConnectClient('API_KEY',
                       endpoint='https://localhost',
-                      use_specs=False,
                       logger=RequestLogger(file=ios))
 
     results = c.execute('get', 'resources')
@@ -217,7 +212,6 @@ def test_execute_non_json_response(mocked_responses):
     c = ConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
     )
     result = c.execute('get', 'resources')
     assert result == b'This is a non json response.'
@@ -256,7 +250,6 @@ def test_execute_retries(mocked_responses, mock_config):
     c = ConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         max_retries=2,
     )
 
@@ -302,7 +295,6 @@ def test_execute_max_retries_exceeded(mocked_responses, mock_config):
     c = ConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         max_retries=2,
     )
 
@@ -320,7 +312,6 @@ def test_execute_default_headers(mocked_responses):
     c = ConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         default_headers={'X-Custom-Header': 'custom-header-value'},
     )
 
@@ -341,7 +332,7 @@ def test_execute_with_kwargs(mocked_responses):
         status=201,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
     kwargs = {
         'headers': {
             'X-Custom-Header': 'value',
@@ -365,7 +356,7 @@ def test_execute_with_overwritten_timeout(mocker):
         side_effect=RequestException(),
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
     kwargs = {
         'timeout': 500,
     }
@@ -392,7 +383,7 @@ def test_execute_with_default_timeout(mocker):
         side_effect=RequestException(),
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError):
         c.execute('post', 'resources')
@@ -423,7 +414,7 @@ def test_execute_connect_error(mocked_responses):
         status=400,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError) as cv:
         c.execute('post', 'resources')
@@ -446,7 +437,7 @@ def test_execute_unexpected_connect_error(mocked_responses):
         status=400,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError) as cv:
         c.execute('post', 'resources')
@@ -463,7 +454,7 @@ def test_execute_uparseable_connect_error(mocked_responses):
         status=400,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError):
         c.execute('post', 'resources')
@@ -479,7 +470,7 @@ def test_execute_error_with_reason(mocked_responses, encoding):
         body='Interñal Server Error'.encode(encoding),
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError):
         c.execute('post', 'resources')
@@ -494,7 +485,7 @@ def test_execute_delete(mocked_responses):
         status=204,
     )
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     results = c.execute('delete', 'resources')
 
@@ -503,21 +494,19 @@ def test_execute_delete(mocked_responses):
 
 def test_create_client_with_defaults(mocker):
     mocked_specs = mocker.patch('connect.client.fluent.OpenAPISpecs')
-
-    c = ConnectClient('API_KEY')
-    mocked_specs.assert_called_once_with(CONNECT_SPECS_URL)
-    assert c.endpoint == CONNECT_ENDPOINT_URL
+    ConnectClient('API_KEY')
+    assert mocked_specs.called is False
 
 
 def test_get_attr_with_underscore(mocker):
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     coll = c.my_collection
     assert coll.path == 'my-collection'
 
 
 def test_call(mocker):
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     ns = c('ns')
     assert isinstance(ns, NS)
@@ -526,7 +515,7 @@ def test_call(mocker):
 
 def test_print_help(mocker):
     format_mock = mocker.MagicMock()
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
     c._help_formatter.format = format_mock
 
     c.print_help(None)
@@ -535,7 +524,7 @@ def test_print_help(mocker):
 
 def test_help(mocker):
     format_mock = mocker.MagicMock()
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
     c._help_formatter.format = format_mock
     c.help()
     format_mock.assert_called_once_with(None)
@@ -544,7 +533,7 @@ def test_help(mocker):
 def test_non_server_error(mocker):
     mocker.patch('connect.client.mixins.requests.request', side_effect=RequestException('generic'))
 
-    c = ConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError) as cv:
         c.execute('get', 'path')

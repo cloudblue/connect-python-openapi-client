@@ -13,7 +13,7 @@ async def test_async_get(async_mocker):
     kwargs = {
         'arg1': 'val1',
     }
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     mocked = async_mocker.AsyncMock()
     c.execute = mocked
     await c.get(url, **kwargs)
@@ -30,7 +30,7 @@ async def test_create(async_mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     c.execute = mocked
 
     await c.create(url, **kwargs)
@@ -53,7 +53,7 @@ async def test_update(async_mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     c.execute = mocked
 
     await c.update(url, **kwargs)
@@ -71,7 +71,7 @@ async def test_delete_no_args(async_mocker):
     mocked = async_mocker.AsyncMock()
     url = 'https://localhost'
 
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     c.execute = mocked
 
     await c.delete(url)
@@ -90,7 +90,7 @@ async def test_delete(async_mocker, attr):
     }
     kwargs[attr] = {'k1': 'v1'}
 
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     c.execute = mocked
 
     await c.delete(url, **kwargs)
@@ -115,7 +115,6 @@ async def test_execute(httpx_mock):
     ios = io.StringIO()
     c = AsyncConnectClient('API_KEY',
                            endpoint='https://localhost',
-                           use_specs=False,
                            logger=RequestLogger(file=ios))
 
     results = await c.execute('get', 'resources')
@@ -134,7 +133,7 @@ async def test_execute_validate_with_specs(async_mocker):
     mocked_specs = async_mocker.MagicMock()
     mocked_specs.exists.return_value = False
 
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     c.specs = mocked_specs
     c._use_specs = True
     with pytest.raises(ClientError) as cv:
@@ -154,7 +153,6 @@ async def test_execute_non_json_response(httpx_mock):
     c = AsyncConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
     )
     result = await c.execute('get', 'resources')
     assert result == b'This is a non json response.'
@@ -185,7 +183,6 @@ async def test_execute_retries(httpx_mock):
     c = AsyncConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         max_retries=2,
     )
 
@@ -221,7 +218,6 @@ async def test_execute_max_retries_exceeded(httpx_mock):
     c = AsyncConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         max_retries=2,
     )
 
@@ -240,7 +236,6 @@ async def test_execute_default_headers(httpx_mock):
     c = AsyncConnectClient(
         'API_KEY',
         endpoint='https://localhost',
-        use_specs=False,
         default_headers={'X-Custom-Header': 'custom-header-value'},
     )
 
@@ -262,7 +257,7 @@ async def test_execute_with_kwargs(httpx_mock):
         status_code=201,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
     kwargs = {
         'headers': {
             'X-Custom-Header': 'value',
@@ -294,7 +289,7 @@ async def test_execute_connect_error(httpx_mock):
         status_code=400,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError) as cv:
         await c.execute('post', 'resources')
@@ -318,7 +313,7 @@ async def test_execute_unexpected_connect_error(httpx_mock):
         status_code=400,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError) as cv:
         await c.execute('post', 'resources')
@@ -336,7 +331,7 @@ async def test_execute_uparseable_connect_error(httpx_mock):
         status_code=400,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError):
         await c.execute('post', 'resources')
@@ -353,7 +348,7 @@ async def test_execute_error_with_reason(httpx_mock, encoding):
         content='Internal Server Error'.encode(encoding),
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
 
     with pytest.raises(ClientError):
         await c.execute('post', 'resources')
@@ -369,7 +364,7 @@ async def test_execute_delete(httpx_mock):
         status_code=204,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
 
     results = await c.execute('delete', 'resources')
 
@@ -377,12 +372,12 @@ async def test_execute_delete(httpx_mock):
 
 
 def test_collection():
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     assert isinstance(c.collection('resources'), AsyncCollection)
 
 
 def test_ns():
-    c = AsyncConnectClient('API_KEY', use_specs=False)
+    c = AsyncConnectClient('API_KEY')
     assert isinstance(c.ns('namespace'), AsyncNS)
 
 
@@ -395,7 +390,7 @@ async def test_execute_with_qs_and_params(httpx_mock):
         status_code=201,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
     kwargs = {
         'params': {
             'limit': 100,
@@ -415,7 +410,7 @@ async def test_execute_with_params_only(httpx_mock):
         status_code=201,
     )
 
-    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', use_specs=False)
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
     kwargs = {
         'params': {
             'limit': 100,
