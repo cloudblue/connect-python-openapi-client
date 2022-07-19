@@ -40,7 +40,7 @@ class AbstractIterator(AbstractBaseIterator):
             self._results_iterator = iter(self._rs._results)
             self._loaded = True
 
-    def __next__(self):
+    def __next__(self):  # noqa: CCR001
         self._load()
 
         if not self._rs._results:
@@ -51,9 +51,14 @@ class AbstractIterator(AbstractBaseIterator):
             if (
                 self._rs._content_range is None
                 or self._rs._content_range.last >= self._rs._content_range.count - 1
+                or (self._rs._slice and self._rs._content_range.last >= self._rs._slice.stop - 1)
             ):
                 raise
             self._config['params']['offset'] += self._config['params']['limit']
+            if self._rs._slice:
+                items_to_fetch = self._rs._slice.stop - self._rs._content_range.last - 1
+                if items_to_fetch < self._config['params']['limit']:
+                    self._config['params']['limit'] = items_to_fetch
             results, cr = self._execute_request()
             if not results:
                 raise
@@ -86,7 +91,7 @@ class AbstractAsyncIterator(AbstractBaseIterator):
             self._results_iterator = iter(self._rs._results)
             self._loaded = True
 
-    async def __anext__(self):
+    async def __anext__(self):  # noqa: CCR001
         await self._load()
 
         if not self._rs._results:
@@ -97,9 +102,14 @@ class AbstractAsyncIterator(AbstractBaseIterator):
             if (
                 self._rs._content_range is None
                 or self._rs._content_range.last >= self._rs._content_range.count - 1
+                or (self._rs._slice and self._rs._content_range.last >= self._rs._slice.stop - 1)
             ):
                 raise StopAsyncIteration
             self._config['params']['offset'] += self._config['params']['limit']
+            if self._rs._slice:
+                items_to_fetch = self._rs._slice.stop - self._rs._content_range.last - 1
+                if items_to_fetch < self._config['params']['limit']:
+                    self._config['params']['limit'] = items_to_fetch
             results, cr = await self._execute_request()
             if not results:
                 raise StopAsyncIteration

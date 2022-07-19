@@ -790,21 +790,41 @@ async def test_rs_getitem_not_evaluated(async_client_mock, async_rs_factory):
         rs[0]
 
 
-def test_rs_getitem_slice(mocker, async_client_mock, async_rs_factory):
+@pytest.mark.asyncio
+async def test_rs_getitem_slice(mocker, async_client_mock, async_rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
+        'connect.client.models.iterators.parse_content_range',
+        return_value=ContentRange(2, 3, 10),
     )
-    expected = [{'id': i} for i in range(10)]
-    rs = async_rs_factory(
-        client=async_client_mock(methods=['get']),
-    )
+    rs = async_rs_factory(client=async_client_mock(methods=['get']))
+    expected = [{'id': 2}, {'id': 3}]
     rs._client.get.return_value = expected
     sliced = rs[2:4]
+    results = [item async for item in sliced]
+    assert results == expected
     assert isinstance(sliced, AsyncResourceSet)
-    assert sliced._limit == 2
-    assert sliced._offset == 2
-    rs._client.get.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_rs_getitem_slice_limit(async_mocker, mocker, async_client_mock, async_rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(0, 9, 25),
+            ContentRange(10, 19, 25),
+            ContentRange(20, 21, 25),
+        ],
+    )
+    rs = async_rs_factory(client=async_client_mock(methods=['get']))
+    rs._client.get = async_mocker.AsyncMock(side_effect=[
+        [{'id': i} for i in range(10)],
+        [{'id': i + 10} for i in range(10)],
+        [{'id': 20}, {'id': 21}],
+    ])
+    rs._limit = 10
+    sliced = rs[0:22]
+    results = [item async for item in sliced]
+    assert results == [{'id': i} for i in range(22)]
 
 
 def test_rs_getitem_slice_type(async_rs_factory):

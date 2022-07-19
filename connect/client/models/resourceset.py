@@ -34,7 +34,7 @@ class _ResourceSetBase:
         self._results = None
         self._limit = self._client.default_limit or 100
         self._offset = 0
-        self._slice = False
+        self._slice = None
         self._content_range = None
         self._fields = None
         self._search = None
@@ -264,6 +264,21 @@ class _ResourceSetBase:
 
         return rs
 
+    def _validate_key(self, key):
+        if not isinstance(key, (int, slice)):
+            raise TypeError('ResourceSet indices must be integers or slices.')
+
+        if isinstance(key, slice) and (key.start is None or key.stop is None):
+            raise ValueError('Both start and stop indexes must be specified.')
+
+        if (not isinstance(key, slice) and (key < 0)) or (
+            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
+        ):
+            raise ValueError('Negative indexing is not supported.')
+
+        if isinstance(key, slice) and not (key.step is None or key.step == 0):
+            raise ValueError('Indexing with step is not supported.')
+
     def help(self):
         """
         Output the ResourceSet documentation to the console.
@@ -301,7 +316,7 @@ class ResourceSet(_ResourceSetBase):
 
     def __getitem__(self, key):  # noqa: CCR001
         """
-        If called with and integer index, returns the item
+        If called with slice and integer index, returns the item
         at index ``key``.
 
         If key is a slice, set the pagination limit and offset
@@ -313,19 +328,7 @@ class ResourceSet(_ResourceSetBase):
         :return: The resource at index ``key`` or self if ``key`` is a slice.
         :rtype: dict, ResultSet
         """
-        if not isinstance(key, (int, slice)):
-            raise TypeError('ResourceSet indices must be integers or slices.')
-
-        if isinstance(key, slice) and (key.start is None or key.stop is None):
-            raise ValueError('Both start and stop indexes must be specified.')
-
-        if (not isinstance(key, slice) and (key < 0)) or (
-            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
-        ):
-            raise ValueError('Negative indexing is not supported.')
-
-        if isinstance(key, slice) and not (key.step is None or key.step == 0):
-            raise ValueError('Indexing with step is not supported.')
+        self._validate_key(key)
 
         if self._results is not None:
             return self._results[key]
@@ -339,8 +342,10 @@ class ResourceSet(_ResourceSetBase):
 
         copy = self._copy()
         copy._offset = key.start
-        copy._limit = key.stop - key.start
-        copy._slice = True
+        copy._slice = key
+        if copy._slice.stop - copy._slice.start < copy._limit:
+            copy._limit = copy._slice.stop - copy._slice.start
+
         return copy
 
     def count(self):
@@ -429,7 +434,7 @@ class AsyncResourceSet(_ResourceSetBase):
 
     def __getitem__(self, key):  # noqa: CCR001
         """
-        If called with and integer index, returns the item
+        If called with slice and integer index, returns the item
         at index ``key``.
 
         If key is a slice, set the pagination limit and offset
@@ -441,19 +446,7 @@ class AsyncResourceSet(_ResourceSetBase):
         :return: The resource at index ``key`` or self if ``key`` is a slice.
         :rtype: dict, ResultSet
         """
-        if not isinstance(key, (int, slice)):
-            raise TypeError('ResourceSet indices must be integers or slices.')
-
-        if isinstance(key, slice) and (key.start is None or key.stop is None):
-            raise ValueError('Both start and stop indexes must be specified.')
-
-        if (not isinstance(key, slice) and (key < 0)) or (
-            isinstance(key, slice) and (key.start < 0 or key.stop < 0)
-        ):
-            raise ValueError('Negative indexing is not supported.')
-
-        if isinstance(key, slice) and not (key.step is None or key.step == 0):
-            raise ValueError('Indexing with step is not supported.')
+        self._validate_key(key)
 
         if self._results is not None:
             return self._results[key]
@@ -463,8 +456,10 @@ class AsyncResourceSet(_ResourceSetBase):
 
         copy = self._copy()
         copy._offset = key.start
-        copy._limit = key.stop - key.start
-        copy._slice = True
+        copy._slice = key
+        if copy._slice.stop - copy._slice.start < copy._limit:
+            copy._limit = copy._slice.stop - copy._slice.start
+
         return copy
 
     async def count(self):
