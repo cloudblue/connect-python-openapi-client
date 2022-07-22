@@ -698,16 +698,55 @@ def test_rs_getitem(mocker, rs_factory):
 
 def test_rs_getitem_slice(mocker, rs_factory):
     mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
+        'connect.client.models.iterators.parse_content_range',
+        return_value=ContentRange(2, 3, 10),
     )
-    expected = [{'id': i} for i in range(10)]
+    expected = [{'id': 2}, {'id': 3}]
     rs = rs_factory()
     rs._client.get = mocker.MagicMock(return_value=expected)
     sliced = rs[2:4]
-    assert isinstance(sliced, ResourceSet)
-    assert sliced._limit == 2
-    assert sliced._offset == 2
+    results = [resource for resource in sliced]
+    assert results == expected
+
+
+def test_rs_getitem_slice_more_than_limit(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(1, 100, 257),
+            ContentRange(101, 101, 257),
+        ],
+    )
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(side_effect=[
+        [{'id': i + 1} for i in range(100)],
+        [{'id': 101}],
+    ])
+    sliced = rs[1:102]
+    results = [resource for resource in sliced]
+    assert results == [{'id': i + 1} for i in range(101)]
+
+
+def test_rs_getitem_slice_more_than_limit_no_append(mocker, rs_factory):
+    mocker.patch(
+        'connect.client.models.iterators.parse_content_range',
+        side_effect=[
+            ContentRange(0, 9, 25),
+            ContentRange(10, 19, 25),
+            ContentRange(20, 21, 25),
+        ],
+    )
+    rs = rs_factory()
+    rs._client.get = mocker.MagicMock(side_effect=[
+        [{'id': i} for i in range(10)],
+        [{'id': i + 10} for i in range(10)],
+        [{'id': 20}, {'id': 21}],
+    ])
+    rs._limit = 10
+    rs._client.resourceset_append = False
+    sliced = rs[0:22]
+    results = [resource for resource in sliced]
+    assert results == [{'id': i} for i in range(22)]
 
 
 def test_rs_getitem_slice_type(mocker, rs_factory):
