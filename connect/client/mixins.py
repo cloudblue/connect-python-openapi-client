@@ -191,5 +191,7 @@ class AsyncClientMixin:
             params = kwargs.pop('params')
             qs_fragment = '&'.join([f'{k}={v}' for k, v in params.items()])
             join = '?' if '?' not in url else '&'
+            if url.endswith('?'):
+                join = ''
             url = f'{url}{join}{qs_fragment}'
         return url, kwargs
