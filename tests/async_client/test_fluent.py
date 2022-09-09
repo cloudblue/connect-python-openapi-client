@@ -1,3 +1,4 @@
+import asyncio
 import io
 
 import pytest
@@ -419,3 +420,33 @@ async def test_execute_with_params_only(httpx_mock):
     }
 
     await c.execute('get', 'resources', **kwargs)
+
+
+@pytest.mark.asyncio
+async def test_async_client_manage_response():
+    c = AsyncConnectClient('API_KEY')
+    assert c.response is None
+    c.response = 'Some response'
+    assert c._response.get() == 'Some response'
+
+
+@pytest.mark.asyncio
+async def test_parallel_tasks(httpx_mock):
+    for idx in range(100):
+        httpx_mock.add_response(
+            method='GET',
+            url=f'https://localhost/resources/{idx}',
+            json={'idx': idx},
+            status_code=200,
+        )
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
+
+    async def fetcher(client, idx):
+        obj = await client.resources[str(idx)].get()
+        assert obj == {'idx': idx}
+
+    asyncio.gather(*[
+        asyncio.create_task(fetcher(c, idx))
+        for idx in range(100)
+    ])

@@ -539,3 +539,10 @@ def test_non_server_error(mocker):
         c.execute('get', 'path')
 
     assert str(cv.value) == 'Unexpected error'
+
+
+def test_sync_client_manage_response():
+    c = ConnectClient('API_KEY')
+    assert c.response is None
+    c.response = 'Some response'
+    assert c._response == 'Some response'
