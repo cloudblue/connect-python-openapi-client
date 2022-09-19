@@ -3,6 +3,7 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
+import contextvars
 import threading
 from json.decoder import JSONDecodeError
 
@@ -74,11 +75,19 @@ class _ConnectClientBase(threading.local):
         self.specs = None
         if self._use_specs:
             self.specs = OpenAPISpecs(self.specs_location)
-        self.response = None
+        self._response = None
         self.logger = logger
         self._help_formatter = DefaultFormatter(self.specs)
         self.timeout = timeout
         self.resourceset_append = resourceset_append
+
+    @property
+    def response(self):
+        return self._response
+
+    @response.setter
+    def response(self, value):
+        self._response = value
 
     def __getattr__(self, name):
         """
@@ -169,7 +178,7 @@ class _ConnectClientBase(threading.local):
                 pass
 
 
-class ConnectClient(_ConnectClientBase, SyncClientMixin):
+class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
     def _get_collection_class(self):
         return Collection
 
@@ -178,6 +187,19 @@ class ConnectClient(_ConnectClientBase, SyncClientMixin):
 
 
 class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._response = contextvars.ContextVar('response', default=None)
+
+    @property
+    def response(self):
+        return self._response.get()
+
+    @response.setter
+    def response(self, value):
+        self._response.set(value)
+
     def _get_collection_class(self):
         return AsyncCollection
 
