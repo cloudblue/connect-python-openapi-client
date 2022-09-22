@@ -5,12 +5,14 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
-
-from pkg_resources import DistributionNotFound, get_distribution
+try:
+    from importlib.metadata import version
+except Exception:
+    from importlib_metadata import version
 
 
 def get_version():
     try:
-        return get_distribution('connect-openapi-client').version
-    except DistributionNotFound:
+        return version('connect-openapi-client')
+    except Exception:
         return '0.0.0'
