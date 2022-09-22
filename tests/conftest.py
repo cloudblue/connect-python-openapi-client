@@ -5,6 +5,7 @@ import pytest
 import responses
 
 from connect.client.openapi import OpenAPISpecs
+from connect.client.testing.fixtures import async_client_mocker_factory, client_mocker_factory  # noqa
 
 from tests.fixtures.client_models import (  # noqa
     action_factory,
