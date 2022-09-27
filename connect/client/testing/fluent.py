@@ -3,9 +3,12 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
+import json
+
 import httpx
 
 import responses
+from responses import matchers
 
 from pytest import MonkeyPatch
 
@@ -14,6 +17,22 @@ from pytest_httpx._httpx_mock import _PytestAsyncTransport
 
 from connect.client.fluent import _ConnectClientBase
 from connect.client.testing.models import CollectionMock, NSMock
+
+
+def body_matcher(body):
+    def match(request):
+        request_body = request.body
+        valid = (
+            body is None
+            if request_body is None
+            else body == request_body
+        )
+        if not valid:
+            return False, "%s doesn't match %s" % (request_body, body)
+
+        return valid, ""
+
+    return match
 
 
 class ConnectClientMocker(_ConnectClientBase):
@@ -42,6 +61,7 @@ class ConnectClientMocker(_ConnectClientBase):
         status_code=201,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self.mock(
@@ -50,6 +70,7 @@ class ConnectClientMocker(_ConnectClientBase):
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def update(
@@ -58,6 +79,7 @@ class ConnectClientMocker(_ConnectClientBase):
         status_code=201,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self.mock(
@@ -66,6 +88,7 @@ class ConnectClientMocker(_ConnectClientBase):
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def delete(
@@ -74,6 +97,7 @@ class ConnectClientMocker(_ConnectClientBase):
         status_code=204,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self.mock(
@@ -82,6 +106,7 @@ class ConnectClientMocker(_ConnectClientBase):
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def mock(
@@ -91,6 +116,7 @@ class ConnectClientMocker(_ConnectClientBase):
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
         url = f'{self.endpoint}/{path}'
 
@@ -105,6 +131,16 @@ class ConnectClientMocker(_ConnectClientBase):
             kwargs['json'] = return_value
         else:
             kwargs['body'] = return_value
+
+        if match_body:
+            if isinstance(match_body, (dict, list, tuple)):
+                kwargs['match'] = [
+                    matchers.json_params_matcher(match_body),
+                ]
+            else:
+                kwargs['match'] = [
+                    body_matcher(match_body),
+                ]
 
         self._mocker.add(**kwargs)
 
@@ -160,6 +196,7 @@ class AsyncConnectClientMocker(ConnectClientMocker):
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
         url = f'{self.endpoint}/{path}'
 
@@ -174,5 +211,11 @@ class AsyncConnectClientMocker(ConnectClientMocker):
             kwargs['json'] = return_value
         else:
             kwargs['content'] = return_value.encode() if return_value else None
+
+        if match_body:
+            if isinstance(match_body, (dict, list, tuple)):
+                kwargs['match_content'] = json.dumps(match_body).encode('utf-8')
+            else:
+                kwargs['match_content'] = match_body
 
         self._mocker.add_response(**kwargs)

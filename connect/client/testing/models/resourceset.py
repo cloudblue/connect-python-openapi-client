@@ -24,7 +24,8 @@ class ResourceSetMock(_ResourceSetBase):
 
         return copy
 
-    def count(self, return_value=0, status_code=200):
+    def count(self, return_value=0, status_code=200, headers=None):
+        headers = headers or {}
         if self._count is None:
             request_kwargs = self._get_request_kwargs()
             url = self._build_full_url(
@@ -35,21 +36,19 @@ class ResourceSetMock(_ResourceSetBase):
             if status_code == 200:
                 if not isinstance(return_value, int):
                     raise TypeError('return_value must be an integer')
+                headers['Content-Range'] = f'items 0-0/{return_value}'
                 self._client.get(
                     url,
                     return_value=[],
-                    headers={
-                        'Content-Range': f'items 0-0/{return_value}',
-                    },
+                    headers=headers,
                 )
                 self._count = return_value
             else:
+                headers['Content-Range'] = f'items 0-0/{return_value}'
                 self._client.get(
                     url,
                     status_code=status_code,
-                    headers={
-                        'Content-Range': f'items 0-0/{return_value}',
-                    },
+                    headers=headers,
                 )
 
     def first(self):
@@ -64,7 +63,6 @@ class ResourceSetMock(_ResourceSetBase):
         return_value=None,
         headers=None,
     ):
-
         if status_code != 200:
             request_kwargs = self._get_request_kwargs()
             url = self._build_full_url(
@@ -84,11 +82,11 @@ class ResourceSetMock(_ResourceSetBase):
             raise TypeError('return_value must be a list of objects')
 
         if not self._slice:
-            self._mock_iteration(return_value)
+            self._mock_iteration(return_value, headers)
         else:
-            self._mock_slicing(return_value)
+            self._mock_slicing(return_value, headers)
 
-    def _mock_iteration(self, return_value):
+    def _mock_iteration(self, return_value, extra_headers):
         request_kwargs = self._get_request_kwargs()
         total = len(return_value)
         self._count = 0
@@ -103,16 +101,17 @@ class ResourceSetMock(_ResourceSetBase):
                 offset,
                 request_kwargs['params'].get('search'),
             )
+            headers = {'Content-Range': f'items {offset}-{offset + len(page) - 1}/{total}'}
+            if extra_headers:
+                headers.update(extra_headers)
             self._client.get(
                 url,
                 return_value=page,
-                headers={
-                    'Content-Range': f'items {offset}-{offset + len(page) - 1}/{total}',
-                },
+                headers=headers,
             )
             self._count += len(page)
 
-    def _mock_slicing(self, return_value):
+    def _mock_slicing(self, return_value, extra_headers):
         request_kwargs = self._get_request_kwargs()
         total = len(return_value)
         self._count = 0
@@ -139,12 +138,13 @@ class ResourceSetMock(_ResourceSetBase):
                 offset,
                 request_kwargs['params'].get('search'),
             )
+            headers = {'Content-Range': f'items {offset}-{offset + len(page) - 1}/{total}'}
+            if extra_headers:
+                headers.update(extra_headers)
             self._client.get(
                 url,
                 return_value=page,
-                headers={
-                    'Content-Range': f'items {offset}-{offset + len(page) - 1}/{total}',
-                },
+                headers=headers,
             )
             self._count += len(page)
 

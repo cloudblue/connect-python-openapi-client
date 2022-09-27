@@ -42,7 +42,7 @@ requests = ">=2.23"
 inflect = ">=4.1"
 httpx = ">=0.23"
 asgiref = "^3.3.4"
-responses = "^0.12.0"
+responses = ">=0.14.0,<1"
 pytest-httpx = ">=0.20"
 importlib-metadata = { version = "^4.12.0", python = ">=3.7,<3.8" }
 
@@ -75,6 +75,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = "tests"
 addopts = "--cov=connect.client --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
+log_cli = true
+log_cli_level = "INFO"
 
 [tool.coverage.run]
 branch = true

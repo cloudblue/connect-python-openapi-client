@@ -12,6 +12,22 @@ def test_create():
         assert client.products.create(payload={}) == {'test': 'data'}
 
     with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.create(return_value={'test': 'data'}, match_body={'match': 'body'})
+        client = ConnectClient('api_key', endpoint='http://localhost')
+        assert client.products.create(payload={'match': 'body'}) == {'test': 'data'}
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.create(return_value={'test': 'data'}, match_body=b'binary content')
+        client = ConnectClient('api_key', endpoint='http://localhost')
+        assert client.products.create(data=b'binary content') == {'test': 'data'}
+
+    with pytest.raises(ClientError):
+        with ConnectClientMocker('http://localhost') as mocker:
+            mocker.products.create(return_value={'test': 'data'}, match_body=b'another content')
+            client = ConnectClient('api_key', endpoint='http://localhost')
+            assert client.products.create(data=b'binary content') == {'test': 'data'}
+
+    with ConnectClientMocker('http://localhost') as mocker:
         mocker('my_namespace').products.create(return_value={'test': 'data'})
         client = ConnectClient('api_key', endpoint='http://localhost')
         assert client('my_namespace').products.create(payload={}) == {'test': 'data'}
@@ -138,6 +154,14 @@ def test_iterate():
         assert list(client.products.all().limit(2)) == return_value
 
     with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=return_value, headers={'X-Custom-Header': 'value'})
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()) == return_value
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+    with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().mock(return_value=return_value)
 
         client = ConnectClient('api_key', endpoint='http://localhost')
@@ -231,6 +255,16 @@ def test_slicing(total, start, stop):
         client = ConnectClient('api_key', endpoint='http://localhost')
 
         assert list(client.products.all()[start:stop]) == return_value[start:stop]
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[start:stop].mock(
+            return_value=return_value, headers={'X-Custom-Header': 'value'},
+        )
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()[start:stop]) == return_value[start:stop]
+        assert client.response.headers['X-Custom-Header'] == 'value'
 
 
 def test_count():
