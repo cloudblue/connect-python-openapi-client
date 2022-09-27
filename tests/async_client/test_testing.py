@@ -13,6 +13,22 @@ async def test_create():
         assert await client.products.create(payload={}) == {'test': 'data'}
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.create(return_value={'test': 'data'}, match_body={'match': 'body'})
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+        assert await client.products.create(payload={'match': 'body'}) == {'test': 'data'}
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.create(return_value={'test': 'data'}, match_body=b'binary content')
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+        assert await client.products.create(content=b'binary content') == {'test': 'data'}
+
+    with pytest.raises(ClientError):
+        with AsyncConnectClientMocker('http://localhost') as mocker:
+            mocker.products.create(return_value={'test': 'data'}, match_body=b'another content')
+            client = AsyncConnectClient('api_key', endpoint='http://localhost')
+            assert await client.products.create(content=b'binary content') == {'test': 'data'}
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker('my_namespace').products.create(return_value={'test': 'data'})
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
         assert await client('my_namespace').products.create(payload={}) == {'test': 'data'}
@@ -149,6 +165,14 @@ async def test_iterate():
         assert [item async for item in client.products.all().limit(2)] == return_value
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=return_value, headers={'X-Custom-Header': 'value'})
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [item async for item in client.products.all()] == return_value
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().mock(return_value=return_value)
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
@@ -227,6 +251,18 @@ async def test_slicing(total, start, stop):
         assert [
             item async for item in client.products.all()[start:stop]
         ] == return_value[start:stop]
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[start:stop].mock(
+            return_value=return_value, headers={'X-Custom-Header': 'value'},
+        )
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [
+            item async for item in client.products.all()[start:stop]
+        ] == return_value[start:stop]
+        assert client.response.headers['X-Custom-Header'] == 'value'
 
 
 @pytest.mark.asyncio

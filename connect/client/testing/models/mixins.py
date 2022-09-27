@@ -11,6 +11,7 @@ class CollectionMixin:
         status_code=201,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self._client.create(
@@ -18,6 +19,7 @@ class CollectionMixin:
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def bulk_create(
@@ -25,6 +27,7 @@ class CollectionMixin:
         status_code=201,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self._client.create(
@@ -32,6 +35,7 @@ class CollectionMixin:
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def bulk_update(
@@ -39,6 +43,7 @@ class CollectionMixin:
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self._client.update(
@@ -46,6 +51,7 @@ class CollectionMixin:
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def bulk_delete(
@@ -53,6 +59,7 @@ class CollectionMixin:
         status_code=204,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self._client.delete(
@@ -60,6 +67,7 @@ class CollectionMixin:
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
 
@@ -85,6 +93,7 @@ class ResourceMixin:
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
 
         return self._client.update(
@@ -92,6 +101,7 @@ class ResourceMixin:
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def delete(
@@ -141,12 +151,14 @@ class ActionMixin:
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
         return self._client.create(
             self._path,
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def put(
@@ -154,12 +166,14 @@ class ActionMixin:
         status_code=200,
         return_value=None,
         headers=None,
+        match_body=None,
     ):
         return self._client.update(
             self._path,
             status_code=status_code,
             return_value=return_value,
             headers=headers,
+            match_body=match_body,
         )
 
     def delete(
