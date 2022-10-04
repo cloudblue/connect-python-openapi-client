@@ -91,6 +91,23 @@ class ResourceSetMock(_ResourceSetBase):
         total = len(return_value)
         self._count = 0
 
+        if total == 0:
+            url = self._build_full_url(
+                request_kwargs['params']['limit'],
+                0,
+                request_kwargs['params'].get('search'),
+            )
+            headers = {'Content-Range': 'items 0-0/0'}
+
+            if extra_headers:
+                headers.update(extra_headers)
+            self._client.get(
+                url,
+                return_value=[],
+                headers=headers,
+            )
+            return
+
         def pages_iterator():
             for i in range(0, total, self._limit):
                 yield return_value[i:i + self._limit], i
@@ -115,6 +132,23 @@ class ResourceSetMock(_ResourceSetBase):
         request_kwargs = self._get_request_kwargs()
         total = len(return_value)
         self._count = 0
+
+        if total == 0:
+            url = self._build_full_url(
+                request_kwargs['params']['limit'],
+                0,
+                request_kwargs['params'].get('search'),
+            )
+            headers = {'Content-Range': 'items 0-0/0'}
+
+            if extra_headers:
+                headers.update(extra_headers)
+            self._client.get(
+                url,
+                return_value=[],
+                headers=headers,
+            )
+            return
 
         def pages_iterator():
             limit = request_kwargs['params']['limit']
