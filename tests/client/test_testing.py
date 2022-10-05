@@ -162,6 +162,21 @@ def test_iterate():
         assert client.response.headers['X-Custom-Header'] == 'value'
 
     with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[])
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()) == []
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[], headers={'X-Custom-Header': 'value'})
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()) == []
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+    with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().mock(return_value=return_value)
 
         client = ConnectClient('api_key', endpoint='http://localhost')
@@ -264,6 +279,26 @@ def test_slicing(total, start, stop):
         client = ConnectClient('api_key', endpoint='http://localhost')
 
         assert list(client.products.all()[start:stop]) == return_value[start:stop]
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+
+def test_slicing_no_results():
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[0:3].mock(return_value=[])
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()[0:3]) == []
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[0:3].mock(
+            return_value=[], headers={'X-Custom-Header': 'value'},
+        )
+
+        client = ConnectClient('api_key', endpoint='http://localhost')
+
+        assert list(client.products.all()[0:3]) == []
         assert client.response.headers['X-Custom-Header'] == 'value'
 
 

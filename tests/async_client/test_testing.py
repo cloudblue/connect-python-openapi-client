@@ -173,6 +173,21 @@ async def test_iterate():
         assert client.response.headers['X-Custom-Header'] == 'value'
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[])
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [item async for item in client.products.all()] == []
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[], headers={'X-Custom-Header': 'value'})
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [item async for item in client.products.all()] == []
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().mock(return_value=return_value)
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
@@ -262,6 +277,31 @@ async def test_slicing(total, start, stop):
         assert [
             item async for item in client.products.all()[start:stop]
         ] == return_value[start:stop]
+        assert client.response.headers['X-Custom-Header'] == 'value'
+
+
+@pytest.mark.asyncio
+async def test_slicing_no_results():
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[0:3].mock(return_value=[])
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [
+            item async for item in client.products.all()[0:3]
+        ] == []
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all()[0:3].mock(
+            return_value=[], headers={'X-Custom-Header': 'value'},
+        )
+
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+
+        assert [
+            item async for item in client.products.all()[0:3]
+        ] == []
         assert client.response.headers['X-Custom-Header'] == 'value'
 
 
