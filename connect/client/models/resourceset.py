@@ -18,9 +18,6 @@ from connect.client.rql import R
 
 
 class _ResourceSetBase:
-    """
-    Represent a set of resources.
-    """
     def __init__(
         self,
         client,
@@ -56,11 +53,8 @@ class _ResourceSetBase:
 
     def configure(self, **kwargs):
         """
-        Set the keyword arguments that needs to be forwarded to
-        the underlying ``requests`` call.
-
-        :return: This ResourceSet object.
-        :rtype: ResourceSet
+        Set the default keyword arguments that must be provided to the
+        underlying GET call on each page fetch.
         """
         copy = self._copy()
         copy._config = kwargs or {}
@@ -68,15 +62,12 @@ class _ResourceSetBase:
 
     def limit(self, limit):
         """
-        Set the number of results to be fetched from the remote
-        endpoint at once.
+        Set the number of results that must be fetched on each
+        HTTP call.
 
-        :param limit: maximum number of results to fetch in a batch.
-        :type limit: int
-        :raises TypeError: if `limit` is not an integer.
-        :raises ValueError: if `limit` is not positive non-zero.
-        :return: A copy of this ResourceSet class with the new limit.
-        :rtype: ResourceSet
+        **Parameters:**
+
+        * *limit* - Number of results to fetch in each HTTP call.
         """
         if not isinstance(limit, int):
             raise TypeError('`limit` must be an integer.')
@@ -92,8 +83,17 @@ class _ResourceSetBase:
         """
         Add fields for ordering.
 
-        :return: This ResourceSet object.
-        :rtype: ResourceSet
+        Usage:
+
+        ```python
+        purchases = client.requests.all().order_by(
+            'asset.tiers.customer.name',
+            '-created'
+        )
+        ```
+        !!! note
+            To sort results in descending order the name of the field must
+            be prefixed with a `-` (minus) sign.
         """
         copy = self._copy()
         copy._ordering.extend(fields)
@@ -104,8 +104,18 @@ class _ResourceSetBase:
         Apply the RQL ``select`` operator to
         this ResourceSet object.
 
-        :return: This ResourceSet object.
-        :rtype: ResourceSet
+        Usage:
+
+        ```python
+        purchases = client.requests.all().select(
+            '-asset.items',
+            '-asset.params',
+            'activation_key',
+        )
+        ```
+        !!! note
+            To unselect a field it must
+            be prefixed with a `-` (minus) sign.
         """
         copy = self._copy()
         copy._select.extend(fields)
@@ -118,35 +128,28 @@ class _ResourceSetBase:
         Arguments can be RQL filter expressions as strings
         or R objects.
 
-        Ex.
+        Usage:
 
-        .. code-block:: python
+        ```python
+        rs = rs.filter('eq(field,value)', 'eq(another.field,value2)')
+        rs = rs.filter(R().field.eq('value'), R().another.field.eq('value2'))
+        ```
 
-            rs = rs.filter('eq(field,value)', 'eq(another.field,value2)')
-            rs = rs.filter(R().field.eq('value'), R().another.field.eq('value2'))
+        All the arguments will be combined with logical `and`.
 
-        All the arguments will be combined with logical ``and``.
-
-        Filters can be also specified as keyword argument using the ``__`` (double underscore)
+        Filters can be also specified as keyword argument using the `__` (double underscore)
         notation.
 
-        Ex.
+        ```python
+        rs = rs.filter(
+            field=value,
+            another__field=value,
+            field2__in=('a', 'b'),
+            field3__null=True,
+        )
+        ```
 
-        .. code-block:: python
-
-            rs = rs.filter(
-                field=value,
-                another__field=value,
-                field2__in=('a', 'b'),
-                field3__null=True,
-            )
-
-        Also keyword arguments will be combined with logical ``and``.
-
-
-        :raises TypeError: If arguments are neither strings nor R objects.
-        :return: This ResourceSet object.
-        :rtype: ResourceSet
+        Also keyword arguments will be combined with logical `and`.
         """
         copy = self._copy()
         for arg in args:
@@ -166,21 +169,17 @@ class _ResourceSetBase:
     def all(self):
         """
         Returns a copy of the current ResourceSet.
-
-        :return: A copy of this ResourceSet.
-        :rtype: ResourceSet
         """
         return self._copy()
 
     def search(self, term):
         """
-        Create a copy of the current ResourceSet with
-        the search set to `term`.
+        Create a copy of the current ResourceSet applying the `search` RQL
+        operator equal to `term`.
 
-        :param term: The term to search for.
-        :type term: str
-        :return: A copy of the current ResourceSet.
-        :rtype: ResourceSet
+        **Parameters:**
+
+        * **term** - The term to search for.
         """
         copy = self._copy()
         copy._search = term
@@ -193,14 +192,11 @@ class _ResourceSetBase:
 
         Nested field can be specified using dot notation.
 
-        Ex.
+        Usage:
 
-        .. code-block:: python
-
+        ```python
         values = rs.values_list('field', 'nested.field')
-
-        :return: A list of dictionaries containing field,value pairs.
-        :rtype: list
+        ```
         """
         if self._results:
             self._fields = fields
@@ -280,54 +276,34 @@ class _ResourceSetBase:
             raise ValueError('Indexing with step is not supported.')
 
     def help(self):
-        """
-        Output the ResourceSet documentation to the console.
-
-        :return: self
-        :rtype: ResourceSet
-        """
         self._client.print_help(self)
         return self
 
 
 class ResourceSet(_ResourceSetBase):
+    """
+    Represent a set of resources.
+
+    Usage:
+
+    ```python
+    for product in client.products.all().filter(
+        R().status.eq('published')
+    ).order_by('created'):
+        ...
+    ```
+    """
 
     def __iter__(self):
-        """
-        Returns an iterator to iterate over the set of resources.
-
-        :return: A resources iterator.
-        :rtype: ResourceSet
-        """
         if self._results is None:
             return self._iterator()
         return iter(self._results)
 
     def __bool__(self):
-        """
-        Return True if the ResourceSet contains at least a resource
-        otherwise return False.
-
-        :return: True if contains a resource otherwise False.
-        :rtype: bool
-        """
         self._fetch_all()
         return bool(self._results)
 
     def __getitem__(self, key):  # noqa: CCR001
-        """
-        If called with slice and integer index, returns the item
-        at index ``key``.
-
-        If key is a slice, set the pagination limit and offset
-        accordingly.
-
-        :param key: index or slice.
-        :type key: int, slice
-        :raises TypeError: If ``key`` is neither an integer nor a slice.
-        :return: The resource at index ``key`` or self if ``key`` is a slice.
-        :rtype: dict, ResultSet
-        """
         self._validate_key(key)
 
         if self._results is not None:
@@ -352,8 +328,11 @@ class ResourceSet(_ResourceSetBase):
         """
         Returns the total number of resources within this ResourceSet object.
 
-        :return: The total number of resources present.
-        :rtype: int
+        Usage:
+
+        ```python
+        no_of_products = client.products.all().count()
+        ```
         """
         if not self._content_range:
             copy = self._copy()
@@ -369,8 +348,11 @@ class ResourceSet(_ResourceSetBase):
         Returns the first resource that belongs to this ResourceSet object
         or None if the ResourceSet doesn't contains resources.
 
-        :return: The first resource.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        latest_news = client.news.all().order_by('-updated').first()
+        ```
         """
         copy = self._copy()
         copy._limit = 1
@@ -408,44 +390,32 @@ class ResourceSet(_ResourceSetBase):
 
 
 class AsyncResourceSet(_ResourceSetBase):
+    """
+    Represent a set of resources.
+
+    Usage:
+
+    ```python
+    async for product in (
+        client.products.all().filter(
+            R().status.eq('published')
+        ).order_by('created')
+    ):
+        ...
+    ```
+    """
 
     def __aiter__(self):
-        """
-        Returns an iterator to iterate over the set of resources.
-
-        :return: A resources iterator.
-        :rtype: ResourceSet
-        """
         if self._results is None:
             return self._iterator()
         return aiter(self._results)
 
     def __bool__(self):
-        """
-        Return True if the ResourceSet contains at least a resource
-        otherwise return False.
-
-        :return: True if contains a resource otherwise False.
-        :rtype: bool
-        """
         if self._results is None:
             raise NotYetEvaluatedError()
         return bool(self._results)
 
     def __getitem__(self, key):  # noqa: CCR001
-        """
-        If called with slice and integer index, returns the item
-        at index ``key``.
-
-        If key is a slice, set the pagination limit and offset
-        accordingly.
-
-        :param key: index or slice.
-        :type key: int, slice
-        :raises TypeError: If ``key`` is neither an integer nor a slice.
-        :return: The resource at index ``key`` or self if ``key`` is a slice.
-        :rtype: dict, ResultSet
-        """
         self._validate_key(key)
 
         if self._results is not None:
@@ -466,8 +436,11 @@ class AsyncResourceSet(_ResourceSetBase):
         """
         Returns the total number of resources within this ResourceSet object.
 
-        :return: The total number of resources present.
-        :rtype: int
+        Usage:
+
+        ```python
+        no_of_products = await client.products.all().count()
+        ```
         """
         if not self._content_range:
             url = self._get_request_url()
@@ -481,8 +454,11 @@ class AsyncResourceSet(_ResourceSetBase):
         Returns the first resource that belongs to this ResourceSet object
         or None if the ResourceSet doesn't contains resources.
 
-        :return: The first resource.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        latest_news = await client.news.all().order_by('-updated').first()
+        ```
         """
         copy = self._copy()
         copy._limit = 1

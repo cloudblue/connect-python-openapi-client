@@ -9,55 +9,51 @@ from connect.client.rql.utils import parse_kwargs, to_rql_value
 class RQLQuery:
     """
     Helper class to construct complex RQL queries.
+
+    Usage:
+
+    ```python
+        rql = R(field='value', field2__in=('v1', 'v2'), field3__empty=True)
+    ```
+    !!! note
+        All the lookups expressed as keyword arguments are combined together with a logical `and`.
+
+
+    Using the ``n`` method:
+
+    ```python
+        rql = (
+            R().n('field').eq('value')
+            & R().n('field2').anyof(('v1', 'v2'))
+            & R().n('field3').empty(True)
+        )
+    ```
+
+    The previous query can be expressed in a more concise form like:
+
+    ```python
+    rql = R().field.eq('value') & R().field2.anyof(('v1', 'v2')) & r.field3.empty(True)
+    ```
+
+    The R object support the bitwise operators `&`, `|` and `~`.
+
+    Nested fields can be expressed using dot notation:
+
+    ```python
+    rql = R().n('nested.field').eq('value')
+    ```
+
+    or
+
+    ```python
+    rql = R().nested.field.eq('value')
+    ```
     """
     AND = 'and'
     OR = 'or'
     EXPR = 'expr'
 
     def __init__(self, *, _op=EXPR, _children=None, _negated=False, _expr=None, **kwargs):
-        """
-        Create a new R object.
-
-        Query filters can be expressed through keyword arguments or using methods.
-
-        Ex.
-
-        .. code-block:: python
-
-            rql = R(field='value', field2__in=('v1', 'v2'), field3__empty=True)
-
-        All the lookups expressed as keyword arguments are combined together with a logical ``and``.
-
-        Using the ``n`` method:
-
-        .. code-block:: python
-
-            rql = (
-                R().n('field').eq('value')
-                & R().n('field2').in_(('v1', 'v2'))
-                & R().n('field3').empty(True)
-            )
-
-        The previous query can be expressed in a more concise form like:
-
-        .. code-block:: python
-
-            rql = R().field.eq('value') & R().field2.in_(('v1', 'v2')) & r.field3.empty(True)
-
-        The R object support the bitwise operators ``&``, ``|`` and ``~``.
-
-        Nested fields can be expressed using dot notation:
-
-        .. code-block:: python
-
-            rql = R().n('nested.field').eq('value')
-
-        or
-
-        .. code-block:: python
-
-            rql = R().nested.field.eq('value')
-        """
         self.op = _op
         self.children = _children or []
         self.negated = _negated
@@ -73,15 +69,6 @@ class RQLQuery:
                 self.children.append(RQLQuery(_expr=token))
 
     def __len__(self):
-        """
-        Returns the length of this R object.
-        It will be 1 if represent a single RQL expression
-        or the number of expressions this logical operator (and, or)
-        applies to.
-
-        :return: The length of this R object.
-        :rtype: int
-        """
         if self.op == self.EXPR:
             if self.expr:
                 return 1
@@ -89,23 +76,9 @@ class RQLQuery:
         return len(self.children)
 
     def __bool__(self):
-        """
-        Returns False if it is an empty R object otherwise True.
-
-        :return: False if it is an empty R object otherwise True.
-        :rtype: bool
-        """
         return bool(self.children) or bool(self.expr)
 
     def __eq__(self, other):
-        """
-        Returns True if self == other.
-
-        :param other: Another R object.
-        :type other: R
-        :return: True if the ``other`` object is equal to self, False otherwise.
-        :rtype: bool
-        """
         return (
             self.op == other.op
             and self.children == other.children
@@ -114,12 +87,6 @@ class RQLQuery:
         )
 
     def __hash__(self):
-        """
-        Calculate a hash that identifies uniquely this R object.
-
-        :return: The hash of this object.
-        :rtype: int
-        """
         return hash(
             (self.op, self.expr, self.negated, *(hash(value) for value in self.children)),
         )
@@ -130,34 +97,12 @@ class RQLQuery:
         return f'<R({self.op})>'
 
     def __and__(self, other):
-        """
-        Combine this R object with ``other`` using a logical ``and``.
-
-        :param other: Another R object.
-        :type other: R
-        :return: The R object representing a logical ``and`` between this and ``other``.
-        :rtype: R
-        """
         return self._join(other, self.AND)
 
     def __or__(self, other):
-        """
-        Combine this R object with ``other`` using a logical ``or``.
-
-        :param other: Another R object.
-        :type other: R
-        :return: The R object representing a logical ``or`` between this and ``other``.
-        :rtype: R
-        """
         return self._join(other, self.OR)
 
     def __invert__(self):
-        """
-        Apply the RQL ``not`` operator to this R object.
-
-        :return: The R object representing this R object negated.
-        :rtype: R
-        """
         query = RQLQuery(_op=self.AND, _expr=self.expr, _negated=True)
         query._append(self)
         return query
@@ -170,13 +115,11 @@ class RQLQuery:
 
     def n(self, name):
         """
-        Set the current field for this R object.
+        Set the current field for this `R` object.
 
-        :param name: name of the field
-        :type name: str
-        :raises AttributeError: if this R object has already been evaluated.
-        :return: This R object.
-        :rtype: R
+        **Parameters:**
+
+        * **name** - Name of the field.
         """
         if self._field:
             raise AttributeError('Already evaluated')
@@ -185,42 +128,126 @@ class RQLQuery:
         return self
 
     def ne(self, value):
+        """
+        Apply the `ne` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('ne', value)
 
     def eq(self, value):
+        """
+        Apply the `eq` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('eq', value)
 
     def lt(self, value):
+        """
+        Apply the `lt` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('lt', value)
 
     def le(self, value):
+        """
+        Apply the `le` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('le', value)
 
     def gt(self, value):
+        """
+        Apply the `gt` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('gt', value)
 
     def ge(self, value):
+        """
+        Apply the `ge` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('ge', value)
 
     def out(self, value):
+        """
+        Apply the `out` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The list of values to which compare the field.
+        """
         return self._list('out', value)
 
     def in_(self, value):
         return self._list('in', value)
 
     def oneof(self, value):
+        """
+        Apply the `in` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The list of values to which compare the field.
+        """
         return self._list('in', value)
 
     def null(self, value):
+        """
+        Apply the `null` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bool('null', value)
 
     def empty(self, value):
+        """
+        Apply the `empty` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bool('empty', value)
 
     def like(self, value):
+        """
+        Apply the `like` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('like', value)
 
     def ilike(self, value):
+        """
+        Apply the `ilike` operator to the field this `R` object refers to.
+
+        **Parameters**:
+
+        * **value** - The value to which compare the field.
+        """
         return self._bin('ilike', value)
 
     def _bin(self, op, value):

@@ -34,33 +34,6 @@ class _ConnectClientBase(threading.local):
         timeout=(180.0, 180.0),
         resourceset_append=True,
     ):
-        """
-        Create a new instance of the ConnectClient.
-
-        :param api_key: The API key used for authentication.
-        :type api_key: str
-        :param endpoint: The API endpoint, defaults to CONNECT_ENDPOINT_URL
-        :type endpoint: str, optional
-        :param use_specs: Use the Connect OpenAPI specification for interactive help.
-        :type specs_location: bool, optional
-        :param specs_location: The Connect OpenAPI specification local path or URL, defaults to
-                               CONNECT_SPECS_URL
-        :type specs_location: str, optional
-        :param validate_using_specs: Use the Connect OpenAPI specification to validate the call.
-        :type validate_using_specs: bool, optional
-        :param default_headers: Http headers to apply to each request, defaults to {}
-        :type default_headers: dict, optional
-        :param default_limit: Default value for pagination limit parameter.
-        :type default_limit: int, optional
-        :param max_retries: Max number of retries for a request before raising an error.
-        :type max_retries: int, optional
-        :param logger: HTTP Request logger class, defaults to None
-        :type logger: RequestLogger, optional
-        :param timeout: Timeout parameter to pass to the underlying http client.
-        :type timeout: int or tuple of int, optional
-        :param resourceset_append: Append all the page to the current resourceset.
-        :type resourceset_append: bool, optional
-        """
         if default_headers and 'Authorization' in default_headers:
             raise ValueError('`default_headers` cannot contains `Authorization`')
 
@@ -83,6 +56,11 @@ class _ConnectClientBase(threading.local):
 
     @property
     def response(self):
+        """
+        Returns the raw
+        [`requests`](https://requests.readthedocs.io/en/latest/api/#requests.Response)
+        response.
+        """
         return self._response
 
     @response.setter
@@ -107,12 +85,23 @@ class _ConnectClientBase(threading.local):
 
     def ns(self, name):
         """
-        Returns the namespace called ``name``.
+        Returns a `Namespace` object identified by its name.
 
-        :param name: The name of the namespace to access.
-        :type name: str
-        :return: The namespace called ``name``.
-        :rtype: NS
+        Usage:
+
+        ```python
+        subscriptions = client.ns('subscriptions')
+        ```
+
+        Concise form:
+
+        ```python
+        subscriptions = client('subscriptions')
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the namespace to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -124,12 +113,23 @@ class _ConnectClientBase(threading.local):
 
     def collection(self, name):
         """
-        Returns the collection called ``name``.
+        Returns a `Collection` object identified by its name.
 
-        :param name: The name of the collection to access.
-        :type name: str
-        :return: The collection called ``name``.
-        :rtype: Collection
+        Usage:
+
+        ```python
+        products = client.collection('products')
+        ```
+
+        Concise form:
+
+        ```python
+        products = client.products
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the collection to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -179,6 +179,32 @@ class _ConnectClientBase(threading.local):
 
 
 class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
+    """
+    Create a new instance of the ConnectClient.
+
+    Usage:
+
+    ```python
+    client = ConnectClient('ApiKey SU-000-000-000:xxxxxxxxxxxxxxxx')
+    product = client.products['PRD-001-002-003'].get()
+    ```
+
+    **Parameters:**
+
+    * **api_key** - The API key used for authentication.
+    * **endpoint** *(optional)* - The API endpoint, defaults to
+    https://api.connect.cloudblue.com/public/v1.
+    * **use_specs**  *(optional)* - Use Connect OpenAPI specifications.
+    * **specs_location**  *(optional)* - The Connect OpenAPI specification local path or URL.
+    * **validate_using_specs**  *(optional)* - Use the Connect OpenAPI specification to validate
+    the call.
+    * **default_headers**  *(optional)* - HTTP headers to apply to each request.
+    * **default_limit**  *(optional)* - Default value for pagination limit parameter.
+    * **max_retries**  *(optional)* - Max number of retries for a request before raising an error.
+    * **logger**  *(optional)* - HTTP Request logger class.
+    * **timeout**  *(optional)* - Timeout parameter to pass to the underlying HTTP client.
+    * **resourceset_append**  *(optional)* - Append all the pages to the current resourceset.
+    """
     def _get_collection_class(self):
         return Collection
 
@@ -187,6 +213,32 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
 
 
 class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
+    """
+    Create a new instance of the AsyncConnectClient.
+
+    Usage:
+
+    ```python
+    client = AsyncConnectClient('ApiKey SU-000-000-000:xxxxxxxxxxxxxxxx')
+    product = await client.products['PRD-001-002-003'].get()
+    ```
+
+    **Parameters:**
+
+    * **api_key** - The API key used for authentication.
+    * **endpoint** *(optional)* - The API endpoint, defaults to
+    https://api.connect.cloudblue.com/public/v1.
+    * **use_specs**  *(optional)* - Use Connect OpenAPI specifications.
+    * **specs_location**  *(optional)* - The Connect OpenAPI specification local path or URL.
+    * **validate_using_specs**  *(optional)* - Use the Connect OpenAPI specification to validate
+    the call.
+    * **default_headers**  *(optional)* - HTTP headers to apply to each request.
+    * **default_limit**  *(optional)* - Default value for pagination limit parameter.
+    * **max_retries**  *(optional)* - Max number of retries for a request before raising an error.
+    * **logger**  *(optional)* - HTTP Request logger class.
+    * **timeout**  *(optional)* - Timeout parameter to pass to the underlying HTTP client.
+    * **resourceset_append**  *(optional)* - Append all the pages to the current resourceset.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -194,6 +246,11 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
 
     @property
     def response(self):
+        """
+        Returns the raw
+        [`httpx`](https://www.python-httpx.org/api/#response)
+        response.
+        """
         return self._response.get()
 
     @response.setter
