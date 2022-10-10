@@ -35,5 +35,13 @@ markdown_extensions:
 
 nav:
     - Home: index.md
-    - User guide: guide.md
+    - User guide:
+        - Getting started: getting_started.md
+        - Namespaces and collections: namespaces_and_collections.md
+        - Working with resources: working_with_resources.md
+        - Querying collections: querying_collections.md
     - Testing tools: testing.md
+    - API reference:
+        - Synchronous client: sync_client.md
+        - Asynchronous client: async_client.md
+        - R object: r_object.md

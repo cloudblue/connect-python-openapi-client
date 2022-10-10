@@ -16,19 +16,7 @@ from connect.client.rql import R
 
 
 class _NSBase:
-    """
-    A namespace is a group of related collections.
-    """
-
     def __init__(self, client, path):
-        """
-        Create a new NS instance.
-
-        :param client: the client instance
-        :type client: ConnectClient
-        :param path: path name of the namespace
-        :type path: str
-        """
         self._client = client
         self._path = path
 
@@ -37,14 +25,6 @@ class _NSBase:
         return self._path
 
     def __getattr__(self, name):
-        """
-        Returns a collection object by its name.
-
-        :param name: the name of the Collection object.
-        :type name: str
-        :return: The Collection named ``name``.
-        :rtype: Collection
-        """
         if '_' in name:
             name = name.replace('_', '-')
         return self.collection(name)
@@ -57,16 +37,27 @@ class _NSBase:
 
     def collection(self, name):
         """
-        Returns the collection called ``name``.
+        Returns a `[Async]Collection` object nested under this namespace object
+        identified by its name.
 
-        :param name: The name of the collection.
-        :type name: str
-        :raises TypeError: if the ``name`` is not a string.
-        :raises ValueError: if the ``name`` is blank.
-        :raises NotFoundError: if the ``name`` does not exist.
-        :return: The collection called ``name``.
-        :rtype: Collection
+        Usage:
+
+        ```python
+        devops_ns = client.ns('devops')
+        services = devops_ns.collection('products')
+        ```
+
+        Concise form:
+
+        ```python
+        services = client('devops').services
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the collection to access.
         """
+
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
 
@@ -80,14 +71,25 @@ class _NSBase:
 
     def ns(self, name):
         """
-        Returns the namespace called ``name``.
+        Returns a `[Async]Namespace` object nested under this namespace
+        identified by its name.
 
-        :param name: The name of the namespace.
-        :type name: str
-        :raises TypeError: if the ``name`` is not a string.
-        :raises ValueError: if the ``name`` is blank.
-        :return: The namespace called ``name``.
-        :rtype: NS
+        Usage:
+
+        ```python
+        subscriptions_ns = client.ns('subscriptions')
+        nested_ns = subcriptions_ns.ns('nested')
+        ```
+
+        Concise form:
+
+        ```python
+        nested_ns = client('subscriptions')('nested')
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the namespace to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -101,12 +103,6 @@ class _NSBase:
         )
 
     def help(self):
-        """
-        Output the namespace documentation to the console.
-
-        :return: self
-        :rtype: NS
-        """
         self._client.print_help(self)
         return self
 
@@ -134,18 +130,7 @@ class AsyncNS(_NSBase):
 
 
 class _CollectionBase:
-    """
-    A collection is a group of operations on a resource.
-    """
     def __init__(self, client, path):
-        """
-        Create a new Collection instance.
-
-        :param client: the client instance
-        :type client: ConnectClient
-        :param path: path name of the collection
-        :type path: str
-        """
         self._client = client
         self._path = path
 
@@ -157,15 +142,6 @@ class _CollectionBase:
         raise TypeError('A Collection object is not iterable.')
 
     def __getitem__(self, resource_id):
-        """
-        Return a Resource object representing the resource
-        identified by ``resource_id``.
-
-        :param resource_id: The identifier of the resource
-        :type resource_id: str, int
-        :return: the Resource instance identified by ``resource_id``.
-        :rtype: Resource
-        """
         return self.resource(resource_id)
 
     def __call__(self, name):
@@ -173,10 +149,8 @@ class _CollectionBase:
 
     def all(self):
         """
-        Return a ResourceSet instance.
-
-        :return: a ResourceSet instance.
-        :rtype: ResourceSet
+        Returns a `[Async]ResourceSet` object that that allow to access all the resources that
+        belong to this collection.
         """
         return self._get_resourceset_class()(
             self._client,
@@ -185,42 +159,37 @@ class _CollectionBase:
 
     def filter(self, *args, **kwargs):
         """
-        Returns a ResourceSet object.
+        Returns a `[Async]ResourceSet` object.
         The returned ResourceSet object will be filtered based on
         the arguments and keyword arguments.
 
         Arguments can be RQL filter expressions as strings
         or R objects.
 
-        Ex.
+        Usage:
 
-        .. code-block:: python
+        ```python
+        rs = collection.filter('eq(field,value)', 'eq(another.field,value2)')
+        rs = collection.filter(R().field.eq('value'), R().another.field.eq('value2'))
+        ```
 
-            rs = collection.filter('eq(field,value)', 'eq(another.field,value2)')
-            rs = collection.filter(R().field.eq('value'), R().another.field.eq('value2'))
+        All the arguments will be combined with logical **and**.
 
-        All the arguments will be combined with logical ``and``.
-
-        Filters can be also specified as keyword argument using the ``__`` (double underscore)
+        Filters can be also specified as keyword argument using the **__** (double underscore)
         notation.
 
-        Ex.
+        Usage:
 
-        .. code-block:: python
+        ```python
+        rs = collection.filter(
+            field=value,
+            another__field=value,
+            field2__in=('a', 'b'),
+            field3__null=True,
+        )
+        ```
 
-            rs = collection.filter(
-                field=value,
-                another__field=value,
-                field2__in=('a', 'b'),
-                field3__null=True,
-            )
-
-        Also keyword arguments will be combined with logical ``and``.
-
-
-        :raises TypeError: If arguments are neither strings nor R objects.
-        :return: A ResourceSet with the filters applied.
-        :rtype: ResourceSet
+        Also keyword arguments will be combined with logical **and**.
         """
         query = R()
         for arg in args:
@@ -243,12 +212,24 @@ class _CollectionBase:
 
     def resource(self, resource_id):
         """
-        Returns an Resource object.
+        Returns a `[Async]Resource` object that represent a resource that belong to
+        this collection identified by its unique identifier.
 
-        :param resource_id: The resource identifier.
-        :type resource_id: str, int
-        :return: The Resource identified by ``resource_id``.
-        :rtype: Resource
+        Usage:
+
+        ```python
+        resource = client.collection('products').resource('PRD-000-111-222')
+        ```
+
+        Concise form:
+
+        ```python
+        resource = client.products['PRD-000-111-222']
+        ```
+
+        **Parameters:**
+
+        * **resource_id** - The unique identifier of the resource.
         """
         if not isinstance(resource_id, (str, int)):
             raise TypeError('`resource_id` must be a string or int.')
@@ -263,15 +244,12 @@ class _CollectionBase:
 
     def action(self, name):
         """
-        Returns the action called ``name``.
+        Returns an `[Async]Action` object that represent an action to perform
+        on this collection identified by its name.
 
-        :param name: The name of the action.
-        :type name: str
-        :raises TypeError: if the ``name`` is not a string.
-        :raises ValueError: if the ``name`` is blank.
-        :raises NotFoundError: if the ``name`` does not exist.
-        :return: The action called ``name``.
-        :rtype: Action
+        **Parameters:**
+
+        * **name** - The name of the action to perform.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -285,12 +263,6 @@ class _CollectionBase:
         )
 
     def help(self):
-        """
-        Output the collection documentation to the console.
-
-        :return: self
-        :rtype: Collection
-        """
         self._client.print_help(self)
         return self
 
@@ -327,18 +299,7 @@ class AsyncCollection(_CollectionBase, AsyncCollectionMixin):
 
 
 class _ResourceBase:
-    """Represent a generic resource."""
     def __init__(self, client, path):
-        """
-        Create a new Resource instance.
-
-        :param client: the client instance
-        :type client: ConnectClient
-        :param path: path name of the resource
-        :type path: str
-        :param specs: OpenAPI specs, defaults to None
-        :type specs: ResourceInfo, optional
-        """
         self._client = client
         self._path = path
 
@@ -347,14 +308,6 @@ class _ResourceBase:
         return self._path
 
     def __getattr__(self, name):
-        """
-        Returns a nested Collection object called ``name``.
-
-        :param name: The name of the Collection to retrieve.
-        :type name: str
-        :return: a Collection called ``name``.
-        :rtype: Collection
-        """
         if '_' in name:
             name = name.replace('_', '-')
         return self.collection(name)
@@ -364,16 +317,30 @@ class _ResourceBase:
 
     def collection(self, name):
         """
-        Returns the collection called ``name``.
+        Returns a `[Async]Collection` object nested under this resource object
+        identified by its name.
 
-        :param name: The name of the collection.
-        :type name: str
-        :raises TypeError: if the ``name`` is not a string.
-        :raises ValueError: if the ``name`` is blank.
-        :raises NotFoundError: if the ``name`` does not exist.
-        :return: The collection called ``name``.
-        :rtype: Collection
-        """
+        Usage:
+
+        ```python
+        environments = (
+            client.ns("devops")
+            .collection("services")
+            .resource("SRVC-0000-1111")
+            .collection("environments")
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        services = client('devops').services['SRVC-0000-1111'].environments
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the collection to access.
+        """  # noqa: E501
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
 
@@ -387,15 +354,28 @@ class _ResourceBase:
 
     def action(self, name):
         """
-        Returns the action called ``name``.
+        Returns an `[Async]Action` object that can be performed on this this resource object
+        identified by its name.
 
-        :param name: The name of the action.
-        :type name: str
-        :raises TypeError: if the ``name`` is not a string.
-        :raises ValueError: if the ``name`` is blank.
-        :raises NotFoundError: if the ``name`` does not exist.
-        :return: The action called ``name``.
-        :rtype: Action
+        Usage:
+
+        ```python
+        approve_action = (
+            client.collection('requests')
+            .resource('PR-000-111-222')
+            .action('approve')
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        approve_action = client.requests[''PR-000-111-222']('approve')
+        ```
+
+        **Parameters**
+
+        * **name** - The name of the action to perform.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -409,12 +389,6 @@ class _ResourceBase:
         )
 
     def help(self):
-        """
-        Output the resource documentation to the console.
-
-        :return: self
-        :rtype: Resource
-        """
         self._client.print_help(self)
         return self
 
@@ -442,20 +416,7 @@ class AsyncResource(_ResourceBase, AsyncResourceMixin):
 
 
 class _ActionBase:
-    """
-    This class represent an action that can be executed on a resource.
-    """
     def __init__(self, client, path):
-        """
-        Create a new Action instance.
-
-        :param client: the client instance
-        :type client: ConnectClient
-        :param path: path name of the action
-        :type path: str
-        :param specs: OpenAPI specs, defaults to None
-        :type specs: ActionInfo, optional
-        """
         self._client = client
         self._path = path
 
@@ -464,12 +425,6 @@ class _ActionBase:
         return self._path
 
     def help(self):
-        """
-        Output the action documentation to the console.
-
-        :return: self
-        :rtype: Action
-        """
         self._client.print_help(self)
         return self
 

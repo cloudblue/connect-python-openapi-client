@@ -56,12 +56,6 @@ jobs:
       - name: Testing
         run: |
           poetry run pytest
-      - name: Upload coverage
-        uses: codecov/codecov-action@v1
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: true
-          verbose: true
       - name: Fix coverage.xml for Sonar
         run: |
           sed -i 's/\/home\/runner\/work\/connect-python-openapi-client\/connect-python-openapi-client\//\/github\/workspace\//g' coverage.xml

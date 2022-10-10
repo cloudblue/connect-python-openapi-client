@@ -5,6 +5,10 @@ from connect.client.testing import AsyncConnectClientMocker, ConnectClientMocker
 
 @pytest.fixture
 def client_mocker_factory(request):
+    """
+    This fixture allows to instantiate a ConnectClient mocker
+    to mock http calls made from the ConnectClient in an easy way.
+    """
     mocker = None
 
     def _wrapper(base_url='http://localhost'):
@@ -22,6 +26,10 @@ def client_mocker_factory(request):
 
 @pytest.fixture
 def async_client_mocker_factory(request):
+    """
+    This fixture allows to instantiate a AsyncConnectClient mocker
+    to mock http calls made from the AsyncConnectClient in an easy way.
+    """
     mocker = None
 
     def _wrapper(base_url='http://localhost'):

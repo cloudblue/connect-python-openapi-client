@@ -12,10 +12,61 @@ class CollectionMixin:
         """
         Create a new resource within this collection.
 
-        :param payload: JSON payload of the resource to create, defaults to None.
-        :type payload: dict, optional
-        :return: The newly created resource.
-        :rtype: dict
+        Usage:
+
+        ```python
+        case = client.ns('helpdesk').collection('cases').create(
+            payload={
+                'subject': 'I have a question / problem',
+                'description': 'Need help with contracts management.',
+                'priority': 0,
+                'state': 'pending',
+                'type': 'business',
+                'issuer': {
+                    'recipients': [
+                        {
+                            'id': 'UR-012-345-678'
+                        }
+                    ]
+                },
+                'receiver': {
+                    'account': {
+                        'id': 'PA-111-222'
+                    }
+                }
+            }
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        case = client('helpdesk').cases.create(
+            payload={
+                'subject': 'I have a question / problem',
+                'description': 'Need help with contracts management.',
+                'priority': 0,
+                'state': 'pending',
+                'type': 'business',
+                'issuer': {
+                    'recipients': [
+                        {
+                            'id': 'UR-012-345-678'
+                        }
+                    ]
+                },
+                'receiver': {
+                    'account': {
+                        'id': 'PA-111-222'
+                    }
+                }
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload of the resource to create.
         """
         if payload is not None and not isinstance(payload, dict):
             raise TypeError('`payload` must be a dict.')
@@ -28,13 +79,77 @@ class CollectionMixin:
 
     def bulk_create(self, payload, **kwargs):
         """
-        Create new resources within this collection. This operation may not be supported
-        by the API.
+        Create a set of resources within this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to create.
-        :type payload: list
-        :return: The newly created resources.
-        :rtype: list
+        Usage:
+
+        ```python
+        translations = client.ns('localization').collection('translations').bulk_create(
+            payload=[
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES-MX'
+                    },
+                    'description': 'Awesome Mexican Spanish locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES'
+                    },
+                    'description': 'Awesome Spanish locale',
+                    'auto': {
+                        'enabled': False
+                    }
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        translations = client('localization').translations.bulk_create(
+            payload=[
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES-MX'
+                    },
+                    'description': 'Awesome Mexican Spanish locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES'
+                    },
+                    'description': 'Awesome Spanish locale',
+                    'auto': {
+                        'enabled': False
+                    }
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -47,13 +162,51 @@ class CollectionMixin:
 
     def bulk_update(self, payload, **kwargs):
         """
-        Update a list of resources in this collection. This operation may not be supported
-        by the API.
+        Update a set of resources that belong to this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to update.
-        :type payload: list
-        :return: A list of the updated resources.
-        :rtype: list
+        Usage:
+
+        ```python
+        translations = client.ns('localization').collection('translations').bulk_update(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                    'description': 'Awesome English locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                    'description': 'Awesome Spanish locale'
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        translations = client('localization').translations.bulk_update(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                    'description': 'Awesome English locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                    'description': 'Awesome Spanish locale'
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -66,11 +219,41 @@ class CollectionMixin:
 
     def bulk_delete(self, payload, **kwargs):
         """
-        Delete a list of resources from this collection. This operation may not be supported
-        by the API.
+        Delete a set of resources from within this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to delete.
-        :type payload: list
+        Usage:
+
+        ```python
+        client.ns('localization').collection('translations').bulk_delete(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782'
+                },
+                {
+                    'id': 'TRN-6783-0001-8782'
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        client('localization').translations.bulk_delete(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -87,10 +270,61 @@ class AsyncCollectionMixin:
         """
         Create a new resource within this collection.
 
-        :param payload: JSON payload of the resource to create, defaults to None.
-        :type payload: dict, optional
-        :return: The newly created resource.
-        :rtype: dict
+        Usage:
+
+        ```python
+        case = await client.ns('helpdesk').collection('cases').create(
+            payload={
+                'subject': 'I have a question / problem',
+                'description': 'Need help with contracts management.',
+                'priority': 0,
+                'state': 'pending',
+                'type': 'business',
+                'issuer': {
+                    'recipients': [
+                        {
+                            'id': 'UR-012-345-678'
+                        }
+                    ]
+                },
+                'receiver': {
+                    'account': {
+                        'id': 'PA-111-222'
+                    }
+                }
+            }
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        case = await client('helpdesk').cases.create(
+            payload={
+                'subject': 'I have a question / problem',
+                'description': 'Need help with contracts management.',
+                'priority': 0,
+                'state': 'pending',
+                'type': 'business',
+                'issuer': {
+                    'recipients': [
+                        {
+                            'id': 'UR-012-345-678'
+                        }
+                    ]
+                },
+                'receiver': {
+                    'account': {
+                        'id': 'PA-111-222'
+                    }
+                }
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload of the resource to create.
         """
         if payload is not None and not isinstance(payload, dict):
             raise TypeError('`payload` must be a dict.')
@@ -103,13 +337,77 @@ class AsyncCollectionMixin:
 
     async def bulk_create(self, payload, **kwargs):
         """
-        Create new resources within this collection. This operation may not be supported
-        by the API.
+        Create a set of resources within this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to create.
-        :type payload: list
-        :return: The newly created resources.
-        :rtype: list
+        Usage:
+
+        ```python
+        translations = await client.ns('localization').collection('translations').bulk_create(
+            payload=[
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES-MX'
+                    },
+                    'description': 'Awesome Mexican Spanish locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES'
+                    },
+                    'description': 'Awesome Spanish locale',
+                    'auto': {
+                        'enabled': False
+                    }
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        translations = await client('localization').translations.bulk_create(
+            payload=[
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES-MX'
+                    },
+                    'description': 'Awesome Mexican Spanish locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'context': {
+                        'id': 'LCX-1234-1234-123'
+                    },
+                    'locale': {
+                        'id': 'ES'
+                    },
+                    'description': 'Awesome Spanish locale',
+                    'auto': {
+                        'enabled': False
+                    }
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -122,13 +420,51 @@ class AsyncCollectionMixin:
 
     async def bulk_update(self, payload, **kwargs):
         """
-        Update a list of resources in this collection. This operation may not be supported
-        by the API.
+        Update a set of resources that belong to this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to update.
-        :type payload: list
-        :return: A list of the updated resources.
-        :rtype: list
+        Usage:
+
+        ```python
+        translations = await client.ns('localization').collection('translations').bulk_update(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                    'description': 'Awesome English locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                    'description': 'Awesome Spanish locale'
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        translations = await client('localization').translations.bulk_update(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                    'description': 'Awesome English locale',
+                    'auto': {
+                        'enabled': True
+                    }
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                    'description': 'Awesome Spanish locale'
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -141,11 +477,41 @@ class AsyncCollectionMixin:
 
     async def bulk_delete(self, payload, **kwargs):
         """
-        Delete a list of resources from this collection. This operation may not be supported
-        by the API.
+        Delete a set of resources from within this collection in a single call.
 
-        :param payload: JSON payload of the list of resources to delete.
-        :type payload: list
+        Usage:
+
+        ```python
+        await client.ns('localization').collection('translations').bulk_delete(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782'
+                },
+                {
+                    'id': 'TRN-6783-0001-8782'
+                }
+            ]
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        await client('localization').translations.bulk_delete(
+            payload=[
+                {
+                    'id': 'TRN-6783-3216-8782',
+                },
+                {
+                    'id': 'TRN-6783-0001-8782',
+                }
+            ]
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -159,6 +525,23 @@ class AsyncCollectionMixin:
 
 class ResourceMixin:
     def exists(self):
+        """
+        Return True if the resource this `Resource` object refers to exists.
+
+        Usage:
+
+        ```python
+        if client.collection('products').resource('PRD-000-111-222').exits():
+            ...
+        ```
+
+        Concise form:
+
+        ```python
+        if client.products['PRD-000-111-222'].exists():
+            ...
+        ```
+        """
         try:
             self.get()
             return True
@@ -169,27 +552,49 @@ class ResourceMixin:
 
     def get(self, **kwargs):
         """
-        Execute a http GET to retrieve this resource.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
+        Retrieve the resource this `Resource` object refers to.
 
-        :return: The resource data.
-        :rtype: dict
+        Usage:
+
+        ```python
+        product = client.collection('products').resource('PRD-000-111-222').get()
+        ```
+
+        Concise form:
+
+        ```python
+        product = client.products['PRD-000-111-222'].get()
+        ```
         """
         return self._client.get(self._path, **kwargs)
 
     def update(self, payload=None, **kwargs):
         """
-        Execute a http PUT to update this resource.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Update the resource this `Resource` object refers to.
 
-        :param payload: the JSON payload of the update request, defaults to None
-        :type payload: dict, optional
-        :return: The updated resource.
-        :rtype: dict
+        Usage:
+
+        ```python
+        product = client.collection('products').resource('PRD-000-111-222').update(
+            payload={
+                'name': 'Cool product'
+            }
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        product = client.products['PRD-000-111-222'].update(
+            payload={
+                'name': 'Cool product'
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload of the update operations.
         """
         return self._client.update(
             self._path,
@@ -199,10 +604,19 @@ class ResourceMixin:
 
     def delete(self, **kwargs):
         """
-        Execute a http DELETE to delete this resource.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
+        Delete the resource this `Resource` object refers to.
+
+        Usage:
+
+        ```python
+        client.collection('products').resource('PRD-000-111-222').delete()
+        ```
+
+        Concise form:
+
+        ```python
+        client.products['PRD-000-111-222'].delete()
+        ```
         """
         return self._client.delete(
             self._path,
@@ -211,17 +625,17 @@ class ResourceMixin:
 
     def values(self, *fields):
         """
-        Returns a flat dictionary containing only the fields passed as arguments.
-        Nested field can be specified using dot notation.
+        Returns a flat dictionary containing only the fields of this resource
+        passed as arguments.
 
-        Ex.
+        !!! note
+            Nested field can be specified using dot notation.
 
-        .. code-block:: python
+        Usage:
 
+        ```python
         values = resource.values('field', 'nested.field')
-
-        :return: A dictionary containing field,value pairs.
-        :rtype: dict
+        ```
         """
         results = {}
         item = self.get()
@@ -232,6 +646,23 @@ class ResourceMixin:
 
 class AsyncResourceMixin:
     async def exists(self):
+        """
+        Return True if the resource this `Resource` object refers to exists.
+
+        Usage:
+
+        ```python
+        if await client.collection('products').resource('PRD-000-111-222').exits():
+            ...
+        ```
+
+        Concise form:
+
+        ```python
+        if await client.products['PRD-000-111-222'].exists():
+            ...
+        ```
+        """
         try:
             await self.get()
             return True
@@ -242,27 +673,49 @@ class AsyncResourceMixin:
 
     async def get(self, **kwargs):
         """
-        Execute a http GET to retrieve this resource.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
+        Retrieve the resource this `Resource` object refers to.
 
-        :return: The resource data.
-        :rtype: dict
+        Usage:
+
+        ```python
+        product = await client.collection('products').resource('PRD-000-111-222').get()
+        ```
+
+        Concise form:
+
+        ```python
+        product = await client.products['PRD-000-111-222'].get()
+        ``` dict
         """
         return await self._client.get(self._path, **kwargs)
 
     async def update(self, payload=None, **kwargs):
         """
-        Execute a http PUT to update this resource.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Update the resource this `Resource` object refers to.
 
-        :param payload: the JSON payload of the update request, defaults to None
-        :type payload: dict, optional
-        :return: The updated resource.
-        :rtype: dict
+        Usage:
+
+        ```python
+        product = await client.collection('products').resource('PRD-000-111-222').update(
+            payload={
+                'name': 'Cool product'
+            }
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        product = await client.products['PRD-000-111-222'].update(
+            payload={
+                'name': 'Cool product'
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload of the update operations.
         """
         return await self._client.update(
             self._path,
@@ -272,10 +725,19 @@ class AsyncResourceMixin:
 
     async def delete(self, **kwargs):
         """
-        Execute a http DELETE to delete this resource.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
+        Delete the resource this `Resource` object refers to.
+
+        Usage:
+
+        ```python
+        await client.collection('products').resource('PRD-000-111-222').delete()
+        ```
+
+        Concise form:
+
+        ```python
+        await client.products['PRD-000-111-222'].delete()
+        ```
         """
         return await self._client.delete(
             self._path,
@@ -284,17 +746,17 @@ class AsyncResourceMixin:
 
     async def values(self, *fields):
         """
-        Returns a flat dictionary containing only the fields passed as arguments.
-        Nested field can be specified using dot notation.
+        Returns a flat dictionary containing only the fields of this resource
+        passed as arguments.
 
-        Ex.
+        !!! note
+            Nested field can be specified using dot notation.
 
-        .. code-block:: python
+        Usage:
 
-        values = resource.values('field', 'nested.field')
-
-        :return: A dictionary containing field,value pairs.
-        :rtype: dict
+        ```python
+        values = await resource.values('field', 'nested.field')
+        ```
         """
         results = {}
         item = await self.get()
@@ -306,27 +768,72 @@ class AsyncResourceMixin:
 class ActionMixin:
     def get(self, **kwargs):
         """
-        Execute this action through a http GET.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `GET` HTTP verb.
 
-        :return: The action data.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        xlsx = (
+            client.ns('devops')
+            .collection('services')
+            .resource('SRVC-0000-1111')
+            .collection('environments')
+            .resource('ENV-0000-1111-01')
+            .collection('variables')
+            .action('export')
+            .get()
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        xlsx = (
+            client('devops')
+            .services['SRVC-0000-1111']
+            .environments['ENV-0000-1111-01']
+            .variables('export').get()
+        )
+        ```
         """
         return self._client.get(self._path, **kwargs)
 
     def post(self, payload=None, **kwargs):
         """
-        Execute this action through a http POST.
-        The http POST can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `POST` HTTP verb.
 
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        product = (
+            client.collection('products')
+            .resource('PRD-000-111-222')
+            .action('endsale')
+            .post(
+                payload={
+                    'replacement': {'id': 'PRD-333-444-555'},
+                    'end_of_sale_notes': 'Obsolete product'
+                }
+            )
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        product = client.products['PRD-000-111-222']('endsale').post(
+            payload={
+                'replacement': {'id': 'PRD-333-444-555'},
+                'end_of_sale_notes': 'Obsolete product'
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -338,15 +845,12 @@ class ActionMixin:
 
     def put(self, payload=None, **kwargs):
         """
-        Execute this action through a http PUT.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `PUT` HTTP verb.
 
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
+        **Parameters:**
+
+        * **payload** - The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -358,10 +862,8 @@ class ActionMixin:
 
     def delete(self, **kwargs):
         """
-        Execute this action through a http DELETE.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `DELETE` HTTP verb.
         """
         return self._client.delete(
             self._path,
@@ -372,27 +874,72 @@ class ActionMixin:
 class AsyncActionMixin:
     async def get(self, **kwargs):
         """
-        Execute this action through a http GET.
-        The http GET can be customized passing kwargs that
-        will be forwarded to the underlying GET of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `GET` HTTP verb.
 
-        :return: The action data.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        xlsx = await (
+            client.ns('devops')
+            .collection('services')
+            .resource('SRVC-0000-1111')
+            .collection('environments')
+            .resource('ENV-0000-1111-01')
+            .collection('variables')
+            .action('export')
+            .get()
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        xlsx = await (
+            client('devops')
+            .services['SRVC-0000-1111']
+            .environments['ENV-0000-1111-01']
+            .variables('export').get()
+        )
+        ```
         """
         return await self._client.get(self._path, **kwargs)
 
     async def post(self, payload=None, **kwargs):
         """
-        Execute this action through a http POST.
-        The http POST can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `POST` HTTP verb.
 
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
+        Usage:
+
+        ```python
+        product = await (
+            client.collection('products')
+            .resource('PRD-000-111-222')
+            .action('endsale')
+            .post(
+                payload={
+                    'replacement': {'id': 'PRD-333-444-555'},
+                    'end_of_sale_notes': 'Obsolete product'
+                }
+            )
+        )
+        ```
+
+        Concise form:
+
+        ```python
+        product = await client.products['PRD-000-111-222']('endsale').post(
+            payload={
+                'replacement': {'id': 'PRD-333-444-555'},
+                'end_of_sale_notes': 'Obsolete product'
+            }
+        )
+        ```
+
+        **Parameters:**
+
+        * **payload** - The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -404,15 +951,12 @@ class AsyncActionMixin:
 
     async def put(self, payload=None, **kwargs):
         """
-        Execute this action through a http PUT.
-        The http PUT can be customized passing kwargs that
-        will be forwarded to the underlying PUT of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `PUT` HTTP verb.
 
-        :param payload: the JSON payload for this action, defaults to None
-        :type payload: dict, optional
-        :return: The result of this action.
-        :rtype: dict, None
+        **Parameters:**
+
+        * **payload** - The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -424,10 +968,8 @@ class AsyncActionMixin:
 
     async def delete(self, **kwargs):
         """
-        Execute this action through a http DELETE.
-        The http DELETE can be customized passing kwargs that
-        will be forwarded to the underlying DELETE of the ``requests``
-        library.
+        Execute the action this `Action` object refers to using the
+        `DELETE` HTTP verb.
         """
         return await self._client.delete(
             self._path,
