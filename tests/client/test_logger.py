@@ -36,10 +36,14 @@ Authorization: ApiKey SU-XXXX**********
     rl.log_request(
         'get',
         PATH1,
-        {'headers': {'Auth': 'None', 'Cookie': 'XXX', 'Authorization': 'SecretToken'}},
+        {'headers': {
+            'Auth': 'None',
+            'Cookie': '_ga=wathever; api_key="test@example.com:abcdefg"; _gid=whatever',
+            'Authorization': 'SecretToken',
+        }},
     )
     assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH1 + ' \n' + """Auth: None
-Cookie: XXX
+Cookie: _ga=wathever; api_key="te******fg"; _gid=whatever
 Authorization: ********************
 
 """
@@ -100,12 +104,19 @@ def test_log_response(mocker):
     mocker.patch('requests.models.Response.json', return_value=json)
     rsp = Response()
     rsp.raw = HTTPResponse()
-    rsp.headers = {'Content-Type': 'application/json'}
+    rsp.headers = {
+        'Content-Type': 'application/json',
+        'Set-Cookie': (
+            'api_key="test@example.com:abcdefg"; '
+            'expires=Wed, 19 Oct 2022 06:56:08 GMT; HttpOnly;'
+        ),
+    }
     rsp.status_code = 200
     rsp.raw.reason = 'OK'
     rl.log_response(rsp)
     assert ios.getvalue() == LOG_RESPONSE_HEADER + """200 OK
 Content-Type: application/json
+Set-Cookie: api_key="te******fg"; expires=Wed, 19 Oct 2022 06:56:08 GMT; HttpOnly;
 {
     "id": "XX-1234",
     "name": "XXX"
