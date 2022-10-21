@@ -56,7 +56,7 @@ def test_get_all_products(client_mocker_factory):
 
     expected_response = [{'id': 'PRD-000'}]
 
-    mocker = client_mocker_factory(client.endpoint)
+    mocker = client_mocker_factory(base_url=client.endpoint)
     mocker.products.all().mock(return_value=expected_response)
 
     assert list(client.products.all()) == expected_response

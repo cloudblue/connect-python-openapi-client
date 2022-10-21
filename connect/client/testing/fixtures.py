@@ -11,7 +11,7 @@ def client_mocker_factory(request):
     """
     mocker = None
 
-    def _wrapper(base_url='http://localhost'):
+    def _wrapper(base_url='https://example.org/public/v1'):
         mocker = ConnectClientMocker(base_url)
         mocker.start()
         return mocker
@@ -32,7 +32,7 @@ def async_client_mocker_factory(request):
     """
     mocker = None
 
-    def _wrapper(base_url='http://localhost'):
+    def _wrapper(base_url='https://example.org/public/v1'):
         mocker = AsyncConnectClientMocker(base_url)
         mocker.start()
         return mocker
