@@ -355,3 +355,18 @@ def test_invalid_return_value():
     with pytest.raises(TypeError):
         with ConnectClientMocker('http://localhost') as mocker:
             mocker.products.all().count(return_value='hello')
+
+
+def test_inner_mockers():
+
+    def inner_mocking():
+        with ConnectClientMocker('http://localhost') as mocker:
+            mocker.products.all().count(return_value=100)
+            client = ConnectClient('api_key', endpoint='http://localhost')
+            assert client.products.all().count() == 100
+            assert list(client.products.all()) == [{'id': 'OBJ-0'}]
+
+    with ConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[{'id': 'OBJ-0'}])
+
+        inner_mocking()

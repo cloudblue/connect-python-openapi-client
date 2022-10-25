@@ -35,10 +35,12 @@ def body_matcher(body):
     return match
 
 
+_mocker = responses.RequestsMock()
+
+
 class ConnectClientMocker(_ConnectClientBase):
     def __init__(self, base_url):
         super().__init__('api_key', endpoint=base_url)
-        self._mocker = responses.RequestsMock()
 
     def get(
         self,
@@ -142,14 +144,14 @@ class ConnectClientMocker(_ConnectClientBase):
                     body_matcher(match_body),
                 ]
 
-        self._mocker.add(**kwargs)
+        _mocker.add(**kwargs)
 
     def start(self):
-        self._mocker.start()
+        _mocker.start()
 
     def reset(self, success=True):
-        self._mocker.stop(allow_assert=success)
-        self._mocker.reset()
+        _mocker.stop(allow_assert=success)
+        _mocker.reset()
 
     def __enter__(self):
         self.start()
@@ -165,29 +167,24 @@ class ConnectClientMocker(_ConnectClientBase):
         return NSMock
 
 
+_monkeypatch = MonkeyPatch()
+_async_mocker = HTTPXMock()
+
+
 class AsyncConnectClientMocker(ConnectClientMocker):
     def __init__(self, base_url):
         super().__init__(base_url)
-        self._monkeypatch = None
-        self._mocker = None
 
     def start(self):
-        self._monkeypatch = MonkeyPatch()
-        self._mocker = HTTPXMock()
-
-        mocker = self._mocker
-
-        self._monkeypatch.setattr(
+        _monkeypatch.setattr(
             httpx.AsyncClient,
             '_transport_for_url',
-            lambda self, url: _PytestAsyncTransport(mocker),
+            lambda self, url: _PytestAsyncTransport(_async_mocker),
         )
 
     def reset(self, success=True):
-        self._mocker.reset(success)
-        self._monkeypatch.undo()
-        self._mocker = None
-        self._monkeypatch = None
+        _async_mocker.reset(success)
+        _monkeypatch.undo()
 
     def mock(
         self,
@@ -218,4 +215,4 @@ class AsyncConnectClientMocker(ConnectClientMocker):
             else:
                 kwargs['match_content'] = match_body
 
-        self._mocker.add_response(**kwargs)
+        _async_mocker.add_response(**kwargs)
