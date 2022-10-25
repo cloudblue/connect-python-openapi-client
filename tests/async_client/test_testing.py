@@ -361,3 +361,19 @@ def test_invalid_return_value():
     with pytest.raises(TypeError):
         with AsyncConnectClientMocker('http://localhost') as mocker:
             mocker.products.all().count(return_value='hello')
+
+
+@pytest.mark.asyncio
+async def test_inner_mockers():
+
+    async def inner_mocking():
+        with AsyncConnectClientMocker('http://localhost') as mocker:
+            mocker.products.all().count(return_value=100)
+            client = AsyncConnectClient('api_key', endpoint='http://localhost')
+            assert await client.products.all().count() == 100
+            assert [item async for item in client.products.all()] == [{'id': 'OBJ-0'}]
+
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.all().mock(return_value=[{'id': 'OBJ-0'}])
+
+        await inner_mocking()
