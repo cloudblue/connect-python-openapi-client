@@ -5,10 +5,6 @@
 #
 import time
 
-import httpx
-
-import requests
-
 from httpx import HTTPError
 
 from requests.exceptions import RequestException, Timeout
@@ -81,7 +77,7 @@ class SyncClientMixin:
             if self.logger:
                 self.logger.log_request(method, url, kwargs)
             try:
-                self.response = requests.request(method, url, **kwargs)
+                self.response = self._session.request(method, url, **kwargs)
                 if self.logger:
                     self.logger.log_response(self.response)
             except Timeout:
@@ -169,8 +165,7 @@ class AsyncClientMixin:
             if self.logger:
                 self.logger.log_request(method, url, kwargs)
 
-            async with httpx.AsyncClient() as client:
-                self.response = await client.request(method, url, **kwargs)
+            self.response = await self._session.request(method, url, **kwargs)
 
             if self.logger:
                 self.logger.log_response(self.response)

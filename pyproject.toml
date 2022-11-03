@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "connect-openapi-client"
-version = "26.0"
+version = "25.16"
 description = "Connect Python OpenAPI Client"
 authors = ["CloudBlue"]
 license = "Apache-2.0"
@@ -48,7 +48,7 @@ importlib-metadata = { version = "^4.12.0", python = ">=3.7,<3.8" }
 
 [tool.poetry.dev-dependencies]
 pytest = ">=6.1.2,<8"
-pytest-cov = ">=2.10.1,<4"
+pytest-cov = ">=2.10.1,<5"
 pytest-mock = "^3.3.1"
 coverage = {extras = ["toml"], version = ">=5.3,<7"}
 flake8 = ">=3.8,<6"

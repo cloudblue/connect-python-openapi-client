@@ -7,6 +7,10 @@ import contextvars
 import threading
 from json.decoder import JSONDecodeError
 
+import httpx
+
+import requests
+
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from connect.client.mixins import AsyncClientMixin, SyncClientMixin
 from connect.client.models import AsyncCollection, AsyncNS, Collection, NS
@@ -205,6 +209,10 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
     * **timeout**  *(optional)* - Timeout parameter to pass to the underlying HTTP client.
     * **resourceset_append**  *(optional)* - Append all the pages to the current resourceset.
     """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._session = requests.Session()
+
     def _get_collection_class(self):
         return Collection
 
@@ -243,6 +251,7 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
+        self._session = httpx.AsyncClient()
 
     @property
     def response(self):

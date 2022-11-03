@@ -531,9 +531,8 @@ def test_help(mocker):
 
 
 def test_non_server_error(mocker):
-    mocker.patch('connect.client.mixins.requests.request', side_effect=RequestException('generic'))
-
     c = ConnectClient('API_KEY', endpoint='https://localhost')
+    c._session.request = mocker.MagicMock(side_effect=RequestException('generic'))
 
     with pytest.raises(ClientError) as cv:
         c.execute('get', 'path')
