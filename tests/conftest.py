@@ -1,12 +1,13 @@
 import sys
 
 import pytest
-
 import responses
 
 from connect.client.openapi import OpenAPISpecs
-from connect.client.testing.fixtures import async_client_mocker_factory, client_mocker_factory  # noqa
-
+from connect.client.testing.fixtures import (  # noqa
+    async_client_mocker_factory,
+    client_mocker_factory,
+)
 from tests.fixtures.client_models import (  # noqa
     action_factory,
     async_action_factory,
@@ -16,8 +17,8 @@ from tests.fixtures.client_models import (  # noqa
     async_res_factory,
     async_rs_factory,
     col_factory,
-    res_factory,
     ns_factory,
+    res_factory,
     rs_factory,
 )
 

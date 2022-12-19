@@ -4,8 +4,10 @@
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
 import inflect
+from connect.utils.terminal.markdown import render
 
 from connect.client.models import (
+    NS,
     Action,
     AsyncAction,
     AsyncCollection,
@@ -13,11 +15,9 @@ from connect.client.models import (
     AsyncResource,
     AsyncResourceSet,
     Collection,
-    NS,
     Resource,
     ResourceSet,
 )
-from connect.utils.terminal.markdown import render
 
 
 _COL_HTTP_METHOD_TO_METHOD = {

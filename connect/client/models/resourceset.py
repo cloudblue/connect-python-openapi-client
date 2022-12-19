@@ -13,8 +13,8 @@ from connect.client.models.iterators import (
     ValuesListIterator,
     aiter,
 )
-from connect.client.utils import parse_content_range, resolve_attribute
 from connect.client.rql import R
+from connect.client.utils import parse_content_range, resolve_attribute
 
 
 class _ResourceSetBase:

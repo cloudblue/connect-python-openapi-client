@@ -8,15 +8,19 @@ import threading
 from json.decoder import JSONDecodeError
 
 import httpx
-
 import requests
 
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
-from connect.client.mixins import AsyncClientMixin, SyncClientMixin
-from connect.client.models import AsyncCollection, AsyncNS, Collection, NS
-from connect.client.utils import get_headers
 from connect.client.help_formatter import DefaultFormatter
+from connect.client.mixins import AsyncClientMixin, SyncClientMixin
+from connect.client.models import (
+    NS,
+    AsyncCollection,
+    AsyncNS,
+    Collection,
+)
 from connect.client.openapi import OpenAPISpecs
+from connect.client.utils import get_headers
 
 
 class _ConnectClientBase(threading.local):

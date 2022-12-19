@@ -27,6 +27,11 @@ $ pip install connect-openapi-client
 ```
 
 
+## Development
+We use `isort` library to order and format our imports, and we check it using `flake8-isort` library (automatically on `flake8` run).  
+For convenience you may run `poetry run isort .` to order imports.
+
+
 ## Documentation
 
 [`Connect Python OpenAPI Client` documentation](https://connect-openapi-client.readthedocs.io/en/latest/) is hosted on the _Read the Docs_ service.

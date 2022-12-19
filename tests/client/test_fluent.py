@@ -1,15 +1,13 @@
 import io
 
 import pytest
-
 import responses
-
 from requests import RequestException, Timeout
 
 from connect.client.exceptions import ClientError
 from connect.client.fluent import ConnectClient
 from connect.client.logger import RequestLogger
-from connect.client.models import Collection, NS
+from connect.client.models import NS, Collection
 
 
 def test_default_headers():

@@ -6,14 +6,11 @@
 import json
 
 import httpx
-
 import responses
-from responses import matchers
-
 from pytest import MonkeyPatch
-
 from pytest_httpx import HTTPXMock
 from pytest_httpx._httpx_mock import _PytestAsyncTransport
+from responses import matchers
 
 from connect.client.fluent import _ConnectClientBase
 from connect.client.testing.models import CollectionMock, NSMock

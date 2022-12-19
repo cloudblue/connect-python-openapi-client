@@ -6,7 +6,6 @@
 import time
 
 from httpx import HTTPError
-
 from requests.exceptions import RequestException, Timeout
 
 from connect.client.exceptions import ClientError
