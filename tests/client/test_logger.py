@@ -1,7 +1,6 @@
 import io
 
 from requests.models import Response
-
 from urllib3.response import HTTPResponse
 
 from connect.client.logger import RequestLogger

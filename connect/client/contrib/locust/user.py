@@ -1,7 +1,6 @@
 import time
 
 from locust import HttpUser
-
 from requests import RequestException
 
 from connect.client import ConnectClient

@@ -1,9 +1,15 @@
 import pytest
 
 from connect.client.exceptions import ClientError
-from connect.client.models import Action, Collection, NS, Resource, ResourceSet
-from connect.client.utils import ContentRange
+from connect.client.models import (
+    NS,
+    Action,
+    Collection,
+    Resource,
+    ResourceSet,
+)
 from connect.client.rql import R
+from connect.client.utils import ContentRange
 
 
 def test_ns_ns_invalid_type(ns_factory):

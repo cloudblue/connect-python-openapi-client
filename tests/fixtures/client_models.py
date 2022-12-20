@@ -1,6 +1,7 @@
 import pytest
 
 from connect.client.models import (
+    NS,
     Action,
     AsyncAction,
     AsyncCollection,
@@ -8,7 +9,6 @@ from connect.client.models import (
     AsyncResource,
     AsyncResourceSet,
     Collection,
-    NS,
     Resource,
     ResourceSet,
 )

@@ -9,8 +9,8 @@ from connect.client.models import (
     AsyncResourceSet,
     NotYetEvaluatedError,
 )
-from connect.client.utils import ContentRange
 from connect.client.rql import R
+from connect.client.utils import ContentRange
 
 
 def test_ns_ns_invalid_type(async_ns_factory):

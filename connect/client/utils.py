@@ -8,6 +8,7 @@ from collections import namedtuple
 
 from connect.client.version import get_version
 
+
 ContentRange = namedtuple('ContentRange', ('first', 'last', 'count'))
 
 

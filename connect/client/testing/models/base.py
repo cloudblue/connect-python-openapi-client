@@ -3,12 +3,13 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
-from connect.client.models.base import _ActionBase, _CollectionBase, _NSBase, _ResourceBase
-from connect.client.testing.models.mixins import (
-    ActionMixin,
-    CollectionMixin,
-    ResourceMixin,
+from connect.client.models.base import (
+    _ActionBase,
+    _CollectionBase,
+    _NSBase,
+    _ResourceBase,
 )
+from connect.client.testing.models.mixins import ActionMixin, CollectionMixin, ResourceMixin
 from connect.client.testing.models.resourceset import ResourceSetMock
 
 
