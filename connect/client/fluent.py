@@ -37,7 +37,7 @@ class _ConnectClientBase(threading.local):
         validate_using_specs=True,
         default_headers=None,
         default_limit=100,
-        max_retries=0,
+        max_retries=3,
         logger=None,
         timeout=(180.0, 180.0),
         resourceset_append=True,
