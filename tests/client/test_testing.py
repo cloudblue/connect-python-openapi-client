@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from connect.client import ClientError, ConnectClient
@@ -370,3 +372,22 @@ def test_inner_mockers():
         mocker.products.all().mock(return_value=[{'id': 'OBJ-0'}])
 
         inner_mocking()
+
+
+@pytest.mark.parametrize(
+    'exclude',
+    (
+        'https://www.google.com',
+        ['https://www.google.com', 'https://youtube.com'],
+        re.compile(r'https://www.google.com/\w*'),
+        [re.compile(r'https://www.google.com/\w*'), 'https://youtube.com'],
+    ),
+)
+def test_exclude(mocker, exclude):
+    mocked_add_passthru = mocker.patch('connect.client.testing.fluent._mocker.add_passthru')
+    mocker = ConnectClientMocker('http://localhost', exclude=exclude)
+
+    excluded = exclude if isinstance(exclude, list) else [exclude]
+
+    for idx, item in enumerate(excluded):
+        assert mocked_add_passthru.mock_calls[idx][1][0] == item

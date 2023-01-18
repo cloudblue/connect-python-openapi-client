@@ -4,6 +4,7 @@
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
 import json
+import re
 
 import httpx
 import responses
@@ -36,8 +37,13 @@ _mocker = responses.RequestsMock()
 
 
 class ConnectClientMocker(_ConnectClientBase):
-    def __init__(self, base_url):
+    def __init__(self, base_url, exclude=None):
         super().__init__('api_key', endpoint=base_url)
+        if exclude:
+            if not isinstance(exclude, (list, tuple, set)):
+                exclude = [exclude]
+            for item in exclude:
+                _mocker.add_passthru(item)
 
     def get(
         self,
@@ -169,14 +175,27 @@ _async_mocker = HTTPXMock()
 
 
 class AsyncConnectClientMocker(ConnectClientMocker):
-    def __init__(self, base_url):
+    def __init__(self, base_url, exclude=None):
         super().__init__(base_url)
+        self.exclude = exclude or []
 
     def start(self):
+        patterns = self.exclude if isinstance(self.exclude, (list, tuple, set)) else [self.exclude]
+        real_async_transport = httpx.AsyncClient._transport_for_url
+
+        def transport_for_url(self, url):
+            for pattern in patterns:
+                if (
+                    (isinstance(pattern, re.Pattern) and pattern.match(str(url)))
+                    or (isinstance(pattern, str) and str(url).startswith(pattern))
+                ):
+                    return real_async_transport(self, url)
+            return _PytestAsyncTransport(_async_mocker)
+
         _monkeypatch.setattr(
             httpx.AsyncClient,
             '_transport_for_url',
-            lambda self, url: _PytestAsyncTransport(_async_mocker),
+            transport_for_url,
         )
 
     def reset(self, success=True):
