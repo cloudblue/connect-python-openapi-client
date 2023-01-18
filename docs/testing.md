@@ -48,6 +48,11 @@ async def test_get_all_products():
         assert [item async for item in client.products.all()] == expected_response
 ```
 
+Both the `ConnectClientMocker` and the `AsyncConnectClientMocker` constructors
+accept an extra keywork argument `exclude` to exclude urls from mocking.
+the exclude argument can be a string, a `re.Pattern` object or a list, tuple or set which elements
+can be strings or `re.Pattern`.
+
 Both mockers are also available as pytest fixtures:
 
 ``` {.python}
@@ -61,6 +66,9 @@ def test_get_all_products(client_mocker_factory):
 
     assert list(client.products.all()) == expected_response
 ```
+
+Also the fixtures accept an extra keyword argument `exclude` that is passed
+to the underlying mocker constructor.
 
 For more example on how to use the client mocker see the
 `tests/client/test_testing.py` file in the github repository.

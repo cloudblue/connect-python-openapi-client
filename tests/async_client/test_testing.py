@@ -1,3 +1,6 @@
+import re
+
+import httpx
 import pytest
 
 from connect.client import AsyncConnectClient, ClientError
@@ -377,3 +380,23 @@ async def test_inner_mockers():
         mocker.products.all().mock(return_value=[{'id': 'OBJ-0'}])
 
         await inner_mocking()
+
+
+@pytest.mark.parametrize(
+    'exclude',
+    (
+        'https://www.google.com',
+        ['https://www.google.com', 'https://youtube.com'],
+        re.compile(r'https://www.google.com(/\w*)?'),
+        [re.compile(r'https://www.google.com(/\w*)?'), 'https://youtube.com'],
+    ),
+)
+@pytest.mark.asyncio
+async def test_exclude(mocker, exclude):
+    with AsyncConnectClientMocker('http://localhost', exclude=exclude) as mocker:
+        mocker.products.create(return_value={'test': 'data'})
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+        assert await client.products.create(payload={}) == {'test': 'data'}
+        async with httpx.AsyncClient() as client:
+            r = await client.get('https://www.google.com')
+            assert r.status_code == 200
