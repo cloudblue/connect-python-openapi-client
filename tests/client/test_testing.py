@@ -4,7 +4,7 @@ import pytest
 
 from connect.client import ClientError, ConnectClient
 from connect.client.rql import R
-from connect.client.testing.fluent import ConnectClientMocker
+from connect.client.testing.fluent import ConnectClientMocker, _mocker, get_requests_mocker
 
 
 def test_create():
@@ -391,3 +391,7 @@ def test_exclude(mocker, exclude):
 
     for idx, item in enumerate(excluded):
         assert mocked_add_passthru.mock_calls[idx][1][0] == item
+
+
+def test_get_requests_mocker():
+    assert get_requests_mocker() == _mocker

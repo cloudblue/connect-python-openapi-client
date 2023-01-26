@@ -5,7 +5,7 @@ import pytest
 
 from connect.client import AsyncConnectClient, ClientError
 from connect.client.rql import R
-from connect.client.testing.fluent import AsyncConnectClientMocker
+from connect.client.testing.fluent import AsyncConnectClientMocker, _async_mocker, get_httpx_mocker
 
 
 @pytest.mark.asyncio
@@ -400,3 +400,7 @@ async def test_exclude(mocker, exclude):
         async with httpx.AsyncClient() as client:
             r = await client.get('https://www.google.com')
             assert r.status_code == 200
+
+
+def test_get_httpx_mocker():
+    assert get_httpx_mocker() == _async_mocker
