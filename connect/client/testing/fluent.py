@@ -232,3 +232,23 @@ class AsyncConnectClientMocker(ConnectClientMocker):
                 kwargs['match_content'] = match_body
 
         _async_mocker.add_response(**kwargs)
+
+
+def get_requests_mocker():
+    """
+    Returns a mocker object to mock http calls made using the `requests` library
+    when they are made in conjunction with calls made with the `ConnectClient`.
+    The returned mocker is the one provided by the
+    [responses](https://github.com/getsentry/responses) library.
+    """
+    return _mocker
+
+
+def get_httpx_mocker():
+    """
+    Returns a mocker object to mock http calls made using the `httpx` library
+    when they are made in conjunction with calls made with the `AsyncConnectClient`.
+    The returned mocker is the one provided by the
+    [pytest-httpx](https://colin-b.github.io/pytest_httpx/) library.
+    """
+    return _async_mocker

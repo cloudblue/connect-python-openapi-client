@@ -7,6 +7,8 @@ from connect.client.openapi import OpenAPISpecs
 from connect.client.testing.fixtures import (  # noqa
     async_client_mocker_factory,
     client_mocker_factory,
+    httpx_mocker,
+    requests_mocker,
 )
 from tests.fixtures.client_models import (  # noqa
     action_factory,

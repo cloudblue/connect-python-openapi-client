@@ -3,4 +3,9 @@
 #
 # Copyright (c) 2021 Ingram Micro. All Rights Reserved.
 #
-from connect.client.testing.fluent import AsyncConnectClientMocker, ConnectClientMocker  # noqa
+from connect.client.testing.fluent import (  # noqa
+    AsyncConnectClientMocker,
+    ConnectClientMocker,
+    get_httpx_mocker,
+    get_requests_mocker,
+)
