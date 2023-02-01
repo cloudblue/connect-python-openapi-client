@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 import contextvars
 import threading
@@ -25,9 +25,6 @@ from connect.client.utils import get_headers
 
 class _ConnectClientBase(threading.local):
 
-    """
-    Connect ReST API client.
-    """
     def __init__(
         self,
         api_key,
@@ -76,14 +73,6 @@ class _ConnectClientBase(threading.local):
         self._response = value
 
     def __getattr__(self, name):
-        """
-        Returns a collection object called ``name``.
-
-        :param name: The name of the collection to retrieve.
-        :type name: str
-        :return: a collection called ``name``.
-        :rtype: Collection
-        """
         if '_' in name:
             name = name.replace('_', '-')
         return self.collection(name)
@@ -97,19 +86,18 @@ class _ConnectClientBase(threading.local):
 
         Usage:
 
-        ```python
+        ```py3
         subscriptions = client.ns('subscriptions')
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         subscriptions = client('subscriptions')
         ```
 
-        **Parameters**
-
-        * **name** - The name of the namespace to access.
+        Args:
+            name (str): The name of the namespace to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -125,19 +113,18 @@ class _ConnectClientBase(threading.local):
 
         Usage:
 
-        ```python
+        ```py3
         products = client.collection('products')
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         products = client.products
         ```
 
-        **Parameters**
-
-        * **name** - The name of the collection to access.
+        Args:
+            name (str): The name of the collection to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -192,26 +179,26 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
 
     Usage:
 
-    ```python
+    ```py3
+    from connect.client import ConnectClient
     client = ConnectClient('ApiKey SU-000-000-000:xxxxxxxxxxxxxxxx')
     product = client.products['PRD-001-002-003'].get()
     ```
 
-    **Parameters:**
-
-    * **api_key** - The API key used for authentication.
-    * **endpoint** *(optional)* - The API endpoint, defaults to
-    https://api.connect.cloudblue.com/public/v1.
-    * **use_specs**  *(optional)* - Use Connect OpenAPI specifications.
-    * **specs_location**  *(optional)* - The Connect OpenAPI specification local path or URL.
-    * **validate_using_specs**  *(optional)* - Use the Connect OpenAPI specification to validate
-    the call.
-    * **default_headers**  *(optional)* - HTTP headers to apply to each request.
-    * **default_limit**  *(optional)* - Default value for pagination limit parameter.
-    * **max_retries**  *(optional)* - Max number of retries for a request before raising an error.
-    * **logger**  *(optional)* - HTTP Request logger class.
-    * **timeout**  *(optional)* - Timeout parameter to pass to the underlying HTTP client.
-    * **resourceset_append**  *(optional)* - Append all the pages to the current resourceset.
+    Args:
+        api_key (str): The API key used for authentication.
+        endpoint (str): (Optional) The API endpoint, defaults to
+            https://api.connect.cloudblue.com/public/v1.
+        use_specs (bool): (Optional) Use Connect OpenAPI specifications.
+        specs_location (str): (Optional) The Connect OpenAPI specification local path or URL.
+        validate_using_specs (bool): (Optional) Use the Connect OpenAPI specification to validate
+            the call.
+        default_headers (dict): (Optional) HTTP headers to apply to each request.
+        default_limit (int): (Optional) Default value for pagination limit parameter.
+        max_retries (int): (Optional) Max number of retries for a request before raising an error.
+        logger: (Optional) HTTP Request logger class.
+        timeout (int): (Optional) Timeout parameter to pass to the underlying HTTP client.
+        resourceset_append: (Optional) Append all the pages to the current resourceset.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -230,26 +217,26 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
 
     Usage:
 
-    ```python
+    ```py3
+    from connect.client import AsyncConnectClient
     client = AsyncConnectClient('ApiKey SU-000-000-000:xxxxxxxxxxxxxxxx')
     product = await client.products['PRD-001-002-003'].get()
     ```
 
-    **Parameters:**
-
-    * **api_key** - The API key used for authentication.
-    * **endpoint** *(optional)* - The API endpoint, defaults to
-    https://api.connect.cloudblue.com/public/v1.
-    * **use_specs**  *(optional)* - Use Connect OpenAPI specifications.
-    * **specs_location**  *(optional)* - The Connect OpenAPI specification local path or URL.
-    * **validate_using_specs**  *(optional)* - Use the Connect OpenAPI specification to validate
-    the call.
-    * **default_headers**  *(optional)* - HTTP headers to apply to each request.
-    * **default_limit**  *(optional)* - Default value for pagination limit parameter.
-    * **max_retries**  *(optional)* - Max number of retries for a request before raising an error.
-    * **logger**  *(optional)* - HTTP Request logger class.
-    * **timeout**  *(optional)* - Timeout parameter to pass to the underlying HTTP client.
-    * **resourceset_append**  *(optional)* - Append all the pages to the current resourceset.
+    Args:
+        api_key (str): The API key used for authentication.
+        endpoint (str): (Optional) The API endpoint, defaults to
+            https://api.connect.cloudblue.com/public/v1.
+        use_specs (bool): (Optional) Use Connect OpenAPI specifications.
+        specs_location: (Optional) The Connect OpenAPI specification local path or URL.
+        validate_using_specs: (Optional) Use the Connect OpenAPI specification to validate
+            the call.
+        default_headers (dict): (Optional) HTTP headers to apply to each request.
+        default_limit (int): (Optional) Default value for pagination limit parameter.
+        max_retries (int): (Optional) Max number of retries for a request before raising an error.
+        logger: (Optional) HTTP Request logger class.
+        timeout (int): (Optional) Timeout parameter to pass to the underlying HTTP client.
+        resourceset_append: (Optional) Append all the pages to the current resourceset.
     """
 
     def __init__(self, *args, **kwargs):
