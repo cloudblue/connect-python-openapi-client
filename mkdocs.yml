@@ -3,7 +3,7 @@ site_url: https://github.com/cloudblue/connect-python-openapi-client
 repo_name: cloudblue/connect-python-openapi-client
 repo_url: https://github.com/cloudblue/connect-python-openapi-client
 edit_uri: ""
-copyright: Copyright &copy; 2022 Ingram Micro. All Rights Reserved.
+copyright: Copyright &copy; 2023 Ingram Micro. All Rights Reserved.
 extra:
   generator: false
 extra_css:
@@ -24,15 +24,26 @@ theme:
       toggle:
         icon: 'material/lightbulb-outline'
         name: 'Switch to light mode'
-
 markdown_extensions:
-  - mkautodoc
   - admonition
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.tabbed:
-      alternate_style: true 
-
+      alternate_style: true
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_signature_annotations: true
+            show_source: false
+            show_bases: false
+            show_root_toc_entry: false
+watch:
+  - connect/client
+  - cnct
+  - docs
 nav:
     - Home: index.md
     - User guide:

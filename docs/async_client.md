@@ -1,8 +1,16 @@
 ## AsyncConnectClient
 
 ::: connect.client.AsyncConnectClient
-    :docstring:
-    :members: response ns collection
+    options:
+        heading_level: 3
+
+::: connect.client.fluent._ConnectClientBase
+    options:
+        heading_level: 3
+
+::: connect.client.mixins.AsyncClientMixin
+    options:
+        heading_level: 3
 
 
 ## AsyncNS
@@ -10,18 +18,29 @@
 A **namespace** groups together a set of  [**collections**](#asynccollection) of [**resources**](#asyncresource).
 
 ::: connect.client.models.AsyncNS
-    :docstring:
-    :members: ns collection
+    options:
+        heading_level: 3
+
+::: connect.client.models.base._NSBase
+    options:
+        heading_level: 3
 
 
 ## AsyncCollection
 
 A **collection** is a set of [**resources**](#asyncresource) of the same type.
 
-
 ::: connect.client.models.AsyncCollection
-    :docstring:
-    :members: resource action filter all create bulk_create bulk_update bulk_delete
+    options:
+        heading_level: 3
+
+::: connect.client.models.base._CollectionBase
+    options:
+        heading_level: 3
+
+::: connect.client.models.mixins.AsyncCollectionMixin
+    options:
+        heading_level: 3
 
 
 ## AsyncResource
@@ -30,8 +49,16 @@ A **resource** is an object with a type, associated data, relationships to other
 and [**actions**](#aasyncction) that can be performed on such resource.
 
 ::: connect.client.models.AsyncResource
-    :docstring:
-    :members: collection action get update delete exists values
+    options:
+        heading_level: 3
+
+::: connect.client.models.base._ResourceBase
+    options:
+        heading_level: 3
+
+::: connect.client.models.mixins.AsyncResourceMixin
+    options:
+        heading_level: 3
 
 
 ## AsyncAction
@@ -40,8 +67,12 @@ An **action** is an operation that can be performed on [**resources**](#asyncres
 or [**collections**](#asynccollection).
 
 ::: connect.client.models.AsyncAction
-    :docstring:
-    :members: get post put delete
+    options:
+        heading_level: 3
+
+::: connect.client.models.mixins.AsyncActionMixin
+    options:
+        heading_level: 3
 
 
 ## AsyncResourceSet
@@ -49,5 +80,9 @@ or [**collections**](#asynccollection).
 A **ResourceSet** is a set of resources from one collection eventually filtered and ordered.
 
 ::: connect.client.models.AsyncResourceSet
-    :docstring:
-    :members: all filter first count values_list search order_by select limit configure
+    options:
+        heading_level: 3
+
+::: connect.client.models.resourceset._ResourceSetBase
+    options:
+        heading_level: 3

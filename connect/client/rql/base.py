@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 from connect.client.rql.utils import parse_kwargs, to_rql_value
 
@@ -12,7 +12,7 @@ class RQLQuery:
 
     Usage:
 
-    ```python
+    ```py3
         rql = R(field='value', field2__in=('v1', 'v2'), field3__empty=True)
     ```
     !!! note
@@ -21,7 +21,7 @@ class RQLQuery:
 
     Using the ``n`` method:
 
-    ```python
+    ```py3
         rql = (
             R().n('field').eq('value')
             & R().n('field2').anyof(('v1', 'v2'))
@@ -31,7 +31,7 @@ class RQLQuery:
 
     The previous query can be expressed in a more concise form like:
 
-    ```python
+    ```py3
     rql = R().field.eq('value') & R().field2.anyof(('v1', 'v2')) & r.field3.empty(True)
     ```
 
@@ -39,13 +39,13 @@ class RQLQuery:
 
     Nested fields can be expressed using dot notation:
 
-    ```python
+    ```py3
     rql = R().n('nested.field').eq('value')
     ```
 
     or
 
-    ```python
+    ```py3
     rql = R().nested.field.eq('value')
     ```
     """
@@ -117,9 +117,8 @@ class RQLQuery:
         """
         Set the current field for this `R` object.
 
-        **Parameters:**
-
-        * **name** - Name of the field.
+        Args:
+            name (str): Name of the field.
         """
         if self._field:
             raise AttributeError('Already evaluated')
@@ -131,9 +130,8 @@ class RQLQuery:
         """
         Apply the `ne` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('ne', value)
 
@@ -141,9 +139,8 @@ class RQLQuery:
         """
         Apply the `eq` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('eq', value)
 
@@ -151,9 +148,8 @@ class RQLQuery:
         """
         Apply the `lt` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('lt', value)
 
@@ -161,9 +157,8 @@ class RQLQuery:
         """
         Apply the `le` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('le', value)
 
@@ -171,9 +166,8 @@ class RQLQuery:
         """
         Apply the `gt` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('gt', value)
 
@@ -181,9 +175,8 @@ class RQLQuery:
         """
         Apply the `ge` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (str): The value to which compare the field.
         """
         return self._bin('ge', value)
 
@@ -191,9 +184,8 @@ class RQLQuery:
         """
         Apply the `out` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The list of values to which compare the field.
+        Args:
+            value (List[str]): The list of values to which compare the field.
         """
         return self._list('out', value)
 
@@ -204,9 +196,8 @@ class RQLQuery:
         """
         Apply the `in` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The list of values to which compare the field.
+        Args:
+            value (List[str]): The list of values to which compare the field.
         """
         return self._list('in', value)
 
@@ -214,9 +205,8 @@ class RQLQuery:
         """
         Apply the `null` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (List[str]): The value to which compare the field.
         """
         return self._bool('null', value)
 
@@ -224,9 +214,8 @@ class RQLQuery:
         """
         Apply the `empty` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (List[str]): The value to which compare the field.
         """
         return self._bool('empty', value)
 
@@ -234,9 +223,8 @@ class RQLQuery:
         """
         Apply the `like` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (List[str]): The value to which compare the field.
         """
         return self._bin('like', value)
 
@@ -244,9 +232,8 @@ class RQLQuery:
         """
         Apply the `ilike` operator to the field this `R` object refers to.
 
-        **Parameters**:
-
-        * **value** - The value to which compare the field.
+        Args:
+            value (List[str]): The value to which compare the field.
         """
         return self._bin('ilike', value)
 

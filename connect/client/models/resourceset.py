@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 import copy
 
@@ -65,9 +65,8 @@ class _ResourceSetBase:
         Set the number of results that must be fetched on each
         HTTP call.
 
-        **Parameters:**
-
-        * *limit* - Number of results to fetch in each HTTP call.
+        Args:
+            limit (int): Number of results to fetch in each HTTP call.
         """
         if not isinstance(limit, int):
             raise TypeError('`limit` must be an integer.')
@@ -85,7 +84,7 @@ class _ResourceSetBase:
 
         Usage:
 
-        ```python
+        ```py3
         purchases = client.requests.all().order_by(
             'asset.tiers.customer.name',
             '-created'
@@ -106,7 +105,7 @@ class _ResourceSetBase:
 
         Usage:
 
-        ```python
+        ```py3
         purchases = client.requests.all().select(
             '-asset.items',
             '-asset.params',
@@ -130,7 +129,7 @@ class _ResourceSetBase:
 
         Usage:
 
-        ```python
+        ```py3
         rs = rs.filter('eq(field,value)', 'eq(another.field,value2)')
         rs = rs.filter(R().field.eq('value'), R().another.field.eq('value2'))
         ```
@@ -140,7 +139,7 @@ class _ResourceSetBase:
         Filters can be also specified as keyword argument using the `__` (double underscore)
         notation.
 
-        ```python
+        ```py3
         rs = rs.filter(
             field=value,
             another__field=value,
@@ -177,9 +176,8 @@ class _ResourceSetBase:
         Create a copy of the current ResourceSet applying the `search` RQL
         operator equal to `term`.
 
-        **Parameters:**
-
-        * **term** - The term to search for.
+        Args:
+            term (str): The term to search for.
         """
         copy = self._copy()
         copy._search = term
@@ -194,7 +192,7 @@ class _ResourceSetBase:
 
         Usage:
 
-        ```python
+        ```py3
         values = rs.values_list('field', 'nested.field')
         ```
         """
@@ -286,7 +284,7 @@ class ResourceSet(_ResourceSetBase):
 
     Usage:
 
-    ```python
+    ```py3
     for product in client.products.all().filter(
         R().status.eq('published')
     ).order_by('created'):
@@ -330,7 +328,7 @@ class ResourceSet(_ResourceSetBase):
 
         Usage:
 
-        ```python
+        ```py3
         no_of_products = client.products.all().count()
         ```
         """
@@ -350,7 +348,7 @@ class ResourceSet(_ResourceSetBase):
 
         Usage:
 
-        ```python
+        ```py3
         latest_news = client.news.all().order_by('-updated').first()
         ```
         """
@@ -395,7 +393,7 @@ class AsyncResourceSet(_ResourceSetBase):
 
     Usage:
 
-    ```python
+    ```py3
     async for product in (
         client.products.all().filter(
             R().status.eq('published')
@@ -438,7 +436,7 @@ class AsyncResourceSet(_ResourceSetBase):
 
         Usage:
 
-        ```python
+        ```py3
         no_of_products = await client.products.all().count()
         ```
         """
@@ -456,7 +454,7 @@ class AsyncResourceSet(_ResourceSetBase):
 
         Usage:
 
-        ```python
+        ```py3
         latest_news = await client.news.all().order_by('-updated').first()
         ```
         """

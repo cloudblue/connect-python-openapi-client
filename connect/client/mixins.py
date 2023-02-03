@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2022 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 import time
 
@@ -14,9 +14,22 @@ from connect.client.exceptions import ClientError
 class SyncClientMixin:
 
     def get(self, url, **kwargs):
+        """
+        Make a GET call to the given url.
+
+        Args:
+            url (str): The url to make the call.
+        """
         return self.execute('get', url, **kwargs)
 
     def create(self, url, payload=None, **kwargs):
+        """
+        Make a POST call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:
@@ -25,6 +38,13 @@ class SyncClientMixin:
         return self.execute('post', url, **kwargs)
 
     def update(self, url, payload=None, **kwargs):
+        """
+        Make a PUT call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:
@@ -33,6 +53,13 @@ class SyncClientMixin:
         return self.execute('put', url, **kwargs)
 
     def delete(self, url, payload=None, **kwargs):
+        """
+        Make a DELETE call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:
@@ -101,9 +128,22 @@ class SyncClientMixin:
 class AsyncClientMixin:
 
     async def get(self, url, **kwargs):
+        """
+        Make a GET call to the given url.
+
+        Args:
+            url (str): The url to make the call.
+        """
         return await self.execute('get', url, **kwargs)
 
     async def create(self, url, payload=None, **kwargs):
+        """
+        Make a POST call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:
@@ -112,6 +152,13 @@ class AsyncClientMixin:
         return await self.execute('post', url, **kwargs)
 
     async def update(self, url, payload=None, **kwargs):
+        """
+        Make a PUT call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:
@@ -120,6 +167,13 @@ class AsyncClientMixin:
         return await self.execute('put', url, **kwargs)
 
     async def delete(self, url, payload=None, **kwargs):
+        """
+        Make a DELETE call to the given url with the payload.
+
+        Args:
+            url (str): The url to make the call.
+            payload (dict): (Optional) The payload to be used.
+        """
         kwargs = kwargs or {}
 
         if payload:

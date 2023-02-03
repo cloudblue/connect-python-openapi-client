@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2021 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 from connect.client.models.mixins import (
     ActionMixin,
@@ -42,20 +42,19 @@ class _NSBase:
 
         Usage:
 
-        ```python
+        ```py3
         devops_ns = client.ns('devops')
         services = devops_ns.collection('products')
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         services = client('devops').services
         ```
 
-        **Parameters**
-
-        * **name** - The name of the collection to access.
+        Args:
+            name (str): The name of the collection to access.
         """
 
         if not isinstance(name, str):
@@ -76,20 +75,19 @@ class _NSBase:
 
         Usage:
 
-        ```python
+        ```py3
         subscriptions_ns = client.ns('subscriptions')
         nested_ns = subcriptions_ns.ns('nested')
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         nested_ns = client('subscriptions')('nested')
         ```
 
-        **Parameters**
-
-        * **name** - The name of the namespace to access.
+        Args:
+            name (str): The name of the namespace to access.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -168,7 +166,7 @@ class _CollectionBase:
 
         Usage:
 
-        ```python
+        ```py3
         rs = collection.filter('eq(field,value)', 'eq(another.field,value2)')
         rs = collection.filter(R().field.eq('value'), R().another.field.eq('value2'))
         ```
@@ -180,7 +178,7 @@ class _CollectionBase:
 
         Usage:
 
-        ```python
+        ```py3
         rs = collection.filter(
             field=value,
             another__field=value,
@@ -217,19 +215,18 @@ class _CollectionBase:
 
         Usage:
 
-        ```python
+        ```py3
         resource = client.collection('products').resource('PRD-000-111-222')
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         resource = client.products['PRD-000-111-222']
         ```
 
-        **Parameters:**
-
-        * **resource_id** - The unique identifier of the resource.
+        Args:
+            resource_id (str): The unique identifier of the resource.
         """
         if not isinstance(resource_id, (str, int)):
             raise TypeError('`resource_id` must be a string or int.')
@@ -247,9 +244,8 @@ class _CollectionBase:
         Returns an `[Async]Action` object that represent an action to perform
         on this collection identified by its name.
 
-        **Parameters:**
-
-        * **name** - The name of the action to perform.
+        Args:
+            name (str): The name of the action to perform.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -322,7 +318,7 @@ class _ResourceBase:
 
         Usage:
 
-        ```python
+        ```py3
         environments = (
             client.ns("devops")
             .collection("services")
@@ -333,13 +329,12 @@ class _ResourceBase:
 
         Concise form:
 
-        ```python
+        ```py3
         services = client('devops').services['SRVC-0000-1111'].environments
         ```
 
-        **Parameters**
-
-        * **name** - The name of the collection to access.
+        Args:
+            name (str): The name of the collection to access.
         """  # noqa: E501
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -359,7 +354,7 @@ class _ResourceBase:
 
         Usage:
 
-        ```python
+        ```py3
         approve_action = (
             client.collection('requests')
             .resource('PR-000-111-222')
@@ -369,13 +364,12 @@ class _ResourceBase:
 
         Concise form:
 
-        ```python
+        ```py3
         approve_action = client.requests[''PR-000-111-222']('approve')
         ```
 
-        **Parameters**
-
-        * **name** - The name of the action to perform.
+        Args:
+            name (str): The name of the action to perform.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')

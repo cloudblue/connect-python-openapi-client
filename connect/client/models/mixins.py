@@ -1,7 +1,7 @@
 #
 # This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2022 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 from connect.client.exceptions import ClientError
 from connect.client.utils import resolve_attribute
@@ -14,7 +14,7 @@ class CollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         case = client.ns('helpdesk').collection('cases').create(
             payload={
                 'subject': 'I have a question / problem',
@@ -40,7 +40,7 @@ class CollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         case = client('helpdesk').cases.create(
             payload={
                 'subject': 'I have a question / problem',
@@ -64,9 +64,8 @@ class CollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload of the resource to create.
+        Args:
+            payload (dict): The payload of the resource to create.
         """
         if payload is not None and not isinstance(payload, dict):
             raise TypeError('`payload` must be a dict.')
@@ -83,7 +82,7 @@ class CollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         translations = client.ns('localization').collection('translations').bulk_create(
             payload=[
                 {
@@ -116,7 +115,7 @@ class CollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         translations = client('localization').translations.bulk_create(
             payload=[
                 {
@@ -147,9 +146,8 @@ class CollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to create.
+        Args:
+            payload (List|tuple): The list of translations to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -166,7 +164,7 @@ class CollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         translations = client.ns('localization').collection('translations').bulk_update(
             payload=[
                 {
@@ -186,7 +184,7 @@ class CollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         translations = client('localization').translations.bulk_update(
             payload=[
                 {
@@ -204,9 +202,8 @@ class CollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to update.
+        Args:
+            payload (List|tupe): The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -223,7 +220,7 @@ class CollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         client.ns('localization').collection('translations').bulk_delete(
             payload=[
                 {
@@ -238,7 +235,7 @@ class CollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         client('localization').translations.bulk_delete(
             payload=[
                 {
@@ -251,9 +248,8 @@ class CollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to update.
+        Args:
+            payload (List|tuple): The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -272,7 +268,7 @@ class AsyncCollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         case = await client.ns('helpdesk').collection('cases').create(
             payload={
                 'subject': 'I have a question / problem',
@@ -298,7 +294,7 @@ class AsyncCollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         case = await client('helpdesk').cases.create(
             payload={
                 'subject': 'I have a question / problem',
@@ -322,9 +318,8 @@ class AsyncCollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload of the resource to create.
+        Args:
+            payload (dict): The payload of the resource to create.
         """
         if payload is not None and not isinstance(payload, dict):
             raise TypeError('`payload` must be a dict.')
@@ -341,7 +336,7 @@ class AsyncCollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         translations = await client.ns('localization').collection('translations').bulk_create(
             payload=[
                 {
@@ -374,7 +369,7 @@ class AsyncCollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         translations = await client('localization').translations.bulk_create(
             payload=[
                 {
@@ -405,9 +400,8 @@ class AsyncCollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to create.
+        Args:
+            payload (List|tuple): The list of translations to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -424,7 +418,7 @@ class AsyncCollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         translations = await client.ns('localization').collection('translations').bulk_update(
             payload=[
                 {
@@ -444,7 +438,7 @@ class AsyncCollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         translations = await client('localization').translations.bulk_update(
             payload=[
                 {
@@ -462,9 +456,8 @@ class AsyncCollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to update.
+        Args:
+            payload (List|tuple): The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -481,7 +474,7 @@ class AsyncCollectionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         await client.ns('localization').collection('translations').bulk_delete(
             payload=[
                 {
@@ -496,7 +489,7 @@ class AsyncCollectionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         await client('localization').translations.bulk_delete(
             payload=[
                 {
@@ -509,9 +502,8 @@ class AsyncCollectionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The list of translations to update.
+        Args:
+            payload (List|tuple): The list of translations to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -530,14 +522,14 @@ class ResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         if client.collection('products').resource('PRD-000-111-222').exits():
             ...
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         if client.products['PRD-000-111-222'].exists():
             ...
         ```
@@ -556,13 +548,13 @@ class ResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = client.collection('products').resource('PRD-000-111-222').get()
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         product = client.products['PRD-000-111-222'].get()
         ```
         """
@@ -574,7 +566,7 @@ class ResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = client.collection('products').resource('PRD-000-111-222').update(
             payload={
                 'name': 'Cool product'
@@ -584,7 +576,7 @@ class ResourceMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         product = client.products['PRD-000-111-222'].update(
             payload={
                 'name': 'Cool product'
@@ -592,9 +584,8 @@ class ResourceMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload of the update operations.
+        Args:
+            payload (dict): The payload of the update operations.
         """
         return self._client.update(
             self._path,
@@ -608,13 +599,13 @@ class ResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         client.collection('products').resource('PRD-000-111-222').delete()
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         client.products['PRD-000-111-222'].delete()
         ```
         """
@@ -633,7 +624,7 @@ class ResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         values = resource.values('field', 'nested.field')
         ```
         """
@@ -651,14 +642,14 @@ class AsyncResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         if await client.collection('products').resource('PRD-000-111-222').exits():
             ...
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         if await client.products['PRD-000-111-222'].exists():
             ...
         ```
@@ -677,15 +668,15 @@ class AsyncResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = await client.collection('products').resource('PRD-000-111-222').get()
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         product = await client.products['PRD-000-111-222'].get()
-        ``` dict
+        ```
         """
         return await self._client.get(self._path, **kwargs)
 
@@ -695,7 +686,7 @@ class AsyncResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = await client.collection('products').resource('PRD-000-111-222').update(
             payload={
                 'name': 'Cool product'
@@ -705,7 +696,7 @@ class AsyncResourceMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         product = await client.products['PRD-000-111-222'].update(
             payload={
                 'name': 'Cool product'
@@ -713,9 +704,8 @@ class AsyncResourceMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload of the update operations.
+        Args:
+            payload (dict): The payload of the update operations.
         """
         return await self._client.update(
             self._path,
@@ -729,13 +719,13 @@ class AsyncResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         await client.collection('products').resource('PRD-000-111-222').delete()
         ```
 
         Concise form:
 
-        ```python
+        ```py3
         await client.products['PRD-000-111-222'].delete()
         ```
         """
@@ -754,7 +744,7 @@ class AsyncResourceMixin:
 
         Usage:
 
-        ```python
+        ```py3
         values = await resource.values('field', 'nested.field')
         ```
         """
@@ -773,7 +763,7 @@ class ActionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         xlsx = (
             client.ns('devops')
             .collection('services')
@@ -788,7 +778,7 @@ class ActionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         xlsx = (
             client('devops')
             .services['SRVC-0000-1111']
@@ -806,7 +796,7 @@ class ActionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = (
             client.collection('products')
             .resource('PRD-000-111-222')
@@ -822,7 +812,7 @@ class ActionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         product = client.products['PRD-000-111-222']('endsale').post(
             payload={
                 'replacement': {'id': 'PRD-333-444-555'},
@@ -831,9 +821,8 @@ class ActionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload needed to perform this action.
+        Args:
+            payload (dict): The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -848,9 +837,8 @@ class ActionMixin:
         Execute the action this `Action` object refers to using the
         `PUT` HTTP verb.
 
-        **Parameters:**
-
-        * **payload** - The payload needed to perform this action.
+        Args:
+            payload (dict): The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -879,7 +867,7 @@ class AsyncActionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         xlsx = await (
             client.ns('devops')
             .collection('services')
@@ -894,7 +882,7 @@ class AsyncActionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         xlsx = await (
             client('devops')
             .services['SRVC-0000-1111']
@@ -912,7 +900,7 @@ class AsyncActionMixin:
 
         Usage:
 
-        ```python
+        ```py3
         product = await (
             client.collection('products')
             .resource('PRD-000-111-222')
@@ -928,7 +916,7 @@ class AsyncActionMixin:
 
         Concise form:
 
-        ```python
+        ```py3
         product = await client.products['PRD-000-111-222']('endsale').post(
             payload={
                 'replacement': {'id': 'PRD-333-444-555'},
@@ -937,9 +925,8 @@ class AsyncActionMixin:
         )
         ```
 
-        **Parameters:**
-
-        * **payload** - The payload needed to perform this action.
+        Args:
+            payload (dict): The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
@@ -954,9 +941,8 @@ class AsyncActionMixin:
         Execute the action this `Action` object refers to using the
         `PUT` HTTP verb.
 
-        **Parameters:**
-
-        * **payload** - The payload needed to perform this action.
+        Args:
+            payload (dict): The payload needed to perform this action.
         """
         if payload:
             kwargs['json'] = payload
