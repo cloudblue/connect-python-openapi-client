@@ -3,12 +3,20 @@
 #
 # Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
+from typing import (
+    Any,
+    Dict,
+    List,
+    Tuple,
+    Union,
+)
+
 from connect.client.exceptions import ClientError
 from connect.client.utils import resolve_attribute
 
 
 class CollectionMixin:
-    def create(self, payload=None, **kwargs):
+    def create(self, payload: Dict = None, **kwargs) -> Any:
         """
         Create a new resource within this collection.
 
@@ -76,7 +84,7 @@ class CollectionMixin:
             **kwargs,
         )
 
-    def bulk_create(self, payload, **kwargs):
+    def bulk_create(self, payload: Union[List, Tuple], **kwargs):
         """
         Create a set of resources within this collection in a single call.
 
@@ -147,7 +155,7 @@ class CollectionMixin:
         ```
 
         Args:
-            payload (List|tuple): The list of translations to create.
+            payload (list|tuple): The list of objects to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -158,7 +166,7 @@ class CollectionMixin:
             **kwargs,
         )
 
-    def bulk_update(self, payload, **kwargs):
+    def bulk_update(self, payload: Union[List, Tuple], **kwargs):
         """
         Update a set of resources that belong to this collection in a single call.
 
@@ -203,7 +211,7 @@ class CollectionMixin:
         ```
 
         Args:
-            payload (List|tupe): The list of translations to update.
+            payload (list|tuple): The list of objects to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -214,7 +222,7 @@ class CollectionMixin:
             **kwargs,
         )
 
-    def bulk_delete(self, payload, **kwargs):
+    def bulk_delete(self, payload: Union[List, Tuple], **kwargs):
         """
         Delete a set of resources from within this collection in a single call.
 
@@ -249,7 +257,7 @@ class CollectionMixin:
         ```
 
         Args:
-            payload (List|tuple): The list of translations to update.
+            payload (list|tuple): The list of objects to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -262,7 +270,7 @@ class CollectionMixin:
 
 
 class AsyncCollectionMixin:
-    async def create(self, payload=None, **kwargs):
+    async def create(self, payload: Dict = None, **kwargs):
         """
         Create a new resource within this collection.
 
@@ -330,7 +338,7 @@ class AsyncCollectionMixin:
             **kwargs,
         )
 
-    async def bulk_create(self, payload, **kwargs):
+    async def bulk_create(self, payload: Union[List, Tuple], **kwargs):
         """
         Create a set of resources within this collection in a single call.
 
@@ -401,7 +409,7 @@ class AsyncCollectionMixin:
         ```
 
         Args:
-            payload (List|tuple): The list of translations to create.
+            payload (list|tuple): The list of objects to create.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -412,7 +420,7 @@ class AsyncCollectionMixin:
             **kwargs,
         )
 
-    async def bulk_update(self, payload, **kwargs):
+    async def bulk_update(self, payload: Union[List, Tuple], **kwargs):
         """
         Update a set of resources that belong to this collection in a single call.
 
@@ -457,7 +465,7 @@ class AsyncCollectionMixin:
         ```
 
         Args:
-            payload (List|tuple): The list of translations to update.
+            payload (list|tuple): The list of objects to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -468,7 +476,7 @@ class AsyncCollectionMixin:
             **kwargs,
         )
 
-    async def bulk_delete(self, payload, **kwargs):
+    async def bulk_delete(self, payload: Union[List, Tuple], **kwargs):
         """
         Delete a set of resources from within this collection in a single call.
 
@@ -503,7 +511,7 @@ class AsyncCollectionMixin:
         ```
 
         Args:
-            payload (List|tuple): The list of translations to update.
+            payload (list|tuple): The list of objects to update.
         """
         if not isinstance(payload, (list, tuple)):
             raise TypeError('`payload` must be a list or tuple.')
@@ -516,7 +524,7 @@ class AsyncCollectionMixin:
 
 
 class ResourceMixin:
-    def exists(self):
+    def exists(self) -> bool:
         """
         Return True if the resource this `Resource` object refers to exists.
 
@@ -533,6 +541,9 @@ class ResourceMixin:
         if client.products['PRD-000-111-222'].exists():
             ...
         ```
+
+        Returns:
+            (bool): Return True if the resource this `Resource` object refers to exists.
         """
         try:
             self.get()
@@ -542,7 +553,7 @@ class ResourceMixin:
                 return False
             raise
 
-    def get(self, **kwargs):
+    def get(self, **kwargs) -> Dict:
         """
         Retrieve the resource this `Resource` object refers to.
 
@@ -560,7 +571,7 @@ class ResourceMixin:
         """
         return self._client.get(self._path, **kwargs)
 
-    def update(self, payload=None, **kwargs):
+    def update(self, payload: Dict = None, **kwargs) -> Dict:
         """
         Update the resource this `Resource` object refers to.
 
@@ -614,7 +625,7 @@ class ResourceMixin:
             **kwargs,
         )
 
-    def values(self, *fields):
+    def values(self, *fields) -> Dict:
         """
         Returns a flat dictionary containing only the fields of this resource
         passed as arguments.
@@ -627,6 +638,10 @@ class ResourceMixin:
         ```py3
         values = resource.values('field', 'nested.field')
         ```
+
+        Returns:
+            (dict): Returns a flat dictionary containing only the fields of this resource
+                passed as arguments.
         """
         results = {}
         item = self.get()
@@ -636,7 +651,7 @@ class ResourceMixin:
 
 
 class AsyncResourceMixin:
-    async def exists(self):
+    async def exists(self) -> bool:
         """
         Return True if the resource this `Resource` object refers to exists.
 
@@ -653,6 +668,9 @@ class AsyncResourceMixin:
         if await client.products['PRD-000-111-222'].exists():
             ...
         ```
+
+        Returns:
+            (bool): Return True if the resource this `Resource` object refers to exists.
         """
         try:
             await self.get()
@@ -662,7 +680,7 @@ class AsyncResourceMixin:
                 return False
             raise
 
-    async def get(self, **kwargs):
+    async def get(self, **kwargs) -> Dict:
         """
         Retrieve the resource this `Resource` object refers to.
 
@@ -677,10 +695,13 @@ class AsyncResourceMixin:
         ```py3
         product = await client.products['PRD-000-111-222'].get()
         ```
+
+        Returns:
+            (dict): Returns the resource this `Resource` object refers to.
         """
         return await self._client.get(self._path, **kwargs)
 
-    async def update(self, payload=None, **kwargs):
+    async def update(self, payload=None, **kwargs) -> Dict:
         """
         Update the resource this `Resource` object refers to.
 
@@ -706,6 +727,9 @@ class AsyncResourceMixin:
 
         Args:
             payload (dict): The payload of the update operations.
+
+        Returns:
+            (dict): Returns the updated object.
         """
         return await self._client.update(
             self._path,
@@ -734,7 +758,7 @@ class AsyncResourceMixin:
             **kwargs,
         )
 
-    async def values(self, *fields):
+    async def values(self, *fields) -> Dict:
         """
         Returns a flat dictionary containing only the fields of this resource
         passed as arguments.
@@ -747,6 +771,10 @@ class AsyncResourceMixin:
         ```py3
         values = await resource.values('field', 'nested.field')
         ```
+
+        Returns:
+            (dict): Returns a flat dictionary containing only the fields of this resource
+                passed as arguments.
         """
         results = {}
         item = await self.get()
@@ -789,7 +817,7 @@ class ActionMixin:
         """
         return self._client.get(self._path, **kwargs)
 
-    def post(self, payload=None, **kwargs):
+    def post(self, payload: Dict = None, **kwargs):
         """
         Execute the action this `Action` object refers to using the
         `POST` HTTP verb.
@@ -832,7 +860,7 @@ class ActionMixin:
             **kwargs,
         )
 
-    def put(self, payload=None, **kwargs):
+    def put(self, payload: Dict = None, **kwargs):
         """
         Execute the action this `Action` object refers to using the
         `PUT` HTTP verb.
@@ -893,7 +921,7 @@ class AsyncActionMixin:
         """
         return await self._client.get(self._path, **kwargs)
 
-    async def post(self, payload=None, **kwargs):
+    async def post(self, payload: Dict = None, **kwargs):
         """
         Execute the action this `Action` object refers to using the
         `POST` HTTP verb.
@@ -936,7 +964,7 @@ class AsyncActionMixin:
             **kwargs,
         )
 
-    async def put(self, payload=None, **kwargs):
+    async def put(self, payload: Dict = None, **kwargs):
         """
         Execute the action this `Action` object refers to using the
         `PUT` HTTP verb.

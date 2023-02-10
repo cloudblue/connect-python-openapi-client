@@ -60,13 +60,16 @@ class _ResourceSetBase:
         copy._config = kwargs or {}
         return copy
 
-    def limit(self, limit):
+    def limit(self, limit: int):
         """
         Set the number of results that must be fetched on each
         HTTP call.
 
         Args:
             limit (int): Number of results to fetch in each HTTP call.
+
+        Returns:
+            (ResourceSet): Returns a copy of the current ResourceSet with the limit applied.
         """
         if not isinstance(limit, int):
             raise TypeError('`limit` must be an integer.')
@@ -93,6 +96,9 @@ class _ResourceSetBase:
         !!! note
             To sort results in descending order the name of the field must
             be prefixed with a `-` (minus) sign.
+
+        Returns:
+            (ResourceSet): Returns a copy of the current ResourceSet with the order applied.
         """
         copy = self._copy()
         copy._ordering.extend(fields)
@@ -115,6 +121,9 @@ class _ResourceSetBase:
         !!! note
             To unselect a field it must
             be prefixed with a `-` (minus) sign.
+
+        Returns:
+            (ResourceSet): Returns a copy of the current ResourceSet with the select applied.
         """
         copy = self._copy()
         copy._select.extend(fields)
@@ -149,6 +158,9 @@ class _ResourceSetBase:
         ```
 
         Also keyword arguments will be combined with logical `and`.
+
+        Returns:
+            (ResourceSet): Returns a copy of the current ResourceSet with the filter applied.
         """
         copy = self._copy()
         for arg in args:
@@ -168,16 +180,23 @@ class _ResourceSetBase:
     def all(self):
         """
         Returns a copy of the current ResourceSet.
+
+        Returns:
+            (ResourceSet): Returns a copy of the current ResourceSet.
         """
         return self._copy()
 
-    def search(self, term):
+    def search(self, term: str):
         """
         Create a copy of the current ResourceSet applying the `search` RQL
         operator equal to `term`.
 
         Args:
             term (str): The term to search for.
+
+        Returns:
+            (ResourceSet): Create a copy of the current ResourceSet applying the `search` RQL
+                operator equal to `term`.
         """
         copy = self._copy()
         copy._search = term
@@ -322,7 +341,7 @@ class ResourceSet(_ResourceSetBase):
 
         return copy
 
-    def count(self):
+    def count(self) -> int:
         """
         Returns the total number of resources within this ResourceSet object.
 
@@ -331,6 +350,9 @@ class ResourceSet(_ResourceSetBase):
         ```py3
         no_of_products = client.products.all().count()
         ```
+
+        Returns:
+            (int): Returns the total number of resources within this ResourceSet object.
         """
         if not self._content_range:
             copy = self._copy()
@@ -351,6 +373,10 @@ class ResourceSet(_ResourceSetBase):
         ```py3
         latest_news = client.news.all().order_by('-updated').first()
         ```
+
+        Returns:
+            (Resource): Returns the first resource that belongs to this ResourceSet object
+                or None.
         """
         copy = self._copy()
         copy._limit = 1
@@ -430,7 +456,7 @@ class AsyncResourceSet(_ResourceSetBase):
 
         return copy
 
-    async def count(self):
+    async def count(self) -> int:
         """
         Returns the total number of resources within this ResourceSet object.
 
@@ -439,6 +465,9 @@ class AsyncResourceSet(_ResourceSetBase):
         ```py3
         no_of_products = await client.products.all().count()
         ```
+
+        Returns:
+            (int): Returns the total number of resources within this ResourceSet object.
         """
         if not self._content_range:
             url = self._get_request_url()
@@ -457,6 +486,10 @@ class AsyncResourceSet(_ResourceSetBase):
         ```py3
         latest_news = await client.news.all().order_by('-updated').first()
         ```
+
+        Returns:
+            (Resource): Returns the first resource that belongs to this ResourceSet object
+                or None.
         """
         copy = self._copy()
         copy._limit = 1
