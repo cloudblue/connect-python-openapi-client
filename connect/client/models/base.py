@@ -21,7 +21,7 @@ class _NSBase:
         self._path = path
 
     @property
-    def path(self):
+    def path(self) -> str:
         return self._path
 
     def __getattr__(self, name):
@@ -35,7 +35,7 @@ class _NSBase:
     def __call__(self, name):
         return self.ns(name)
 
-    def collection(self, name):
+    def collection(self, name: str):
         """
         Returns a `[Async]Collection` object nested under this namespace object
         identified by its name.
@@ -55,6 +55,10 @@ class _NSBase:
 
         Args:
             name (str): The name of the collection to access.
+
+        Returns:
+            (Union[Collection, AsyncCollection]):  Returns an object nested under this namespace
+                object identified by its name.
         """
 
         if not isinstance(name, str):
@@ -68,7 +72,7 @@ class _NSBase:
             f'{self._path}/{name}',
         )
 
-    def ns(self, name):
+    def ns(self, name: str):
         """
         Returns a `[Async]Namespace` object nested under this namespace
         identified by its name.
@@ -88,6 +92,10 @@ class _NSBase:
 
         Args:
             name (str): The name of the namespace to access.
+
+        Returns:
+            (Union[NS, AsyncNS]): Returns an object nested under this namespace
+                identified by its name.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -149,6 +157,10 @@ class _CollectionBase:
         """
         Returns a `[Async]ResourceSet` object that that allow to access all the resources that
         belong to this collection.
+
+        Returns:
+            (Union[ResourceSet, AsyncResourceSet]): Returns an object that that allow to access
+                all the resources that belong to this collection.
         """
         return self._get_resourceset_class()(
             self._client,
@@ -188,6 +200,10 @@ class _CollectionBase:
         ```
 
         Also keyword arguments will be combined with logical **and**.
+
+        Returns:
+            (Union[ResourceSet, AsyncResourceSet]): The returned ResourceSet object will be
+                filtered based on the arguments and keyword arguments.
         """
         query = R()
         for arg in args:
@@ -208,7 +224,7 @@ class _CollectionBase:
             query=query,
         )
 
-    def resource(self, resource_id):
+    def resource(self, resource_id: str):
         """
         Returns a `[Async]Resource` object that represent a resource that belong to
         this collection identified by its unique identifier.
@@ -227,6 +243,10 @@ class _CollectionBase:
 
         Args:
             resource_id (str): The unique identifier of the resource.
+
+        Returns:
+            (Union[Resource, AsyncResource]): Returns an object that represent a resource that
+                belong to this collection identified by its unique identifier.
         """
         if not isinstance(resource_id, (str, int)):
             raise TypeError('`resource_id` must be a string or int.')
@@ -239,13 +259,17 @@ class _CollectionBase:
             f'{self._path}/{resource_id}',
         )
 
-    def action(self, name):
+    def action(self, name: str):
         """
         Returns an `[Async]Action` object that represent an action to perform
         on this collection identified by its name.
 
         Args:
             name (str): The name of the action to perform.
+
+        Returns:
+            (Union[Action, AsyncAction]): Returns an object that represent an action to perform
+                on this collection identified by its name.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -311,7 +335,7 @@ class _ResourceBase:
     def __call__(self, name):
         return self.action(name)
 
-    def collection(self, name):
+    def collection(self, name: str):
         """
         Returns a `[Async]Collection` object nested under this resource object
         identified by its name.
@@ -335,6 +359,10 @@ class _ResourceBase:
 
         Args:
             name (str): The name of the collection to access.
+
+        Returns:
+            (Union[Collection, AsyncCollection]): Returns an object nested under this resource
+                object identified by its name.
         """  # noqa: E501
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')
@@ -347,7 +375,7 @@ class _ResourceBase:
             f'{self._path}/{name}',
         )
 
-    def action(self, name):
+    def action(self, name: str):
         """
         Returns an `[Async]Action` object that can be performed on this this resource object
         identified by its name.
@@ -370,6 +398,10 @@ class _ResourceBase:
 
         Args:
             name (str): The name of the action to perform.
+
+        Returns:
+            (Union[Action, AsyncAction]): Returns an object that can be performed on this this
+                resource object identified by its name.
         """
         if not isinstance(name, str):
             raise TypeError('`name` must be a string.')

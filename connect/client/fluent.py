@@ -6,6 +6,7 @@
 import contextvars
 import threading
 from json.decoder import JSONDecodeError
+from typing import Union
 
 import httpx
 import requests
@@ -60,7 +61,7 @@ class _ConnectClientBase(threading.local):
         self.resourceset_append = resourceset_append
 
     @property
-    def response(self):
+    def response(self) -> requests.Response:
         """
         Returns the raw
         [`requests`](https://requests.readthedocs.io/en/latest/api/#requests.Response)
@@ -69,7 +70,7 @@ class _ConnectClientBase(threading.local):
         return self._response
 
     @response.setter
-    def response(self, value):
+    def response(self, value: requests.Response):
         self._response = value
 
     def __getattr__(self, name):
@@ -80,7 +81,7 @@ class _ConnectClientBase(threading.local):
     def __call__(self, name):
         return self.ns(name)
 
-    def ns(self, name):
+    def ns(self, name: str) -> Union[NS, AsyncNS]:
         """
         Returns a `Namespace` object identified by its name.
 
@@ -107,7 +108,7 @@ class _ConnectClientBase(threading.local):
 
         return self._get_namespace_class()(self, name)
 
-    def collection(self, name):
+    def collection(self, name: str) -> Union[Collection, AsyncCollection]:
         """
         Returns a `Collection` object identified by its name.
 

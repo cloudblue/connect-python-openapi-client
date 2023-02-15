@@ -3,6 +3,8 @@
 #
 # Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
+from typing import List
+
 from connect.client.rql.utils import parse_kwargs, to_rql_value
 
 
@@ -180,60 +182,60 @@ class RQLQuery:
         """
         return self._bin('ge', value)
 
-    def out(self, value):
+    def out(self, value: List[str]):
         """
         Apply the `out` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The list of values to which compare the field.
+            value (list[str]): The list of values to which compare the field.
         """
         return self._list('out', value)
 
     def in_(self, value):
         return self._list('in', value)
 
-    def oneof(self, value):
+    def oneof(self, value: List[str]):
         """
         Apply the `in` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The list of values to which compare the field.
+            value (list[str]): The list of values to which compare the field.
         """
         return self._list('in', value)
 
-    def null(self, value):
+    def null(self, value: List[str]):
         """
         Apply the `null` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The value to which compare the field.
+            value (list[str]): The value to which compare the field.
         """
         return self._bool('null', value)
 
-    def empty(self, value):
+    def empty(self, value: List[str]):
         """
         Apply the `empty` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The value to which compare the field.
+            value (list[str]): The value to which compare the field.
         """
         return self._bool('empty', value)
 
-    def like(self, value):
+    def like(self, value: List[str]):
         """
         Apply the `like` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The value to which compare the field.
+            value (list[str]): The value to which compare the field.
         """
         return self._bin('like', value)
 
-    def ilike(self, value):
+    def ilike(self, value: List[str]):
         """
         Apply the `ilike` operator to the field this `R` object refers to.
 
         Args:
-            value (List[str]): The value to which compare the field.
+            value (list[str]): The value to which compare the field.
         """
         return self._bin('ilike', value)
 

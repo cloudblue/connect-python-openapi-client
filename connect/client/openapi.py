@@ -5,6 +5,13 @@
 #
 from functools import partial
 from io import StringIO
+from typing import (
+    Any,
+    List,
+    MutableSet,
+    Optional,
+    Tuple,
+)
 
 import requests
 import yaml
@@ -12,34 +19,34 @@ import yaml
 
 class OpenAPISpecs:
 
-    def __init__(self, location):
+    def __init__(self, location: str):
         self._location = location
         self._specs = self._load()
 
     @property
-    def title(self):
+    def title(self) -> Optional[str]:
         return self._specs['info']['title'] if self._specs else None
 
     @property
-    def description(self):
+    def description(self) -> Optional[str]:
         return self._specs['info']['description'] if self._specs else None
 
     @property
-    def version(self):
+    def version(self) -> Optional[str]:
         return self._specs['info']['version'] if self._specs else None
 
     @property
     def tags(self):
         return self._specs.get('tags') if self._specs else None
 
-    def exists(self, method, path):
+    def exists(self, method: str, path: str) -> bool:
         p = self._get_path(path)
         if not p:
             return False
         info = self._specs['paths'][p]
         return method.lower() in info
 
-    def get_namespaces(self):
+    def get_namespaces(self) -> List:
         def _is_namespace(path):
             comp = path[1:].split('/', 1)
             return len(comp) > 1 and not comp[1].startswith('{')
@@ -52,7 +59,7 @@ class OpenAPISpecs:
             ),
         )
 
-    def get_collections(self):
+    def get_collections(self) -> MutableSet:
         namespaces = self.get_namespaces()
         cols = set()
         for p in self._specs['paths'].keys():
@@ -62,7 +69,7 @@ class OpenAPISpecs:
 
         return sorted(cols)
 
-    def get_namespaced_collections(self, path):
+    def get_namespaced_collections(self, path: str) -> MutableSet:
         nested = filter(lambda x: x[1:].startswith(path), self._specs['paths'].keys())
         collections = set()
         for p in nested:
@@ -71,16 +78,16 @@ class OpenAPISpecs:
                 collections.add(splitted[1])
         return list(sorted(collections))
 
-    def get_collection(self, path):
+    def get_collection(self, path: str):
         return self._get_info(path)
 
-    def get_resource(self, path):
+    def get_resource(self, path: str):
         return self._get_info(path)
 
-    def get_action(self, path):
+    def get_action(self, path: str):
         return self._get_info(path)
 
-    def get_actions(self, path):
+    def get_actions(self, path: str) -> List:
         p = self._get_path(path)
         nested = filter(
             lambda x: x.startswith(p) and x != p,
@@ -101,7 +108,7 @@ class OpenAPISpecs:
             for name in sorted(actions)
         ]
 
-    def get_nested_namespaces(self, path):
+    def get_nested_namespaces(self, path) -> List:
         def _is_nested_namespace(base_path, path):
             if path[1:].startswith(base_path):
                 comp = path[1:].split('/')
@@ -123,7 +130,7 @@ class OpenAPISpecs:
                 nested_namespaces.append(name)
         return nested_namespaces
 
-    def get_nested_collections(self, path):
+    def get_nested_collections(self, path: str) -> List[Tuple]:
         p = self._get_path(path)
         nested = filter(
             lambda x: x.startswith(p[0:p.rindex('{')]) and x != p,
@@ -149,12 +156,12 @@ class OpenAPISpecs:
             for name in sorted(collections)
         ]
 
-    def _load(self):
+    def _load(self) -> Any:
         if self._location.startswith('http'):
             return self._load_from_url()
         return self._load_from_fs()
 
-    def _load_from_url(self):
+    def _load_from_url(self) -> Any:
         res = requests.get(self._location, stream=True)
         if res.status_code == 200:
             result = StringIO()
@@ -164,7 +171,7 @@ class OpenAPISpecs:
             return yaml.safe_load(result)
         res.raise_for_status()
 
-    def _load_from_fs(self):
+    def _load_from_fs(self) -> Any:
         with open(self._location, 'r') as f:
             return yaml.safe_load(f)
 

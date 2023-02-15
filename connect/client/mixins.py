@@ -4,6 +4,7 @@
 # Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
 import time
+from typing import Any, Dict
 
 from httpx import HTTPError
 from requests.exceptions import RequestException, Timeout
@@ -13,7 +14,7 @@ from connect.client.exceptions import ClientError
 
 class SyncClientMixin:
 
-    def get(self, url, **kwargs):
+    def get(self, url: str, **kwargs) -> Any:
         """
         Make a GET call to the given url.
 
@@ -22,7 +23,7 @@ class SyncClientMixin:
         """
         return self.execute('get', url, **kwargs)
 
-    def create(self, url, payload=None, **kwargs):
+    def create(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a POST call to the given url with the payload.
 
@@ -37,7 +38,7 @@ class SyncClientMixin:
 
         return self.execute('post', url, **kwargs)
 
-    def update(self, url, payload=None, **kwargs):
+    def update(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a PUT call to the given url with the payload.
 
@@ -52,7 +53,7 @@ class SyncClientMixin:
 
         return self.execute('put', url, **kwargs)
 
-    def delete(self, url, payload=None, **kwargs):
+    def delete(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a DELETE call to the given url with the payload.
 
@@ -67,7 +68,7 @@ class SyncClientMixin:
 
         return self.execute('delete', url, **kwargs)
 
-    def execute(self, method, path, **kwargs):
+    def execute(self, method: str, path: str, **kwargs) -> Any:
         if (
             self._use_specs
             and self._validate_using_specs
@@ -127,7 +128,7 @@ class SyncClientMixin:
 
 class AsyncClientMixin:
 
-    async def get(self, url, **kwargs):
+    async def get(self, url: str, **kwargs) -> Any:
         """
         Make a GET call to the given url.
 
@@ -136,7 +137,7 @@ class AsyncClientMixin:
         """
         return await self.execute('get', url, **kwargs)
 
-    async def create(self, url, payload=None, **kwargs):
+    async def create(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a POST call to the given url with the payload.
 
@@ -151,7 +152,7 @@ class AsyncClientMixin:
 
         return await self.execute('post', url, **kwargs)
 
-    async def update(self, url, payload=None, **kwargs):
+    async def update(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a PUT call to the given url with the payload.
 
@@ -166,7 +167,7 @@ class AsyncClientMixin:
 
         return await self.execute('put', url, **kwargs)
 
-    async def delete(self, url, payload=None, **kwargs):
+    async def delete(self, url: str, payload: Dict = None, **kwargs) -> Any:
         """
         Make a DELETE call to the given url with the payload.
 
@@ -181,7 +182,7 @@ class AsyncClientMixin:
 
         return await self.execute('delete', url, **kwargs)
 
-    async def execute(self, method, path, **kwargs):
+    async def execute(self, method: str, path: str, **kwargs) -> Any:
         if (
             self._use_specs
             and self._validate_using_specs

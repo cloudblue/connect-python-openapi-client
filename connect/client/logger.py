@@ -3,10 +3,11 @@ import sys
 
 
 class RequestLogger:
+
     def __init__(self, file=sys.stdout):
         self._file = file
 
-    def obfuscate(self, key, value):
+    def obfuscate(self, key: str, value: str) -> str:
         if key in ('authorization', 'authentication'):
             if value.startswith('ApiKey '):
                 return value.split(':')[0] + '*' * 10
@@ -19,7 +20,7 @@ class RequestLogger:
                 return f'{value[0:start_idx + 2]}******{value[end_idx - 2:]}'
         return value
 
-    def log_request(self, method, url, kwargs):
+    def log_request(self, method: str, url: str, kwargs):
         other_args = {k: v for k, v in kwargs.items() if k not in ('headers', 'json', 'params')}
 
         if 'params' in kwargs:
