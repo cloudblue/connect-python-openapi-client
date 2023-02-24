@@ -212,6 +212,9 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
         return NS
 
 
+_HTTP_TRANSPORT = httpx.AsyncHTTPTransport()
+
+
 class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     """
     Create a new instance of the AsyncConnectClient.
@@ -243,7 +246,7 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
-        self._session = httpx.AsyncClient()
+        self._session = httpx.AsyncClient(transport=_HTTP_TRANSPORT)
 
     @property
     def response(self):
