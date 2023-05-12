@@ -3,6 +3,7 @@
 #
 # Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
+import os
 import platform
 from collections import namedtuple
 
@@ -48,3 +49,18 @@ def resolve_attribute(attr, data):
 
 def get_values(item, fields):
     return {field: resolve_attribute(field, item) for field in fields}
+
+
+def get_proxy():
+    if (
+        not os.getenv('HTTP_PROXY')
+        and not os.getenv('HTTPS_PROXY')
+        and not os.getenv('NO_PROXY')
+    ):
+        return None
+
+    return {
+        'http': os.getenv('HTTP_PROXY'),
+        'https': os.getenv('HTTPS_PROXY'),
+        'no_proxy': os.getenv('NO_PROXY'),
+    }

@@ -21,7 +21,7 @@ from connect.client.models import (
     Collection,
 )
 from connect.client.openapi import OpenAPISpecs
-from connect.client.utils import get_headers
+from connect.client.utils import get_headers, get_proxy
 
 
 class _ConnectClientBase(threading.local):
@@ -213,6 +213,7 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
 
 
 _HTTP_TRANSPORT = httpx.AsyncHTTPTransport()
+_ENV_PROXIES = get_proxy()
 
 
 class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
@@ -246,7 +247,10 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
-        self._session = httpx.AsyncClient(transport=_HTTP_TRANSPORT)
+        self._session = httpx.AsyncClient(
+            transport=_HTTP_TRANSPORT,
+            proxies=_ENV_PROXIES,
+        )
 
     @property
     def response(self):
