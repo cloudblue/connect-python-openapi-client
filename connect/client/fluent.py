@@ -212,7 +212,7 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
         return NS
 
 
-_HTTP_TRANSPORT = httpx.AsyncHTTPTransport()
+_SSL_CONTEXT = httpx.create_ssl_context()
 
 
 class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
@@ -246,7 +246,7 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
-        self._session = httpx.AsyncClient(transport=_HTTP_TRANSPORT)
+        self._session = httpx.AsyncClient(verify=_SSL_CONTEXT)
 
     @property
     def response(self):
