@@ -53,14 +53,14 @@ def get_values(item, fields):
 
 def get_proxy():
     if (
-        not os.getenv("HTTP_PROXY")
-        and not os.getenv("HTTPS_PROXY")
-        and not os.getenv("NO_PROXY")
+        not os.getenv('HTTP_PROXY')
+        and not os.getenv('HTTPS_PROXY')
+        and not os.getenv('NO_PROXY')
     ):
         return None
 
     return {
-        "http": os.getenv("HTTP_PROXY"),
-        "https": os.getenv("HTTPS_PROXY"),
-        "no_proxy": os.getenv("NO_PROXY"),
+        'http': os.getenv('HTTP_PROXY'),
+        'https': os.getenv('HTTPS_PROXY'),
+        'no_proxy': os.getenv('NO_PROXY'),
     }

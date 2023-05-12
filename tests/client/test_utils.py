@@ -1,8 +1,10 @@
+import os
 import platform
 
 from connect.client.utils import (
     ContentRange,
     get_headers,
+    get_proxy,
     parse_content_range,
     resolve_attribute,
 )
@@ -64,3 +66,14 @@ def test_resolve_attribute_not_found():
     }
 
     assert resolve_attribute('a.b.c', data) is None
+
+
+def test_get_proxy(mocker):
+    assert get_proxy() is None
+
+    mocker.patch.dict(os.environ, {'HTTP_PROXY': 'http://localhost:1234'})
+    assert get_proxy() == {
+        'http': 'http://localhost:1234',
+        'https': None,
+        'no_proxy': None,
+    }

@@ -1,6 +1,5 @@
 import asyncio
 import io
-import os
 
 import pytest
 
@@ -10,8 +9,7 @@ from connect.client.models import AsyncCollection, AsyncNS
 
 
 @pytest.mark.asyncio
-async def test_async_get(mocker, async_mocker):
-    mocker.patch.dict(os.environ, {"HTTP_PROXY": "http://localhost:1234"})
+async def test_async_get(async_mocker):
     url = 'https://localhost'
     kwargs = {
         'arg1': 'val1',
