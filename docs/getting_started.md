@@ -27,7 +27,7 @@ An **action** is an operation that can be performed on a **collection** or a **r
 
 ## Requirements
 
-*connect-openapi-client* runs on python 3.7 or later.
+*connect-openapi-client* runs on python 3.8 or later.
 
 ## Install
 
