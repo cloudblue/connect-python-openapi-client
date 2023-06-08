@@ -42,4 +42,5 @@ def async_mocker(mocker):
         return mocker
 
     import mock
+
     return mock

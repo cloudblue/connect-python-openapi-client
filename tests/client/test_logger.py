@@ -24,38 +24,61 @@ def test_log_request():
         PATH1,
         {'headers': {'Auth': 'None', 'Cookie': 'XXX', 'Authorization': 'ApiKey SU-XXXX:YYYYY'}},
     )
-    assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH1 + ' \n' + """Auth: None
+    assert (
+        ios.getvalue()
+        == LOG_REQUEST_HEADER
+        + 'GET '
+        + PATH1
+        + ' \n'
+        + """Auth: None
 Cookie: XXX
 Authorization: ApiKey SU-XXXX**********
 
 """
+    )
 
     ios.truncate(0)
     ios.seek(0, 0)
     rl.log_request(
         'get',
         PATH1,
-        {'headers': {
-            'Auth': 'None',
-            'Cookie': '_ga=wathever; api_key="test@example.com:abcdefg"; _gid=whatever',
-            'Authorization': 'SecretToken',
-        }},
+        {
+            'headers': {
+                'Auth': 'None',
+                'Cookie': '_ga=wathever; api_key="test@example.com:abcdefg"; _gid=whatever',
+                'Authorization': 'SecretToken',
+            },
+        },
     )
-    assert ios.getvalue() == LOG_REQUEST_HEADER + 'GET ' + PATH1 + ' \n' + """Auth: None
+    assert (
+        ios.getvalue()
+        == LOG_REQUEST_HEADER
+        + 'GET '
+        + PATH1
+        + ' \n'
+        + """Auth: None
 Cookie: _ga=wathever; api_key="te******fg"; _gid=whatever
 Authorization: ********************
 
 """
+    )
 
     ios.truncate(0)
     ios.seek(0, 0)
     rl.log_request('post', PATH1, {'json': {'id': 'XX-1234', 'name': 'XXX'}})
-    assert ios.getvalue() == LOG_REQUEST_HEADER + 'POST ' + PATH1 + ' \n' + """{
+    assert (
+        ios.getvalue()
+        == LOG_REQUEST_HEADER
+        + 'POST '
+        + PATH1
+        + ' \n'
+        + """{
     "id": "XX-1234",
     "name": "XXX"
 }
 
 """
+    )
 
     ios.truncate(0)
     ios.seek(0, 0)
@@ -113,7 +136,10 @@ def test_log_response(mocker):
     rsp.status_code = 200
     rsp.raw.reason = 'OK'
     rl.log_response(rsp)
-    assert ios.getvalue() == LOG_RESPONSE_HEADER + """200 OK
+    assert (
+        ios.getvalue()
+        == LOG_RESPONSE_HEADER
+        + """200 OK
 Content-Type: application/json
 Set-Cookie: api_key="te******fg"; expires=Wed, 19 Oct 2022 06:56:08 GMT; HttpOnly;
 {
@@ -122,3 +148,4 @@ Set-Cookie: api_key="te******fg"; expires=Wed, 19 Oct 2022 06:56:08 GMT; HttpOnl
 }
 
 """
+    )

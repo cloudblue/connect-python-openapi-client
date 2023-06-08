@@ -47,11 +47,13 @@ importlib-metadata = "^6.6"
 urllib3 = "<2"
 
 [tool.poetry.group.test.dependencies]
+black = "23.*"
 pytest = ">=6.1.2,<8"
 pytest-cov = ">=2.10.1,<5"
 pytest-mock = "^3.10"
 coverage = {extras = ["toml"], version = ">=5.3,<7"}
 flake8 = ">=3.8,<6"
+flake8-black = "0.*"
 flake8-bugbear = ">=20,<23"
 flake8-cognitive-complexity = "^0.1"
 flake8-commas = "~2.1"
@@ -132,4 +134,10 @@ exclude = [
 show-source = true
 max-line-length = 100
 max-cognitive-complexity = 15
+select = "B"
 ignore = ["FI1", "W503"]
+
+
+[tool.black]
+line_length = 100
+skip-string-normalization = true

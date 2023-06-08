@@ -550,10 +550,7 @@ async def test_resource_values(async_mocker, async_client_mock, async_res_factor
     assert isinstance(result, dict)
     assert 'not_choosen' not in result
     assert 'id' in result and result['id'] == 'ID'
-    assert (
-        'sub_object.name' in result
-        and result['sub_object.name'] == 'ok'
-    )
+    assert 'sub_object.name' in result and result['sub_object.name'] == 'ok'
 
 
 def test_resource_help(async_res_factory):
@@ -816,11 +813,13 @@ async def test_rs_getitem_slice_limit(async_mocker, mocker, async_client_mock, a
         ],
     )
     rs = async_rs_factory(client=async_client_mock(methods=['get']))
-    rs._client.get = async_mocker.AsyncMock(side_effect=[
-        [{'id': i} for i in range(10)],
-        [{'id': i + 10} for i in range(10)],
-        [{'id': 20}, {'id': 21}],
-    ])
+    rs._client.get = async_mocker.AsyncMock(
+        side_effect=[
+            [{'id': i} for i in range(10)],
+            [{'id': i + 10} for i in range(10)],
+            [{'id': 20}, {'id': 21}],
+        ],
+    )
     rs._limit = 10
     sliced = rs[0:22]
     results = [item async for item in sliced]
@@ -1130,7 +1129,8 @@ async def test_rs_with_queries(mocker, async_client_mock, async_rs_factory):
     items = [item async for item in rs]
     assert items == []
     rs._client.get.assert_awaited_once_with(
-        f'{rs.path}?{rs.query}', params={'limit': 100, 'offset': 0},
+        f'{rs.path}?{rs.query}',
+        params={'limit': 100, 'offset': 0},
     )
 
 

@@ -27,7 +27,6 @@ _COL_HTTP_METHOD_TO_METHOD = {
 
 
 class DefaultFormatter:
-
     def __init__(self, specs):
         self._specs = specs
         self._p = inflect.engine()

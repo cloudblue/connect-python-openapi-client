@@ -101,12 +101,16 @@ def test_create(mocker, attr):
 
     c.create(url, **kwargs)
 
-    mocked.assert_called_once_with('post', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_called_once_with(
+        'post',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 @pytest.mark.parametrize('attr', ('payload', 'json'))
@@ -122,12 +126,16 @@ def test_update(mocker, attr):
 
     c.update(url, **kwargs)
 
-    mocked.assert_called_once_with('put', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_called_once_with(
+        'put',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 def test_delete_no_args(mocker):
@@ -155,12 +163,16 @@ def test_delete(mocker, attr):
 
     c.delete(url, **kwargs)
 
-    mocked.assert_called_once_with('delete', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_called_once_with(
+        'delete',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 def test_execute(mocked_responses):
@@ -172,9 +184,7 @@ def test_execute(mocked_responses):
     )
 
     ios = io.StringIO()
-    c = ConnectClient('API_KEY',
-                      endpoint='https://localhost',
-                      logger=RequestLogger(file=ios))
+    c = ConnectClient('API_KEY', endpoint='https://localhost', logger=RequestLogger(file=ios))
 
     results = c.execute('get', 'resources')
 
@@ -444,7 +454,6 @@ def test_execute_unexpected_connect_error(mocked_responses):
 
 
 def test_execute_uparseable_connect_error(mocked_responses):
-
     mocked_responses.add(
         responses.POST,
         'https://localhost/resources',
@@ -460,7 +469,6 @@ def test_execute_uparseable_connect_error(mocked_responses):
 
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
 def test_execute_error_with_reason(mocked_responses, encoding):
-
     mocked_responses.add(
         responses.POST,
         'https://localhost/resources',
@@ -475,7 +483,6 @@ def test_execute_error_with_reason(mocked_responses, encoding):
 
 
 def test_execute_delete(mocked_responses):
-
     mocked_responses.add(
         responses.DELETE,
         'https://localhost/resources',

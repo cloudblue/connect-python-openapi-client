@@ -509,10 +509,7 @@ def test_resource_values(mocker, res_factory):
     assert isinstance(result, dict)
     assert 'not_choosen' not in result
     assert 'id' in result and result['id'] == 'ID'
-    assert (
-        'sub_object.name' in result
-        and result['sub_object.name'] == 'ok'
-    )
+    assert 'sub_object.name' in result and result['sub_object.name'] == 'ok'
 
 
 def test_resource_help(res_factory):
@@ -724,10 +721,12 @@ def test_rs_getitem_slice_more_than_limit(mocker, rs_factory):
         ],
     )
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(side_effect=[
-        [{'id': i + 1} for i in range(100)],
-        [{'id': 101}],
-    ])
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            [{'id': i + 1} for i in range(100)],
+            [{'id': 101}],
+        ],
+    )
     sliced = rs[1:102]
     results = [resource for resource in sliced]
     assert results == [{'id': i + 1} for i in range(101)]
@@ -743,11 +742,13 @@ def test_rs_getitem_slice_more_than_limit_no_append(mocker, rs_factory):
         ],
     )
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(side_effect=[
-        [{'id': i} for i in range(10)],
-        [{'id': i + 10} for i in range(10)],
-        [{'id': 20}, {'id': 21}],
-    ])
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            [{'id': i} for i in range(10)],
+            [{'id': i + 10} for i in range(10)],
+            [{'id': 20}, {'id': 21}],
+        ],
+    )
     rs._limit = 10
     rs._client.resourceset_append = False
     sliced = rs[0:22]
@@ -957,10 +958,12 @@ def test_rs_pagination(mocker, rs_factory):
     )
 
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(side_effect=[
-        [{'id': i} for i in range(100)],
-        [{'id': i} for i in range(100, 200)],
-    ])
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            [{'id': i} for i in range(100)],
+            [{'id': i} for i in range(100, 200)],
+        ],
+    )
     results = list(rs)
     assert results == [{'id': i} for i in range(200)]
     assert rs._limit == 100
@@ -978,10 +981,12 @@ def test_rs_pagination_no_append(mocker, rs_factory):
     )
 
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(side_effect=[
-        [{'id': i} for i in range(100)],
-        [{'id': i} for i in range(100, 200)],
-    ])
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            [{'id': i} for i in range(100)],
+            [{'id': i} for i in range(100, 200)],
+        ],
+    )
     rs._client.resourceset_append = False
     results = list(rs)
     assert results == [{'id': i} for i in range(200)]
@@ -1000,28 +1005,30 @@ def test_rs_values_list_pagination(mocker, rs_factory):
     )
 
     rs = rs_factory()
-    rs._client.get = mocker.MagicMock(side_effect=[
-        [
-            {
-                'id': i,
-                'name': f'name {i}',
-                'inner': {
-                    'title': f'title {i}',
-                },
-            }
-            for i in range(100)
+    rs._client.get = mocker.MagicMock(
+        side_effect=[
+            [
+                {
+                    'id': i,
+                    'name': f'name {i}',
+                    'inner': {
+                        'title': f'title {i}',
+                    },
+                }
+                for i in range(100)
+            ],
+            [
+                {
+                    'id': i,
+                    'name': f'name {i}',
+                    'inner': {
+                        'title': f'title {i}',
+                    },
+                }
+                for i in range(100, 200)
+            ],
         ],
-        [
-            {
-                'id': i,
-                'name': f'name {i}',
-                'inner': {
-                    'title': f'title {i}',
-                },
-            }
-            for i in range(100, 200)
-        ],
-    ])
+    )
 
     expected = [
         {

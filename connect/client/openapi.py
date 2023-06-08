@@ -18,7 +18,6 @@ import yaml
 
 
 class OpenAPISpecs:
-
     def __init__(self, location: str):
         self._location = location
         self._specs = self._load()
@@ -50,6 +49,7 @@ class OpenAPISpecs:
         def _is_namespace(path):
             comp = path[1:].split('/', 1)
             return len(comp) > 1 and not comp[1].startswith('{')
+
         return sorted(
             list(
                 {
@@ -73,7 +73,7 @@ class OpenAPISpecs:
         nested = filter(lambda x: x[1:].startswith(path), self._specs['paths'].keys())
         collections = set()
         for p in nested:
-            splitted = p[len(path) + 1:].split('/', 2)
+            splitted = p[len(path) + 1 :].split('/', 2)
             if self._is_collection(p) and len(splitted) == 2:
                 collections.add(splitted[1])
         return list(sorted(collections))
@@ -97,25 +97,19 @@ class OpenAPISpecs:
         actions = set()
         descriptions = {}
         for np in nested:
-            name = np[len(p) + 1:]
+            name = np[len(p) + 1 :]
             actions.add(name)
             info = self._specs['paths'][np]
             summary = info['summary'] if 'summary' in info else ''
             if summary:
                 descriptions[name] = summary
-        return [
-            (name, descriptions.get(name))
-            for name in sorted(actions)
-        ]
+        return [(name, descriptions.get(name)) for name in sorted(actions)]
 
     def get_nested_namespaces(self, path) -> List:
         def _is_nested_namespace(base_path, path):
             if path[1:].startswith(base_path):
                 comp = path[1:].split('/')
-                return (
-                    len(comp) > 1
-                    and not comp[-1].startswith('{')
-                )
+                return len(comp) > 1 and not comp[-1].startswith('{')
             return False
 
         nested = filter(
@@ -133,7 +127,7 @@ class OpenAPISpecs:
     def get_nested_collections(self, path: str) -> List[Tuple]:
         p = self._get_path(path)
         nested = filter(
-            lambda x: x.startswith(p[0:p.rindex('{')]) and x != p,
+            lambda x: x.startswith(p[0 : p.rindex('{')]) and x != p,
             self._specs['paths'].keys(),
         )
         cut_pos = p.count('/')
@@ -151,10 +145,7 @@ class OpenAPISpecs:
             summary = info['summary'] if 'summary' in info else ''
             if summary:
                 descriptions[name] = summary
-        return [
-            (name, descriptions.get(name))
-            for name in sorted(collections)
-        ]
+        return [(name, descriptions.get(name)) for name in sorted(collections)]
 
     def _load(self) -> Any:
         if self._location.startswith('http'):

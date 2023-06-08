@@ -51,6 +51,7 @@ class RQLQuery:
     rql = R().nested.field.eq('value')
     ```
     """
+
     AND = 'and'
     OR = 'or'
     EXPR = 'expr'
@@ -306,9 +307,8 @@ class RQLQuery:
             return other
 
         if (
-            (other.op == self.op or (len(other) == 1 and other.op != self.EXPR))
-            and not other.negated
-        ):
+            other.op == self.op or (len(other) == 1 and other.op != self.EXPR)
+        ) and not other.negated:
             self.children.extend(other.children)
             return self
 

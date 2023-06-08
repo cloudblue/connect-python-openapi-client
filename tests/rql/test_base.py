@@ -305,7 +305,6 @@ def test_dotted_path_bool(expr, value, expected_op):
 
 
 def test_dotted_path_already_evaluated():
-
     q = RQLQuery().first.second.eq('value')
 
     with pytest.raises(AttributeError):

@@ -3,7 +3,6 @@ import sys
 
 
 class RequestLogger:
-
     def __init__(self, file=sys.stdout):
         self._file = file
 

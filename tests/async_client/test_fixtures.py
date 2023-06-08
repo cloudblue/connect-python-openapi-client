@@ -20,7 +20,7 @@ async def test_httpx_mocker(async_client_mocker_factory, httpx_mocker):
     httpx_mocker.add_response(
         method='GET',
         url='https://test.com',
-        json=[{"key1": "value1", "key2": "value2"}],
+        json=[{'key1': 'value1', 'key2': 'value2'}],
     )
 
     client = AsyncConnectClient('api_key', endpoint='http://example.com')
@@ -28,4 +28,4 @@ async def test_httpx_mocker(async_client_mocker_factory, httpx_mocker):
 
     async with httpx.AsyncClient() as client:
         response = await client.get('https://test.com')
-        assert response.json() == [{"key1": "value1", "key2": "value2"}]
+        assert response.json() == [{'key1': 'value1', 'key2': 'value2'}]

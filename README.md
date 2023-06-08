@@ -28,8 +28,9 @@ $ pip install connect-openapi-client
 
 
 ## Development
-We use `isort` library to order and format our imports, and we check it using `flake8-isort` library (automatically on `flake8` run).  
-For convenience you may run `poetry run isort .` to order imports.
+We use `isort` library to order and format our imports, and `black` - to format the code. 
+We check it using `flake8-isort` and `flake8-black` libraries (automatically on `flake8` run).  
+For convenience you may run `isort . && black .` to format the code.
 
 
 ## Documentation

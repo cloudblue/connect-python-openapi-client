@@ -25,7 +25,6 @@ from connect.client.utils import get_headers
 
 
 class _ConnectClientBase(threading.local):
-
     def __init__(
         self,
         api_key,
@@ -201,6 +200,7 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
         timeout (int): (Optional) Timeout parameter to pass to the underlying HTTP client.
         resourceset_append: (Optional) Append all the pages to the current resourceset.
     """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._session = requests.Session()

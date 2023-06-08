@@ -23,6 +23,7 @@ def async_client_mock(async_mocker):
         for method in methods:
             setattr(client, method, async_mocker.AsyncMock())
         return client
+
     return _async_client_mock
 
 
@@ -37,6 +38,7 @@ def ns_factory(mocker):
     ):
         ns = NS(client, path)
         return ns
+
     return _ns_factory
 
 
@@ -51,6 +53,7 @@ def async_ns_factory(async_client_mock):
     ):
         ns = AsyncNS(client, path)
         return ns
+
     return _ns_factory
 
 
@@ -65,6 +68,7 @@ def col_factory(mocker):
     ):
         col = Collection(client, path)
         return col
+
     return _col_factory
 
 
@@ -79,6 +83,7 @@ def async_col_factory(async_client_mock):
     ):
         col = AsyncCollection(client, path)
         return col
+
     return _col_factory
 
 
@@ -93,6 +98,7 @@ def res_factory(mocker):
     ):
         resource = Resource(client, path)
         return resource
+
     return _res_factory
 
 
@@ -107,6 +113,7 @@ def async_res_factory(async_client_mock):
     ):
         resource = AsyncResource(client, path)
         return resource
+
     return _res_factory
 
 
@@ -121,6 +128,7 @@ def action_factory(mocker):
     ):
         action = Action(client, path)
         return action
+
     return _action_factory
 
 
@@ -135,6 +143,7 @@ def async_action_factory(async_client_mock):
     ):
         action = AsyncAction(client, path)
         return action
+
     return _action_factory
 
 
@@ -151,6 +160,7 @@ def rs_factory(mocker):
     ):
         rs = ResourceSet(client, path, query)
         return rs
+
     return _rs_factory
 
 
@@ -167,4 +177,5 @@ def async_rs_factory(async_client_mock):
     ):
         rs = AsyncResourceSet(client, path, query)
         return rs
+
     return _rs_factory
