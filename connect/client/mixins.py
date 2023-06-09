@@ -13,7 +13,6 @@ from connect.client.exceptions import ClientError
 
 
 class SyncClientMixin:
-
     def get(self, url: str, **kwargs) -> Any:
         """
         Make a GET call to the given url.
@@ -69,11 +68,7 @@ class SyncClientMixin:
         return self.execute('delete', url, **kwargs)
 
     def execute(self, method: str, path: str, **kwargs) -> Any:
-        if (
-            self._use_specs
-            and self._validate_using_specs
-            and not self.specs.exists(method, path)
-        ):
+        if self._use_specs and self._validate_using_specs and not self.specs.exists(method, path):
             # TODO more info, specs version, method etc
             raise ClientError(f'The path `{path}` does not exist.')
 
@@ -115,8 +110,7 @@ class SyncClientMixin:
                 raise
 
             if (  # pragma: no branch
-                self.response.status_code >= 500
-                and retry_count < self.max_retries
+                self.response.status_code >= 500 and retry_count < self.max_retries
             ):
                 retry_count += 1
                 time.sleep(1)
@@ -127,7 +121,6 @@ class SyncClientMixin:
 
 
 class AsyncClientMixin:
-
     async def get(self, url: str, **kwargs) -> Any:
         """
         Make a GET call to the given url.
@@ -183,11 +176,7 @@ class AsyncClientMixin:
         return await self.execute('delete', url, **kwargs)
 
     async def execute(self, method: str, path: str, **kwargs) -> Any:
-        if (
-            self._use_specs
-            and self._validate_using_specs
-            and not self.specs.exists(method, path)
-        ):
+        if self._use_specs and self._validate_using_specs and not self.specs.exists(method, path):
             # TODO more info, specs version, method etc
             raise ClientError(f'The path `{path}` does not exist.')
 
@@ -225,8 +214,7 @@ class AsyncClientMixin:
                 self.logger.log_response(self.response)
 
             if (  # pragma: no branch
-                self.response.status_code >= 500
-                and retry_count < self.max_retries
+                self.response.status_code >= 500 and retry_count < self.max_retries
             ):
                 retry_count += 1
                 time.sleep(1)

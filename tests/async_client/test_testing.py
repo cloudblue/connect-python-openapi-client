@@ -155,10 +155,7 @@ async def test_resource_values():
 
 @pytest.mark.asyncio
 async def test_iterate():
-    return_value = [
-        {'id': f'OBJ-{i}'}
-        for i in range(5)
-    ]
+    return_value = [{'id': f'OBJ-{i}'} for i in range(5)]
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().limit(2).mock(return_value=return_value)
@@ -209,18 +206,24 @@ async def test_iterate():
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [item async for item in client.products.all().filter(
-            'eq(id,PRD-000)',
-        )] == return_value
+        assert [
+            item
+            async for item in client.products.all().filter(
+                'eq(id,PRD-000)',
+            )
+        ] == return_value
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().filter(R().id.eq('PRD-000')).mock(return_value=return_value)
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [item async for item in client.products.all().filter(
-            R().id.eq('PRD-000'),
-        )] == return_value
+        assert [
+            item
+            async for item in client.products.all().filter(
+                R().id.eq('PRD-000'),
+            )
+        ] == return_value
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.filter(test='value').search(
@@ -228,22 +231,36 @@ async def test_iterate():
         ).filter(
             another='value',
         ).all().select(
-            '-field1', 'field2',
+            '-field1',
+            'field2',
         ).order_by(
-            'field3', '-field4',
-        ).mock(return_value=return_value)
+            'field3',
+            '-field4',
+        ).mock(
+            return_value=return_value,
+        )
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [item async for item in client.products.filter(test='value').search(
-            'search_term',
-        ).filter(
-            another='value',
-        ).all().select(
-            '-field1', 'field2',
-        ).order_by(
-            'field3', '-field4',
-        )] == return_value
+        assert [
+            item
+            async for item in client.products.filter(test='value')
+            .search(
+                'search_term',
+            )
+            .filter(
+                another='value',
+            )
+            .all()
+            .select(
+                '-field1',
+                'field2',
+            )
+            .order_by(
+                'field3',
+                '-field4',
+            )
+        ] == return_value
 
 
 @pytest.mark.asyncio
@@ -256,55 +273,49 @@ async def test_iterate():
     ),
 )
 async def test_slicing(total, start, stop):
-    return_value = [
-        {'id': f'OBJ-{i}'}
-        for i in range(total)
-    ]
+    return_value = [{'id': f'OBJ-{i}'} for i in range(total)]
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[start:stop].mock(return_value=return_value)
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [
-            item async for item in client.products.all()[start:stop]
-        ] == return_value[start:stop]
+        assert [item async for item in client.products.all()[start:stop]] == return_value[
+            start:stop
+        ]
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[start:stop].mock(
-            return_value=return_value, headers={'X-Custom-Header': 'value'},
+            return_value=return_value,
+            headers={'X-Custom-Header': 'value'},
         )
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [
-            item async for item in client.products.all()[start:stop]
-        ] == return_value[start:stop]
+        assert [item async for item in client.products.all()[start:stop]] == return_value[
+            start:stop
+        ]
         assert client.response.headers['X-Custom-Header'] == 'value'
 
 
 @pytest.mark.asyncio
 async def test_slicing_no_results():
-
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[0:3].mock(return_value=[])
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [
-            item async for item in client.products.all()[0:3]
-        ] == []
+        assert [item async for item in client.products.all()[0:3]] == []
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[0:3].mock(
-            return_value=[], headers={'X-Custom-Header': 'value'},
+            return_value=[],
+            headers={'X-Custom-Header': 'value'},
         )
 
         client = AsyncConnectClient('api_key', endpoint='http://localhost')
 
-        assert [
-            item async for item in client.products.all()[0:3]
-        ] == []
+        assert [item async for item in client.products.all()[0:3]] == []
         assert client.response.headers['X-Custom-Header'] == 'value'
 
 
@@ -318,10 +329,7 @@ async def test_count():
         assert await client.products.all().count() == 123
 
     with AsyncConnectClientMocker('http://localhost') as mocker:
-        return_value = [
-            {'id': f'OBJ-{i}'}
-            for i in range(5)
-        ]
+        return_value = [{'id': f'OBJ-{i}'} for i in range(5)]
 
         mocker.products.all().mock(return_value=return_value)
 
@@ -368,7 +376,6 @@ def test_invalid_return_value():
 
 @pytest.mark.asyncio
 async def test_inner_mockers():
-
     async def inner_mocking():
         with AsyncConnectClientMocker('http://localhost') as mocker:
             mocker.products.all().count(return_value=100)

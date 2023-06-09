@@ -143,10 +143,7 @@ def test_resource_values():
 
 
 def test_iterate():
-    return_value = [
-        {'id': f'OBJ-{i}'}
-        for i in range(5)
-    ]
+    return_value = [{'id': f'OBJ-{i}'} for i in range(5)]
 
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().limit(2).mock(return_value=return_value)
@@ -212,22 +209,38 @@ def test_iterate():
         ).filter(
             another='value',
         ).all().select(
-            '-field1', 'field2',
+            '-field1',
+            'field2',
         ).order_by(
-            'field3', '-field4',
-        ).mock(return_value=return_value)
+            'field3',
+            '-field4',
+        ).mock(
+            return_value=return_value,
+        )
 
         client = ConnectClient('api_key', endpoint='http://localhost')
 
-        assert list(client.products.filter(test='value').search(
-            'search_term',
-        ).filter(
-            another='value',
-        ).all().select(
-            '-field1', 'field2',
-        ).order_by(
-            'field3', '-field4',
-        )) == return_value
+        assert (
+            list(
+                client.products.filter(test='value')
+                .search(
+                    'search_term',
+                )
+                .filter(
+                    another='value',
+                )
+                .all()
+                .select(
+                    '-field1',
+                    'field2',
+                )
+                .order_by(
+                    'field3',
+                    '-field4',
+                ),
+            )
+            == return_value
+        )
 
 
 def test_first():
@@ -261,10 +274,7 @@ def test_indexing():
     ),
 )
 def test_slicing(total, start, stop):
-    return_value = [
-        {'id': f'OBJ-{i}'}
-        for i in range(total)
-    ]
+    return_value = [{'id': f'OBJ-{i}'} for i in range(total)]
 
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[start:stop].mock(return_value=return_value)
@@ -275,7 +285,8 @@ def test_slicing(total, start, stop):
 
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[start:stop].mock(
-            return_value=return_value, headers={'X-Custom-Header': 'value'},
+            return_value=return_value,
+            headers={'X-Custom-Header': 'value'},
         )
 
         client = ConnectClient('api_key', endpoint='http://localhost')
@@ -285,7 +296,6 @@ def test_slicing(total, start, stop):
 
 
 def test_slicing_no_results():
-
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[0:3].mock(return_value=[])
 
@@ -295,7 +305,8 @@ def test_slicing_no_results():
 
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all()[0:3].mock(
-            return_value=[], headers={'X-Custom-Header': 'value'},
+            return_value=[],
+            headers={'X-Custom-Header': 'value'},
         )
 
         client = ConnectClient('api_key', endpoint='http://localhost')
@@ -313,10 +324,7 @@ def test_count():
         assert client.products.all().count() == 123
 
     with ConnectClientMocker('http://localhost') as mocker:
-        return_value = [
-            {'id': f'OBJ-{i}'}
-            for i in range(5)
-        ]
+        return_value = [{'id': f'OBJ-{i}'} for i in range(5)]
 
         mocker.products.all().mock(return_value=return_value)
 
@@ -360,7 +368,6 @@ def test_invalid_return_value():
 
 
 def test_inner_mockers():
-
     def inner_mocking():
         with ConnectClientMocker('http://localhost') as mocker:
             mocker.products.all().count(return_value=100)

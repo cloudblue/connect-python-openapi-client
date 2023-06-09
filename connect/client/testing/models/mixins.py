@@ -13,7 +13,6 @@ class CollectionMixin:
         headers=None,
         match_body=None,
     ):
-
         return self._client.create(
             self._path,
             status_code=status_code,
@@ -29,7 +28,6 @@ class CollectionMixin:
         headers=None,
         match_body=None,
     ):
-
         return self._client.create(
             self._path,
             status_code=status_code,
@@ -45,7 +43,6 @@ class CollectionMixin:
         headers=None,
         match_body=None,
     ):
-
         return self._client.update(
             self._path,
             status_code=status_code,
@@ -61,7 +58,6 @@ class CollectionMixin:
         headers=None,
         match_body=None,
     ):
-
         return self._client.delete(
             self._path,
             status_code=status_code,
@@ -95,7 +91,6 @@ class ResourceMixin:
         headers=None,
         match_body=None,
     ):
-
         return self._client.update(
             self._path,
             status_code=status_code,
@@ -110,7 +105,6 @@ class ResourceMixin:
         return_value=None,
         headers=None,
     ):
-
         return self._client.delete(
             self._path,
             status_code=status_code,
@@ -182,7 +176,6 @@ class ActionMixin:
         return_value=None,
         headers=None,
     ):
-
         return self._client.delete(
             self._path,
             status_code=status_code,

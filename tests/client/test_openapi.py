@@ -12,7 +12,8 @@ def test_load_from_url(mocked_responses):
     mocked_responses.add(
         'GET',
         'https://localhost/specs.yml',
-        body=open('tests/data/specs.yml', 'r').read())
+        body=open('tests/data/specs.yml', 'r').read(),
+    )
 
     oa = OpenAPISpecs('https://localhost/specs.yml')
     assert oa._specs is not None

@@ -24,7 +24,6 @@ class _ResourceSetBase:
         path,
         query=None,
     ):
-
         self._client = client
         self._path = path
         self._query = query or R()
@@ -217,20 +216,14 @@ class _ResourceSetBase:
         """
         if self._results:
             self._fields = fields
-            return [
-                self._get_values(item)
-                for item in self._results
-            ]
+            return [self._get_values(item) for item in self._results]
 
         copy = self._copy()
         copy._fields = fields
         return copy
 
     def _get_values(self, item):
-        return {
-            field: resolve_attribute(field, item)
-            for field in self._fields
-        }
+        return {field: resolve_attribute(field, item) for field in self._fields}
 
     def _build_qs(self):
         qs = ''
@@ -254,10 +247,12 @@ class _ResourceSetBase:
         config = copy.deepcopy(self._config)
         config.setdefault('params', {})
 
-        config['params'].update({
-            'limit': self._limit,
-            'offset': self._offset,
-        })
+        config['params'].update(
+            {
+                'limit': self._limit,
+                'offset': self._offset,
+            },
+        )
 
         if self._search:
             config['params']['search'] = self._search
@@ -394,7 +389,8 @@ class ResourceSet(_ResourceSetBase):
         )
         iterator = (
             ValuesListIterator(*args, fields=self._fields)
-            if self._fields else ResourceIterator(*args)
+            if self._fields
+            else ResourceIterator(*args)
         )
         return iterator
 
@@ -508,7 +504,8 @@ class AsyncResourceSet(_ResourceSetBase):
 
         iterator = (
             AsyncValuesListIterator(*args, fields=self._fields)
-            if self._fields else AsyncResourceIterator(*args)
+            if self._fields
+            else AsyncResourceIterator(*args)
         )
         return iterator
 

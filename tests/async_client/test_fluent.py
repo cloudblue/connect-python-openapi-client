@@ -36,12 +36,16 @@ async def test_create(async_mocker, attr):
 
     await c.create(url, **kwargs)
 
-    mocked.assert_awaited_once_with('post', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_awaited_once_with(
+        'post',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 @pytest.mark.asyncio
@@ -59,12 +63,16 @@ async def test_update(async_mocker, attr):
 
     await c.update(url, **kwargs)
 
-    mocked.assert_awaited_once_with('put', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_awaited_once_with(
+        'put',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 @pytest.mark.asyncio
@@ -96,12 +104,16 @@ async def test_delete(async_mocker, attr):
 
     await c.delete(url, **kwargs)
 
-    mocked.assert_awaited_once_with('delete', url, **{
-        'arg1': 'val1',
-        'json': {
-            'k1': 'v1',
+    mocked.assert_awaited_once_with(
+        'delete',
+        url,
+        **{
+            'arg1': 'val1',
+            'json': {
+                'k1': 'v1',
+            },
         },
-    })
+    )
 
 
 @pytest.mark.asyncio
@@ -114,9 +126,7 @@ async def test_execute(httpx_mock):
     )
 
     ios = io.StringIO()
-    c = AsyncConnectClient('API_KEY',
-                           endpoint='https://localhost',
-                           logger=RequestLogger(file=ios))
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost', logger=RequestLogger(file=ios))
 
     results = await c.execute('get', 'resources')
 
@@ -324,7 +334,6 @@ async def test_execute_unexpected_connect_error(httpx_mock):
 
 @pytest.mark.asyncio
 async def test_execute_uparseable_connect_error(httpx_mock):
-
     httpx_mock.add_response(
         method='POST',
         url='https://localhost/resources',
@@ -341,7 +350,6 @@ async def test_execute_uparseable_connect_error(httpx_mock):
 @pytest.mark.asyncio
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
 async def test_execute_error_with_reason(httpx_mock, encoding):
-
     httpx_mock.add_response(
         method='POST',
         url='https://localhost/resources',
@@ -357,7 +365,6 @@ async def test_execute_error_with_reason(httpx_mock, encoding):
 
 @pytest.mark.asyncio
 async def test_execute_delete(httpx_mock):
-
     httpx_mock.add_response(
         method='DELETE',
         url='https://localhost/resources',
@@ -446,7 +453,4 @@ async def test_parallel_tasks(httpx_mock):
         obj = await client.resources[str(idx)].get()
         assert obj == {'idx': idx}
 
-    asyncio.gather(*[
-        asyncio.create_task(fetcher(c, idx))
-        for idx in range(100)
-    ])
+    asyncio.gather(*[asyncio.create_task(fetcher(c, idx)) for idx in range(100)])

@@ -20,15 +20,11 @@ from connect.client.testing.models import CollectionMock, NSMock
 def body_matcher(body):
     def match(request):
         request_body = request.body
-        valid = (
-            body is None
-            if request_body is None
-            else body == request_body
-        )
+        valid = body is None if request_body is None else body == request_body
         if not valid:
             return False, "%s doesn't match %s" % (request_body, body)
 
-        return valid, ""
+        return valid, ''
 
     return match
 
@@ -68,7 +64,6 @@ class ConnectClientMocker(_ConnectClientBase):
         headers=None,
         match_body=None,
     ):
-
         return self.mock(
             'post',
             url,
@@ -86,7 +81,6 @@ class ConnectClientMocker(_ConnectClientBase):
         headers=None,
         match_body=None,
     ):
-
         return self.mock(
             'put',
             url,
@@ -104,7 +98,6 @@ class ConnectClientMocker(_ConnectClientBase):
         headers=None,
         match_body=None,
     ):
-
         return self.mock(
             'delete',
             url,
@@ -185,9 +178,8 @@ class AsyncConnectClientMocker(ConnectClientMocker):
 
         def transport_for_url(self, url):
             for pattern in patterns:
-                if (
-                    (isinstance(pattern, re.Pattern) and pattern.match(str(url)))
-                    or (isinstance(pattern, str) and str(url).startswith(pattern))
+                if (isinstance(pattern, re.Pattern) and pattern.match(str(url))) or (
+                    isinstance(pattern, str) and str(url).startswith(pattern)
                 ):
                     return real_async_transport(self, url)
             return _PytestAsyncTransport(_async_mocker)

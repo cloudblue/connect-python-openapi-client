@@ -2,7 +2,6 @@ from connect.client.models.resourceset import _ResourceSetBase
 
 
 class ResourceSetMock(_ResourceSetBase):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._count = None
@@ -110,7 +109,7 @@ class ResourceSetMock(_ResourceSetBase):
 
         def pages_iterator():
             for i in range(0, total, self._limit):
-                yield return_value[i:i + self._limit], i
+                yield return_value[i : i + self._limit], i
 
         for page, offset in pages_iterator():
             url = self._build_full_url(
@@ -156,7 +155,7 @@ class ResourceSetMock(_ResourceSetBase):
             last = offset - 1
             remaining = 0
             while True:
-                page = return_value[offset:offset + limit]
+                page = return_value[offset : offset + limit]
                 if not page or limit == 0:
                     return
                 yield page, limit, offset
