@@ -146,8 +146,10 @@ class ConnectClientMocker(_ConnectClientBase):
         _mocker.start()
 
     def reset(self, success=True):
-        _mocker.stop(allow_assert=success)
-        _mocker.reset()
+        try:
+            _mocker.stop(allow_assert=success)
+        finally:
+            _mocker.reset()
 
     def __enter__(self):
         self.start()
