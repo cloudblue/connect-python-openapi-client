@@ -395,3 +395,15 @@ def test_exclude(mocker, exclude):
 
 def test_get_requests_mocker():
     assert get_requests_mocker() == _mocker
+
+
+def test_mocker_reset(mocker):
+    mocker.patch(
+        'connect.client.testing.fluent._mocker.stop',
+        side_effect=Exception('error'),
+    )
+    mocked_reset = mocker.patch('connect.client.testing.fluent._mocker.reset')
+    mocker = ConnectClientMocker('http://localhost')
+    with pytest.raises(Exception):
+        mocker.reset()
+    mocked_reset.assert_called_once()
