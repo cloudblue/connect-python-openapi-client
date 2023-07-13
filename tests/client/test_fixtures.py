@@ -1,6 +1,7 @@
+import pytest
 import requests
 
-from connect.client import ConnectClient
+from connect.client import ClientError, ConnectClient
 
 
 def test_client_mocker_factory(client_mocker_factory):
@@ -9,6 +10,12 @@ def test_client_mocker_factory(client_mocker_factory):
 
     client = ConnectClient('api_key', endpoint='http://example.com')
     assert client.products.create(payload={}) == {'id': 'PRD-000'}
+
+
+def test_client_mocker_factory_finalizer():
+    client = ConnectClient('api_key', endpoint='http://example.com')
+    with pytest.raises(ClientError):
+        client.products.create(payload={})
 
 
 def test_client_mocker_factory_default_base_url(client_mocker_factory):
