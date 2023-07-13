@@ -17,6 +17,7 @@ def client_mocker_factory(request):
     mocker = None
 
     def _wrapper(base_url='https://example.org/public/v1', exclude=None):
+        nonlocal mocker
         mocker = ConnectClientMocker(base_url, exclude=exclude)
         mocker.start()
         return mocker
