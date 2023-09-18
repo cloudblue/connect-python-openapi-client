@@ -36,7 +36,7 @@ class _ConnectClientBase(threading.local):
         default_limit=100,
         max_retries=3,
         logger=None,
-        timeout=(180.0, 180.0),
+        timeout=(15.0, 180.0),
         resourceset_append=True,
     ):
         if default_headers and 'Authorization' in default_headers:

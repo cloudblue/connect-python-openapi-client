@@ -400,7 +400,7 @@ def test_execute_with_default_timeout(mocker):
         'post',
         'https://localhost/resources',
         {
-            'timeout': (180.0, 180.0),
+            'timeout': (15.0, 180.0),
             'headers': {
                 'Authorization': 'API_KEY',
                 'User-Agent': mocker.ANY,

@@ -102,7 +102,7 @@ class SyncClientMixin:
                 self.response = self._session.request(method, url, **kwargs)
                 if self.logger:
                     self.logger.log_response(self.response)
-            except Timeout:
+            except RequestException:
                 if retry_count < self.max_retries:
                     retry_count += 1
                     time.sleep(1)
@@ -208,11 +208,17 @@ class AsyncClientMixin:
             if self.logger:
                 self.logger.log_request(method, url, kwargs)
 
-            self.response = await self._session.request(method, url, **kwargs)
+            try:
+                self.response = await self._session.request(method, url, **kwargs)
 
-            if self.logger:
-                self.logger.log_response(self.response)
-
+                if self.logger:
+                    self.logger.log_response(self.response)
+            except HTTPError:
+                if retry_count < self.max_retries:
+                    retry_count += 1
+                    time.sleep(1)
+                    continue
+                raise
             if (  # pragma: no branch
                 self.response.status_code >= 500 and retry_count < self.max_retries
             ):
@@ -220,6 +226,7 @@ class AsyncClientMixin:
                 time.sleep(1)
                 continue
             break  # pragma: no cover
+
         if self.response.status_code >= 400:
             self.response.raise_for_status()
 
