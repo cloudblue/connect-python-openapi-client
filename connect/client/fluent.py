@@ -10,6 +10,7 @@ from typing import Union
 
 import httpx
 import requests
+from requests.adapters import HTTPAdapter
 
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
 from connect.client.help_formatter import DefaultFormatter
@@ -24,7 +25,11 @@ from connect.client.openapi import OpenAPISpecs
 from connect.client.utils import get_headers
 
 
-class _ConnectClientBase(threading.local):
+_SYNC_TRANSPORTS = {}
+_ASYNC_TRANSPORTS = {}
+
+
+class _ConnectClientBase:
     def __init__(
         self,
         api_key,
@@ -53,24 +58,10 @@ class _ConnectClientBase(threading.local):
         self.specs = None
         if self._use_specs:
             self.specs = OpenAPISpecs(self.specs_location)
-        self._response = None
         self.logger = logger
         self._help_formatter = DefaultFormatter(self.specs)
         self.timeout = timeout
         self.resourceset_append = resourceset_append
-
-    @property
-    def response(self) -> requests.Response:
-        """
-        Returns the raw
-        [`requests`](https://requests.readthedocs.io/en/latest/api/#requests.Response)
-        response.
-        """
-        return self._response
-
-    @response.setter
-    def response(self, value: requests.Response):
-        self._response = value
 
     def __getattr__(self, name):
         if '_' in name:
@@ -173,7 +164,7 @@ class _ConnectClientBase(threading.local):
                 pass
 
 
-class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
+class ConnectClient(_ConnectClientBase, SyncClientMixin):
     """
     Create a new instance of the ConnectClient.
 
@@ -203,7 +194,33 @@ class ConnectClient(_ConnectClientBase, threading.local, SyncClientMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._session = requests.Session()
+        self._thread_locals = threading.local()
+        self._thread_locals.response = None
+        self._thread_locals.session = requests.Session()
+        self._thread_locals.session.mount(
+            self.endpoint,
+            _SYNC_TRANSPORTS.setdefault(
+                self.endpoint,
+                HTTPAdapter(),
+            ),
+        )
+
+    @property
+    def session(self):
+        return self._thread_locals.session
+
+    @property
+    def response(self) -> requests.Response:
+        """
+        Returns the raw
+        [`requests`](https://requests.readthedocs.io/en/latest/api/#requests.Response)
+        response.
+        """
+        return self._thread_locals.response
+
+    @response.setter
+    def response(self, value: requests.Response):
+        self._thread_locals.response = value
 
     def _get_collection_class(self):
         return Collection
@@ -246,7 +263,19 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
-        self._session = httpx.AsyncClient(verify=_SSL_CONTEXT)
+        self._session = contextvars.ContextVar(
+            'session',
+            default=httpx.AsyncClient(
+                transport=_ASYNC_TRANSPORTS.setdefault(
+                    self.endpoint,
+                    httpx.AsyncHTTPTransport(verify=_SSL_CONTEXT),
+                ),
+            ),
+        )
+
+    @property
+    def session(self):
+        return self._session.get()
 
     @property
     def response(self):
