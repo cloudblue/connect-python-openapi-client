@@ -549,4 +549,4 @@ def test_sync_client_manage_response():
     c = ConnectClient('API_KEY')
     assert c.response is None
     c.response = 'Some response'
-    assert c._response == 'Some response'
+    assert c._thread_locals.response == 'Some response'

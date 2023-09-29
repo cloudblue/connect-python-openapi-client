@@ -99,7 +99,7 @@ class SyncClientMixin:
             if self.logger:
                 self.logger.log_request(method, url, kwargs)
             try:
-                self.response = self._session.request(method, url, **kwargs)
+                self.response = self.session.request(method, url, **kwargs)
                 if self.logger:
                     self.logger.log_response(self.response)
             except RequestException:
@@ -209,7 +209,7 @@ class AsyncClientMixin:
                 self.logger.log_request(method, url, kwargs)
 
             try:
-                self.response = await self._session.request(method, url, **kwargs)
+                self.response = await self.session.request(method, url, **kwargs)
 
                 if self.logger:
                     self.logger.log_response(self.response)
