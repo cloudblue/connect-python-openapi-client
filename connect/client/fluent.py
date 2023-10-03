@@ -64,6 +64,8 @@ class _ConnectClientBase:
         self.resourceset_append = resourceset_append
 
     def __getattr__(self, name):
+        if name in ('session', 'response'):
+            return self.__getattribute__(name)
         if '_' in name:
             name = name.replace('_', '-')
         return self.collection(name)
@@ -195,18 +197,19 @@ class ConnectClient(_ConnectClientBase, SyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._thread_locals = threading.local()
-        self._thread_locals.response = None
-        self._thread_locals.session = requests.Session()
-        self._thread_locals.session.mount(
-            self.endpoint,
-            _SYNC_TRANSPORTS.setdefault(
-                self.endpoint,
-                HTTPAdapter(),
-            ),
-        )
 
     @property
     def session(self):
+        if not hasattr(self._thread_locals, 'session'):
+            self._thread_locals.session = requests.Session()
+            self._thread_locals.session.mount(
+                self.endpoint,
+                _SYNC_TRANSPORTS.setdefault(
+                    self.endpoint,
+                    HTTPAdapter(),
+                ),
+            )
+
         return self._thread_locals.session
 
     @property
@@ -216,6 +219,8 @@ class ConnectClient(_ConnectClientBase, SyncClientMixin):
         [`requests`](https://requests.readthedocs.io/en/latest/api/#requests.Response)
         response.
         """
+        if not hasattr(self._thread_locals, 'response'):
+            self._thread_locals.response = None
         return self._thread_locals.response
 
     @response.setter
@@ -263,19 +268,20 @@ class AsyncConnectClient(_ConnectClientBase, AsyncClientMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._response = contextvars.ContextVar('response', default=None)
-        self._session = contextvars.ContextVar(
-            'session',
-            default=httpx.AsyncClient(
+        self._session = contextvars.ContextVar('session', default=None)
+
+    @property
+    def session(self):
+        value = self._session.get()
+        if not value:
+            value = httpx.AsyncClient(
                 transport=_ASYNC_TRANSPORTS.setdefault(
                     self.endpoint,
                     httpx.AsyncHTTPTransport(verify=_SSL_CONTEXT),
                 ),
-            ),
-        )
-
-    @property
-    def session(self):
-        return self._session.get()
+            )
+            self._session.set(value)
+        return value
 
     @property
     def response(self):

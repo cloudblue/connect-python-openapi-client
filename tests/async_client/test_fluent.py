@@ -454,3 +454,35 @@ async def test_parallel_tasks(httpx_mock):
         assert obj == {'idx': idx}
 
     asyncio.gather(*[asyncio.create_task(fetcher(c, idx)) for idx in range(100)])
+
+
+@pytest.mark.asyncio
+async def test_concurrency(httpx_mock):
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources?limit=1&offset=0',
+        json=[{'id': 1}],
+        status_code=200,
+    )
+
+    httpx_mock.add_response(
+        method='GET',
+        url='https://localhost/resources?limit=1&offset=0',
+        json=[{'id': 2}],
+        status_code=200,
+    )
+
+    async def io_func(client):
+        resp = await client.resources.all().first()
+        return resp, client.response, client.session
+
+    c = AsyncConnectClient('API_KEY', endpoint='https://localhost')
+
+    res1, resp1, ses1 = await asyncio.create_task(io_func(c))
+    res2, resp2, ses2 = await asyncio.create_task(io_func(c))
+
+    assert res1 != res2
+    assert resp1.json() != resp2.json()
+    assert ses1 != ses2
+    assert ses1._transport == ses2._transport
+    assert c.response is None
