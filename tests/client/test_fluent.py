@@ -1,4 +1,5 @@
 import io
+from threading import Thread
 
 import pytest
 import responses
@@ -550,3 +551,58 @@ def test_sync_client_manage_response():
     assert c.response is None
     c.response = 'Some response'
     assert c._thread_locals.response == 'Some response'
+
+
+def test_concurrency(mocked_responses):
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        json=[{'id': 1}],
+    )
+
+    mocked_responses.add(
+        responses.GET,
+        'https://localhost/resources',
+        json=[{'id': 2}],
+    )
+
+    def io_func(client, results):
+        resp = client.resources.all().first()
+        results.extend([resp, client.response, client.session])
+
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
+
+    results1 = []
+    results2 = []
+
+    t1 = Thread(target=io_func, args=(c, results1))
+    t2 = Thread(target=io_func, args=(c, results2))
+
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
+
+    res1 = results1[0]
+    resp1 = results1[1]
+    ses1 = results1[2]
+
+    res2 = results2[0]
+    resp2 = results2[1]
+    ses2 = results2[2]
+
+    assert res1 != res2
+    assert resp1.json() != resp2.json()
+    assert ses1 != ses2
+    assert ses1.adapters['https://localhost'] == ses2.adapters['https://localhost']
+    assert c.response is None
+
+
+def test_getattr():
+    c = ConnectClient('API_KEY', endpoint='https://localhost')
+    c._thread_locals.session = 'mysession'
+    c._thread_locals.response = 'myresponse'
+
+    assert c.__getattr__('session') == 'mysession'
+    assert c.__getattr__('response') == 'myresponse'
+    assert isinstance(c.__getattr__('anything'), Collection)
