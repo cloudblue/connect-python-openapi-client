@@ -312,8 +312,11 @@ class ResourceSet(_ResourceSetBase):
         return iter(self._results)
 
     def __bool__(self):
-        self._fetch_all()
-        return bool(self._results)
+        if self._results is not None:
+            return bool(self._results)
+        copy = self._copy()
+        copy._fetch_all()
+        return bool(copy._results)
 
     def __getitem__(self, key):  # noqa: CCR001
         self._validate_key(key)
