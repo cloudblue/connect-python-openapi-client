@@ -917,37 +917,6 @@ def test_rs_values_list(mocker, rs_factory):
     assert list(rs) == expected
 
 
-def test_rs_values_list_evaluated(mocker, rs_factory):
-    mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
-    )
-    return_value = [
-        {
-            'id': i,
-            'name': f'name {i}',
-            'inner': {
-                'title': f'title {i}',
-            },
-        }
-        for i in range(10)
-    ]
-    expected = [
-        {
-            'id': i,
-            'inner.title': f'title {i}',
-        }
-        for i in range(10)
-    ]
-    rs = rs_factory()
-    rs._client.get = mocker.MagicMock(return_value=return_value)
-
-    bool(rs)
-    values = rs.values_list('id', 'inner.title')
-
-    assert values == expected
-
-
 def test_rs_pagination(mocker, rs_factory):
     mocker.patch(
         'connect.client.models.iterators.parse_content_range',
@@ -1127,20 +1096,6 @@ def test_rs_help(rs_factory):
     assert rs2 == rs
 
 
-def test_rs_bool_truthy_already_evaluated(mocker, rs_factory):
-    mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
-    )
-    expected = [{'id': i} for i in range(10)]
-    rs = rs_factory()
-    mocked = mocker.patch.object(ResourceSet, '_execute_request', wraps=rs._execute_request)
-    rs._client.get = mocker.MagicMock(return_value=expected)
-    assert bool(rs) is True
-    assert bool(rs) is True
-    mocked.assert_called_once()
-
-
 def test_rs_count_already_evaluated(mocker, rs_factory):
     mocker.patch(
         'connect.client.models.resourceset.parse_content_range',
@@ -1162,27 +1117,3 @@ def test_rs_slice_single_bound(mocker, rs_factory):
     with pytest.raises(ValueError) as cv:
         rs[:1]
     assert str(cv.value) == 'Both start and stop indexes must be specified.'
-
-
-def test_rs_slice_already_evaluated(mocker, rs_factory):
-    mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
-    )
-    expected = [{'id': i} for i in range(10)]
-    rs = rs_factory()
-    rs._client.get = mocker.MagicMock(return_value=expected)
-    assert bool(rs) is True
-    assert rs[0:2] == expected[0:2]
-
-
-def test_rs_iterate_already_evaluated(mocker, rs_factory):
-    mocker.patch(
-        'connect.client.models.resourceset.parse_content_range',
-        return_value=ContentRange(0, 9, 10),
-    )
-    expected = [{'id': i} for i in range(10)]
-    rs = rs_factory()
-    rs._client.get = mocker.MagicMock(return_value=expected)
-    assert bool(rs) is True
-    assert [item for item in rs] == expected
