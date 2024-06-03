@@ -487,7 +487,6 @@ def test_execute_delete(mocked_responses):
     mocked_responses.add(
         responses.DELETE,
         'https://localhost/resources',
-        body='error text',
         status=204,
     )
 
