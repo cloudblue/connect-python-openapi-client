@@ -10,7 +10,6 @@ import httpx
 import responses
 from pytest import MonkeyPatch
 from pytest_httpx import HTTPXMock
-from pytest_httpx._httpx_mock import _PytestAsyncTransport
 from responses import matchers
 
 from connect.client.fluent import _ConnectClientBase
@@ -176,20 +175,22 @@ class AsyncConnectClientMocker(ConnectClientMocker):
 
     def start(self):
         patterns = self.exclude if isinstance(self.exclude, (list, tuple, set)) else [self.exclude]
-        real_async_transport = httpx.AsyncClient._transport_for_url
+        real_handle_async_request = httpx.AsyncHTTPTransport.handle_async_request
 
-        def transport_for_url(self, url):
+        async def mocked_handle_async_request(
+            transport: httpx.AsyncHTTPTransport, request: httpx.Request
+        ) -> httpx.Response:
             for pattern in patterns:
-                if (isinstance(pattern, re.Pattern) and pattern.match(str(url))) or (
-                    isinstance(pattern, str) and str(url).startswith(pattern)
+                if (isinstance(pattern, re.Pattern) and pattern.match(str(request.url))) or (
+                    isinstance(pattern, str) and str(request.url).startswith(pattern)
                 ):
-                    return real_async_transport(self, url)
-            return _PytestAsyncTransport(_async_mocker)
+                    return await real_handle_async_request(transport, request)
+            return await _async_mocker._handle_async_request(transport, request)
 
         _monkeypatch.setattr(
-            httpx.AsyncClient,
-            '_transport_for_url',
-            transport_for_url,
+            httpx.AsyncHTTPTransport,
+            "handle_async_request",
+            mocked_handle_async_request,
         )
 
     def reset(self, success=True):

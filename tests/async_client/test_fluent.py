@@ -368,7 +368,6 @@ async def test_execute_delete(httpx_mock):
     httpx_mock.add_response(
         method='DELETE',
         url='https://localhost/resources',
-        text='error text',
         status_code=204,
     )
 
