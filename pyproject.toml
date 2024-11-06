@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "connect-openapi-client"
-version = "29.4"
+version = "29.5"
 description = "Connect Python OpenAPI Client"
 authors = ["CloudBlue"]
 license = "Apache-2.0"
@@ -43,7 +43,7 @@ inflect = ">=4.1"
 httpx = ">=0.23"
 asgiref = "^3.3.4"
 responses = ">=0.14.0,<1"
-pytest-httpx = ">=0.27"
+pytest-httpx = ">=0.27,<0.30"
 importlib-metadata = "^6.6"
 
 [tool.poetry.group.test.dependencies]
