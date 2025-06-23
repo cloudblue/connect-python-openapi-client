@@ -1,7 +1,7 @@
 #
-# This file is part of the Ingram Micro CloudBlue Connect Python OpenAPI Client.
+# This file is part of the CloudBlue Connect Python OpenAPI Client.
 #
-# Copyright (c) 2023 Ingram Micro. All Rights Reserved.
+# Copyright (c) 2025 CloudBlue. All Rights Reserved.
 #
 from functools import partial
 from io import StringIO
