@@ -5,10 +5,7 @@
 #
 # Copyright (c) 2023 Ingram Micro. All Rights Reserved.
 #
-try:
-    from importlib.metadata import version
-except Exception:
-    from importlib_metadata import version
+from importlib.metadata import version
 
 
 def get_version():
