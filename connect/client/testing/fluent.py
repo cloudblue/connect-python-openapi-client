@@ -10,6 +10,7 @@ import httpx
 import responses
 from pytest import MonkeyPatch
 from pytest_httpx import HTTPXMock
+from pytest_httpx._options import _HTTPXMockOptions
 from responses import matchers
 
 from connect.client.fluent import _ConnectClientBase
@@ -165,7 +166,13 @@ class ConnectClientMocker(_ConnectClientBase):
 
 
 _monkeypatch = MonkeyPatch()
-_async_mocker = HTTPXMock()
+# The ConnectClient retries requests, so a single registered response must be
+# able to answer repeated (retried) requests.
+_async_mocker = HTTPXMock(
+    _HTTPXMockOptions(
+        can_send_already_matched_responses=True,
+    ),
+)
 
 
 class AsyncConnectClientMocker(ConnectClientMocker):
@@ -194,8 +201,14 @@ class AsyncConnectClientMocker(ConnectClientMocker):
         )
 
     def reset(self, success=True):
-        _async_mocker.reset(success)
-        _monkeypatch.undo()
+        try:
+            if success:
+                # pytest-httpx>=0.31 no longer asserts on reset(); do it explicitly
+                # so unrequested mocks / unexpected requests still fail the test.
+                _async_mocker._assert_options()
+        finally:
+            _async_mocker.reset()
+            _monkeypatch.undo()
 
     def mock(
         self,
@@ -222,7 +235,12 @@ class AsyncConnectClientMocker(ConnectClientMocker):
 
         if match_body:
             if isinstance(match_body, (dict, list, tuple)):
-                kwargs['match_content'] = json.dumps(match_body).encode('utf-8')
+                # httpx>=0.28 serializes JSON request bodies compactly, so match
+                # the same separators or match_content won't compare equal.
+                kwargs['match_content'] = json.dumps(
+                    match_body,
+                    separators=(',', ':'),
+                ).encode('utf-8')
             else:
                 kwargs['match_content'] = match_body
 

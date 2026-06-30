@@ -348,6 +348,10 @@ async def test_execute_uparseable_connect_error(httpx_mock):
 
 
 @pytest.mark.asyncio
+@pytest.mark.httpx_mock(
+    assert_all_requests_were_expected=False,
+    can_send_already_matched_responses=True,
+)
 @pytest.mark.parametrize('encoding', ('utf-8', 'iso-8859-1'))
 async def test_execute_error_with_reason(httpx_mock, encoding):
     httpx_mock.add_response(
