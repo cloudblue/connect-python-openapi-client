@@ -33,6 +33,9 @@ class AbstractBaseIterator:
 
 
 class AbstractIterator(AbstractBaseIterator):
+    def __iter__(self):
+        return self
+
     def _load(self):
         if not self._loaded:
             self._rs._results, self._rs._content_range = self._execute_request()
@@ -83,6 +86,9 @@ class AbstractIterator(AbstractBaseIterator):
 
 
 class AbstractAsyncIterator(AbstractBaseIterator):
+    def __aiter__(self):
+        return self
+
     async def _load(self):
         if not self._loaded:
             self._rs._results, self._rs._content_range = await self._execute_request()
