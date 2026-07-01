@@ -42,7 +42,7 @@ inflect = ">=7"
 httpx = ">=0.28"
 asgiref = "^3.3.4"
 responses = ">=0.14.0,<1"
-pytest-httpx = ">=0.35"
+pytest-httpx = ">=0.35,<1"
 
 [tool.poetry.group.test.dependencies]
 black = "23.*"

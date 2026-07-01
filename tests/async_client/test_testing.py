@@ -50,6 +50,21 @@ async def test_create():
 
 
 @pytest.mark.asyncio
+async def test_create_match_non_ascii_body():
+    with AsyncConnectClientMocker('http://localhost') as mocker:
+        mocker.products.create(return_value={'test': 'data'}, match_body={'name': 'Peña'})
+        client = AsyncConnectClient('api_key', endpoint='http://localhost')
+        assert await client.products.create(payload={'name': 'Peña'}) == {'test': 'data'}
+
+
+@pytest.mark.asyncio
+async def test_unrequested_mock_fails():
+    with pytest.raises(AssertionError):
+        with AsyncConnectClientMocker('http://localhost') as mocker:
+            mocker.products.create(return_value={'test': 'data'})
+
+
+@pytest.mark.asyncio
 async def test_bulk_create():
     with AsyncConnectClientMocker('http://localhost') as mocker:
         mocker.products.bulk_create(return_value=[{'test': 'data'}])

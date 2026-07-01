@@ -235,11 +235,14 @@ class AsyncConnectClientMocker(ConnectClientMocker):
 
         if match_body:
             if isinstance(match_body, (dict, list, tuple)):
-                # httpx>=0.28 serializes JSON request bodies compactly, so match
-                # the same separators or match_content won't compare equal.
+                # Mirror httpx>=0.28's request-body serialization exactly, or
+                # match_content won't compare equal (compact separators, raw
+                # UTF-8 rather than \uXXXX escapes, and no NaN/Infinity).
                 kwargs['match_content'] = json.dumps(
                     match_body,
                     separators=(',', ':'),
+                    ensure_ascii=False,
+                    allow_nan=False,
                 ).encode('utf-8')
             else:
                 kwargs['match_content'] = match_body
