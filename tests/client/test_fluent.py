@@ -6,7 +6,7 @@ import responses
 from requests import RequestException, Timeout
 
 from connect.client.exceptions import ClientError
-from connect.client.fluent import ConnectClient
+from connect.client.fluent import ConnectClient, _get_environment_proxies
 from connect.client.logger import RequestLogger
 from connect.client.models import NS, Collection
 
@@ -605,3 +605,69 @@ def test_getattr():
     assert c.__getattr__('session') == 'mysession'
     assert c.__getattr__('response') == 'myresponse'
     assert isinstance(c.__getattr__('anything'), Collection)
+
+
+def test_get_environment_proxies_schemes(mocker):
+    """
+    Verify proxy env vars are turned into the httpx mount patterns the async
+    client expects, normalizing bare host:port values to a http:// URL.
+
+    Confidence: our stdlib reimplementation of httpx's proxy discovery keeps the
+    same behaviour after dropping the private ``httpx._utils`` import.
+    """
+    mocker.patch(
+        'connect.client.fluent.getproxies',
+        return_value={
+            'http': 'proxy.example.org:8080',
+            'https': 'http://secure.example.org:8080',
+        },
+    )
+
+    mounts = _get_environment_proxies()
+
+    assert mounts['http://'] == 'http://proxy.example.org:8080'
+    assert mounts['https://'] == 'http://secure.example.org:8080'
+
+
+@pytest.mark.parametrize(
+    ('no_proxy_host', 'expected_key'),
+    (
+        ('localhost', 'all://localhost'),
+        ('.internal', 'all://*.internal'),
+        ('example.com', 'all://*example.com'),
+        ('127.0.0.1', 'all://127.0.0.1'),
+        ('::1', 'all://[::1]'),
+        ('http://direct.example.org', 'http://direct.example.org'),
+    ),
+)
+def test_get_environment_proxies_no_proxy(mocker, no_proxy_host, expected_key):
+    """
+    Verify each NO_PROXY host form (domain, IPv4, IPv6, localhost, explicit
+    scheme) maps to the mount pattern that disables proxying for it.
+
+    Confidence: hosts meant to bypass the proxy actually do, matching curl/httpx
+    NO_PROXY semantics.
+    """
+    mocker.patch(
+        'connect.client.fluent.getproxies',
+        return_value={'all': 'http://proxy.example.org:8080', 'no': no_proxy_host},
+    )
+
+    mounts = _get_environment_proxies()
+
+    assert mounts['all://'] == 'http://proxy.example.org:8080'
+    assert mounts[expected_key] is None
+
+
+def test_get_environment_proxies_wildcard_disables_all(mocker):
+    """
+    Verify NO_PROXY=* discards every configured proxy.
+
+    Confidence: the global bypass wins over any HTTP_PROXY/ALL_PROXY setting.
+    """
+    mocker.patch(
+        'connect.client.fluent.getproxies',
+        return_value={'all': 'http://proxy.example.org:8080', 'no': '*'},
+    )
+
+    assert _get_environment_proxies() == {}
