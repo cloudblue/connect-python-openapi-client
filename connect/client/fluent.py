@@ -4,15 +4,15 @@
 # Copyright (c) 2025 CloudBlue. All Rights Reserved.
 #
 import contextvars
+import ipaddress
 import threading
 from functools import cache
 from json.decoder import JSONDecodeError
 from typing import Union
+from urllib.request import getproxies
 
 import httpx
 import requests
-from httpx._config import Proxy
-from httpx._utils import get_environment_proxies
 from requests.adapters import HTTPAdapter
 
 from connect.client.constants import CONNECT_ENDPOINT_URL, CONNECT_SPECS_URL
@@ -240,6 +240,64 @@ class ConnectClient(_ConnectClientBase, SyncClientMixin):
 _SSL_CONTEXT = httpx.create_ssl_context()
 
 
+def _is_ipv4_hostname(hostname):
+    try:
+        ipaddress.IPv4Address(hostname.split('/')[0])
+    except ValueError:
+        return False
+    return True
+
+
+def _is_ipv6_hostname(hostname):
+    try:
+        ipaddress.IPv6Address(hostname.split('/')[0])
+    except ValueError:
+        return False
+    return True
+
+
+def _get_environment_proxies():
+    """
+    Build httpx mount patterns from the standard proxy environment variables
+    (HTTP_PROXY / HTTPS_PROXY / ALL_PROXY / NO_PROXY and lowercase variants).
+
+    Ported from httpx's internal ``get_environment_proxies`` so we don't depend
+    on the private ``httpx._utils`` module.
+    """
+    proxy_info = getproxies()
+    mounts = {}
+
+    for scheme in ('http', 'https', 'all'):
+        if proxy_info.get(scheme):
+            hostname = proxy_info[scheme]
+            # Default scheme for a scheme-less proxy env var, mirroring httpx's
+            # get_environment_proxies; not an app-level insecure connection.
+            mounts[f'{scheme}://'] = (
+                hostname if '://' in hostname else f'http://{hostname}'  # NOSONAR
+            )
+
+    no_proxy_hosts = [host.strip() for host in proxy_info.get('no', '').split(',')]
+    # NO_PROXY=* bypasses every proxy, so ignore all proxy configuration.
+    if '*' in no_proxy_hosts:
+        return {}
+    for hostname in no_proxy_hosts:
+        if hostname:
+            mounts[_no_proxy_mount(hostname)] = None
+
+    return mounts
+
+
+def _no_proxy_mount(hostname):
+    """Map a single NO_PROXY entry to its httpx mount pattern."""
+    if '://' in hostname:
+        return hostname
+    if _is_ipv6_hostname(hostname):
+        return f'all://[{hostname}]'
+    if _is_ipv4_hostname(hostname) or hostname.lower() == 'localhost':
+        return f'all://{hostname}'
+    return f'all://*{hostname}'
+
+
 @cache
 def _get_async_mounts():
     """
@@ -249,8 +307,8 @@ def _get_async_mounts():
     return {
         key: None
         if url is None
-        else httpx.AsyncHTTPTransport(verify=_SSL_CONTEXT, proxy=Proxy(url=url))
-        for key, url in get_environment_proxies().items()
+        else httpx.AsyncHTTPTransport(verify=_SSL_CONTEXT, proxy=httpx.Proxy(url=url))
+        for key, url in _get_environment_proxies().items()
     }
 
 
