@@ -25,7 +25,7 @@ jobs:
       run: |
         poetry run pytest
     - name: Extract tag name
-      uses: actions/github-script@v6
+      uses: actions/github-script@v9
       id: tag
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}

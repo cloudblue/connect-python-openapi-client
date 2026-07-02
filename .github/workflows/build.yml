@@ -60,10 +60,11 @@ jobs:
         run: |
           sed -i 's/\/home\/runner\/work\/connect-python-openapi-client\/connect-python-openapi-client\//\/github\/workspace\//g' coverage.xml
       - name: SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
       - name: Wait sonar to process report
         uses: jakejarvis/wait-action@master
         with:
