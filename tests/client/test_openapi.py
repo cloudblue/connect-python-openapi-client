@@ -58,13 +58,23 @@ def test_get_namespaces(openapi_specs):
     namespaces = openapi_specs.get_namespaces()
     assert namespaces == [
         'auth',
-        'conversations',
+        'billing',
+        'catalog',
+        'custom',
+        'devops',
         'dictionary',
+        'embed',
         'helpdesk',
+        'leads',
+        'localization',
+        'modules',
         'notifications',
         'offers',
+        'offers-ns',
+        'pim',
         'pricing',
         'reporting',
+        'statistics',
         'subscriptions',
         'tier',
         'usage',
@@ -75,22 +85,33 @@ def test_get_collections(openapi_specs):
     cols = openapi_specs.get_collections()
     assert cols == [
         'accounts',
+        'acl',
         'agreements',
         'assets',
+        'brand',
+        'brands',
         'categories',
         'contracts',
+        'conversations',
         'countries',
+        'domains',
         'extensions',
+        'folders',
         'forms',
         'hubs',
+        'idps',
         'industries',
         'listing-requests',
         'listings',
         'marketplaces',
-        'modules',
+        'metrics',
+        'news',
         'partners',
+        'portal',
         'products',
         'requests',
+        'sla',
+        'sli',
         'users',
     ]
 
@@ -125,7 +146,16 @@ def test_get_resource(openapi_specs):
 
 def test_get_actions(openapi_specs):
     actions = openapi_specs.get_actions('products/PRD-000')
-    assert ['endsale', 'resumesale'] == sorted([x[0] for x in actions])
+    assert [
+        'endsale',
+        'items/{item_id}/taxonomies/{taxonomy_id}/attributes',
+        'items/{item_id}/taxonomies/{taxonomy_id}/attributes/{attribute_id}',
+        'resumesale',
+        'taxonomies',
+        'taxonomies/{id}',
+        'taxonomies/{taxonomy_id}/attributes',
+        'taxonomies/{taxonomy_id}/attributes/{attribute_id}',
+    ] == sorted([x[0] for x in actions])
 
 
 def test_get_action(openapi_specs):
@@ -140,13 +170,16 @@ def test_get_nested_collections(openapi_specs):
     nested = openapi_specs.get_nested_collections('products/PRD-000')
     assert [
         'actions',
-        'agreements',
         'configurations',
         'connections',
+        'guidelines',
+        'item-groups',
         'items',
         'localizations',
         'media',
+        'messages',
         'parameters',
+        'taxonomies',
         'templates',
         'usage',
         'versions',
