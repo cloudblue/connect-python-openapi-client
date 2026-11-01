@@ -3,7 +3,6 @@
 #
 # Copyright (c) 2025 CloudBlue. All Rights Reserved.
 #
-import inflect
 from connect.utils.terminal.markdown import render
 
 from connect.client.models import (
@@ -29,7 +28,7 @@ _COL_HTTP_METHOD_TO_METHOD = {
 class DefaultFormatter:
     def __init__(self, specs):
         self._specs = specs
-        self._p = inflect.engine()
+        self._p = None
 
     def format_client(self):
         lines = [
@@ -107,6 +106,11 @@ class DefaultFormatter:
             return render(f'~~{resource.path}~~ **does not exists.**')
 
         resource_name = resource.path.split('/')[-2]
+        if self._p is None:
+            # inflect takes most of a second to import, so only the help of a resource loads it.
+            import inflect
+
+            self._p = inflect.engine()
         resource_name = self._p.singular_noun(resource_name)
         lines = [
             f'# {resource_name.title()} resource',
