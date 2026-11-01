@@ -411,6 +411,6 @@ def test_mocker_reset(mocker):
     )
     mocked_reset = mocker.patch('connect.client.testing.fluent._mocker.reset')
     mocker = ConnectClientMocker('http://localhost')
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match='error'):
         mocker.reset()
     mocked_reset.assert_called_once()
