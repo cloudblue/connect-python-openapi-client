@@ -100,18 +100,20 @@ class DefaultFormatter:
 
         return render('\n'.join(lines))
 
-    def format_resource(self, resource):
-        res_info = self._specs.get_resource(resource.path)
-        if not res_info:
-            return render(f'~~{resource.path}~~ **does not exists.**')
-
-        resource_name = resource.path.split('/')[-2]
+    def _singular(self, noun):
         if self._p is None:
             # inflect takes most of a second to import, so only the help of a resource loads it.
             import inflect
 
             self._p = inflect.engine()
-        resource_name = self._p.singular_noun(resource_name)
+        return self._p.singular_noun(noun)
+
+    def format_resource(self, resource):
+        res_info = self._specs.get_resource(resource.path)
+        if not res_info:
+            return render(f'~~{resource.path}~~ **does not exists.**')
+
+        resource_name = self._singular(resource.path.split('/')[-2])
         lines = [
             f'# {resource_name.title()} resource',
             f'**path: /{resource.path}**',
