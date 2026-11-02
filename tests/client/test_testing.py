@@ -23,11 +23,16 @@ def test_create():
         client = ConnectClient('api_key', endpoint='http://localhost')
         assert client.products.create(data=b'binary content') == {'test': 'data'}
 
-    with pytest.raises(ClientError):
-        with ConnectClientMocker('http://localhost') as mocker:
-            mocker.products.create(return_value={'test': 'data'}, match_body=b'another content')
-            client = ConnectClient('api_key', endpoint='http://localhost')
-            assert client.products.create(data=b'binary content') == {'test': 'data'}
+    mocker = ConnectClientMocker('http://localhost')
+    mocker.start()
+    try:
+        mocker.products.create(return_value={'test': 'data'}, match_body=b'another content')
+        products = ConnectClient('api_key', endpoint='http://localhost').products
+        with pytest.raises(ClientError):
+            products.create(data=b'binary content')
+    finally:
+        # The mocked request is meant not to match, so don't check that it was used.
+        mocker.reset(success=False)
 
     with ConnectClientMocker('http://localhost') as mocker:
         mocker('my_namespace').products.create(return_value={'test': 'data'})
@@ -350,21 +355,23 @@ def test_count_error():
     with ConnectClientMocker('http://localhost') as mocker:
         mocker.products.all().count(status_code=500)
 
-        client = ConnectClient('api_key', endpoint='http://localhost')
+        products = ConnectClient('api_key', endpoint='http://localhost').products.all()
         with pytest.raises(ClientError) as cv:
-            client.products.all().count()
+            products.count()
 
         assert cv.value.status_code == 500
 
 
 def test_invalid_return_value():
-    with pytest.raises(TypeError):
-        with ConnectClientMocker('http://localhost') as mocker:
-            mocker.products.all().mock(return_value='hello')
+    with ConnectClientMocker('http://localhost') as mocker:
+        products = mocker.products.all()
+        with pytest.raises(TypeError):
+            products.mock(return_value='hello')
 
-    with pytest.raises(TypeError):
-        with ConnectClientMocker('http://localhost') as mocker:
-            mocker.products.all().count(return_value='hello')
+    with ConnectClientMocker('http://localhost') as mocker:
+        products = mocker.products.all()
+        with pytest.raises(TypeError):
+            products.count(return_value='hello')
 
 
 def test_inner_mockers():
