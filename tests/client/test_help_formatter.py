@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import pytest
 
 from connect.client.help_formatter import DefaultFormatter
@@ -107,3 +110,14 @@ def test_format_rs(openapi_specs, rs_factory):
     rs = rs_factory(path='does-not-exists')
     formatted = formatter.format(rs)
     assert 'does not exist' in formatted
+
+
+def test_importing_the_client_does_not_import_inflect():
+    result = subprocess.run(
+        [sys.executable, '-c', 'import sys, connect.client; print("inflect" in sys.modules)'],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout.strip() == 'False'
